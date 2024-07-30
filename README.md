@@ -1,3 +1,11 @@
+---
+# This repository has been moved to GitHub
+# https://github.com/tempo-io/jiraclient
+
+---
+
+
+
 This branch contains the version compatible **only with Jira Cloud**.
 If you need to build the application compatible with Jira Server or Data Center, please switch to the [server](https://bitbucket.org/almworks/jiraclient/branch/server) branch.
 See the Branches section below for details.
