@@ -33,7 +33,7 @@
   <component name="ProjectResources">
     <default-html-doctype>http://www.w3.org/1999/xhtml</default-html-doctype>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8_192" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8_192" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build.idea" />
   </component>
   <component name="SvnBranchConfigurationManager">
@@ -242,9 +242,9 @@
     <option name="myModel">
       <IssueLinkModel>
         <option name="autodetectStatus" value="false" />
-        <option name="deskzillaWorkspace" value="$TEST_AREA$/JIRAClient/released.2" />
+        <option name="deskzillaWorkspace" value="$PROJECT_DIR$/TestArea/JIRAClient/released.2" />
         <option name="integrateWith" value="2" />
-        <option name="myDeskzillaWorkspace" value="$TEST_AREA$/JIRAClient/released.2" />
+        <option name="myDeskzillaWorkspace" value="$PROJECT_DIR$/TestArea/JIRAClient/released.2" />
         <option name="myIntegrateWith" value="2" />
         <option name="myAutodetectStatus" value="false" />
       </IssueLinkModel>
