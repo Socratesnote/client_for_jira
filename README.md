@@ -51,13 +51,13 @@ In order to build the project you need [Apache Ant](https://ant.apache.org/) and
 
 6. Open command line terminal and go to the [ant](ant) directory (`cd ant`)
 
-7. Run the [build.sh](ant/build.sh) shell script (`./build.sh`)
+7. Run the [build.sh](ant/build.sh) shell script (`bash ./build.sh`)
 
 8. When the build successfully completes, find built application in the [build/.dist/jiraclient](/build/.dist/jiraclient)
 directory.
 
      Find ZIPed application in the [build/.dist/jiraclient-NNNN.zip](/build/.dist/jiraclient-9876.zip) file.
-   
+
 For more details see the [build documentation](ant/BUILD.md)   
 
 ## How to Run

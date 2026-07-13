@@ -70,8 +70,8 @@ public class ResolutionEditor implements SingleEnumDefaultValue {
     EngineConsts.ensureGuiFeatureManager(source, model);
     model.putHint(myFixedKey, candidate);
   }
-
-  private static final List<String> DEFAULT_RESOLUTION_NAMES = Arrays.asList("fixed", "behoben", "corrigé", "修正済み", "solucionada");
+// English, Russian, German, Spanish, French as in SpellCheckerConfig.java.
+  private static final List<String> DEFAULT_RESOLUTION_NAMES = Arrays.asList("fixed", "зафиксированный", "behoben", "solucionada", "corrigé");
   private static final String SETTING_DEFAULT_RESOLUTION = "workflow.resolve.defaultResolution";
 
   private static long findDefaultResolution(VersionSource source, long connection) {

@@ -384,6 +384,7 @@
             srcdir="${{dir.project}}/{$MODULE_DIR}/${{subdir.java.production}}"
             destdir="${{dir.class.prodcode}}/{$MODULE_NAME}"
             classpathref="classpath.{$MODULE_NAME}"
+			  encoding="UTF-8"
             />
         </target>
 
@@ -407,6 +408,7 @@
             srcdir="${{dir.project}}/{$MODULE_DIR}/${{subdir.java.tests}}"
             destdir="${{dir.class.testcode}}/{$MODULE_NAME}"
             classpathref="classpath.tests.{$MODULE_NAME}"
+			  encoding="UTF-8"
             />
         </target>
 
