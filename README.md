@@ -53,6 +53,9 @@ In order to build the project you need [Apache Ant](https://ant.apache.org/) and
 
 7. Run the [build.sh](ant/build.sh) shell script (`bash ./build.sh`)
 
+Note: disable the "breakonfail" for now, because compile tests don't pass.
+Make sure you have the "Swing GUI Designer" plugin installed in IDEA otherwise the program will not run.
+
 8. When the build successfully completes, find built application in the [build/.dist/jiraclient](/build/.dist/jiraclient)
 directory.
 

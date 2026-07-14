@@ -18,6 +18,8 @@ import com.almworks.util.i18n.Local;
 import com.almworks.util.model.ValueModel;
 import com.almworks.util.ui.GlobalColors;
 import com.almworks.util.ui.UIUtil;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.almworks.util.Util;
 import org.almworks.util.detach.Lifespan;
 
@@ -28,103 +30,165 @@ import java.util.Date;
 import java.util.List;
 
 public class EditWorkPeriodForm {
-  private JPanel myWholePanel;
-  private JTextArea myComments;
-  private ADateField myFinished;
-  private ADateField myStarted;
-  private AComboBox<LoadedItem> myIssue;
-  private JLabel myIssueLabel;
-  private JLabel myCurrentLabel;
+    private JPanel myWholePanel;
+    private JTextArea myComments;
+    private ADateField myFinished;
+    private ADateField myStarted;
+    private AComboBox<LoadedItem> myIssue;
+    private JLabel myIssueLabel;
+    private JLabel myCurrentLabel;
 
-  private final ValueModel<Date> myStartedModel = ValueModel.create();
-  private final ValueModel<Date> myFinishedModel = ValueModel.create();
-  private final SelectionInListModel<LoadedItem> myIssueModel = SelectionInListModel.create();
-  private List<WorkPeriod> myOtherWork;
+    private final ValueModel<Date> myStartedModel = ValueModel.create();
+    private final ValueModel<Date> myFinishedModel = ValueModel.create();
+    private final SelectionInListModel<LoadedItem> myIssueModel = SelectionInListModel.create();
+    private List<WorkPeriod> myOtherWork;
 
-  public EditWorkPeriodForm() {
-    myStarted.setDateModel(myStartedModel);
-    myFinished.setDateModel(myFinishedModel);
-    myIssue.setCanvasRenderer(new CanvasRenderer<LoadedItem>() {
-      final TimeTrackingCustomizer myCustomizer = Context.require(TimeTrackingCustomizer.ROLE);
+    public EditWorkPeriodForm() {
+        $$$setupUI$$$();
+        myStarted.setDateModel(myStartedModel);
+        myFinished.setDateModel(myFinishedModel);
+        myIssue.setCanvasRenderer(new CanvasRenderer<LoadedItem>() {
+            final TimeTrackingCustomizer myCustomizer = Context.require(TimeTrackingCustomizer.ROLE);
 
-      public void renderStateOn(CellState state, Canvas canvas, LoadedItem item) {
-        if (item == null) {
-          canvas.setFontStyle(Font.ITALIC);
-          canvas.appendText("please select " + English.a(Local.parse(Terms.ref_artifact)));
-          return;
-        }
+            public void renderStateOn(CellState state, Canvas canvas, LoadedItem item) {
+                if (item == null) {
+                    canvas.setFontStyle(Font.ITALIC);
+                    canvas.appendText("please select " + English.a(Local.parse(Terms.ref_artifact)));
+                    return;
+                }
 
-        final Pair<String, String> kns = myCustomizer.getItemKeyAndSummary(item);
-        final String key = kns.getFirst();
-        final String summary = kns.getSecond();
+                final Pair<String, String> kns = myCustomizer.getItemKeyAndSummary(item);
+                final String key = kns.getFirst();
+                final String summary = kns.getSecond();
 
-        if (key.length() > 0)
-          canvas.appendText(key);
-        if (key.length() > 0 && summary.length() > 0)
-          canvas.appendText(" ");
-        if (summary.length() > 0)
-          canvas.appendText(summary);
-      }
-    });
-    myIssue.setModel(myIssueModel);
-    myIssueLabel.setText(Local.parse(Terms.ref_Artifact + ":"));
-    myCurrentLabel.setForeground(GlobalColors.ERROR_COLOR);
-    myCurrentLabel.setBorder(new EmptyBorder(5, 5, 10, 5));
-    myCurrentLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
-    myCurrentLabel.setVisible(false);
-    UIUtil.setDefaultLabelAlignment(myWholePanel);
-    Aqua.disableMnemonics(myWholePanel);
-  }
+                if (key.length() > 0)
+                    canvas.appendText(key);
+                if (key.length() > 0 && summary.length() > 0)
+                    canvas.appendText(" ");
+                if (summary.length() > 0)
+                    canvas.appendText(summary);
+            }
+        });
+        myIssue.setModel(myIssueModel);
+        myIssueLabel.setText(Local.parse(Terms.ref_Artifact + ":"));
+        myCurrentLabel.setForeground(GlobalColors.ERROR_COLOR);
+        myCurrentLabel.setBorder(new EmptyBorder(5, 5, 10, 5));
+        myCurrentLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
+        myCurrentLabel.setVisible(false);
+        UIUtil.setDefaultLabelAlignment(myWholePanel);
+        Aqua.disableMnemonics(myWholePanel);
+    }
 
-  private void createUIComponents() {
-    myFinished = new ADateField(ADateField.Precision.DATE_TIME);
-    myStarted = new ADateField(ADateField.Precision.DATE_TIME);
-  }
+    private void createUIComponents() {
+        myFinished = new ADateField(ADateField.Precision.DATE_TIME);
+        myStarted = new ADateField(ADateField.Precision.DATE_TIME);
+    }
 
-  public void setArtifacts(AListModel<LoadedItem> model, LoadedItem selected) {
-    myIssueModel.setData(Lifespan.FOREVER, model);
-    myIssueModel.setSelectedItem(selected == null && model.getSize() > 0 ? model.getAt(0) : selected);
-  }
+    public void setArtifacts(AListModel<LoadedItem> model, LoadedItem selected) {
+        myIssueModel.setData(Lifespan.FOREVER, model);
+        myIssueModel.setSelectedItem(selected == null && model.getSize() > 0 ? model.getAt(0) : selected);
+    }
 
-  public void setDates(long from, long to) {
-    long now = System.currentTimeMillis();
-    myStartedModel.setValue(new Date(from == 0 ? now : from));
-    myFinishedModel.setValue(new Date(to == 0 ? now : to));
-  }
+    public void setDates(long from, long to) {
+        long now = System.currentTimeMillis();
+        myStartedModel.setValue(new Date(from == 0 ? now : from));
+        myFinishedModel.setValue(new Date(to == 0 ? now : to));
+    }
 
-  public void setOtherWork(List<WorkPeriod> work) {
-    myOtherWork = work;
-  }
+    public void setOtherWork(List<WorkPeriod> work) {
+        myOtherWork = work;
+    }
 
-  public LoadedItem getSelectedArtifact() {
-    return myIssueModel.getSelectedItem();
-  }
+    public LoadedItem getSelectedArtifact() {
+        return myIssueModel.getSelectedItem();
+    }
 
-  public long getFrom() {
-    Date value = myStartedModel.getValue();
-    return value == null ? 0 : value.getTime();
-  }
+    public long getFrom() {
+        Date value = myStartedModel.getValue();
+        return value == null ? 0 : value.getTime();
+    }
 
-  public long getTo() {
-    Date value = myFinishedModel.getValue();
-    return value == null ? 0 : value.getTime();
-  }
+    public long getTo() {
+        Date value = myFinishedModel.getValue();
+        return value == null ? 0 : value.getTime();
+    }
 
-  public String getComments() {
-    return myComments.getText();
-  }
+    public String getComments() {
+        return myComments.getText();
+    }
 
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
 
-  public void setComments(String comments) {
-    myComments.setText(Util.NN(comments));
-  }
+    public void setComments(String comments) {
+        myComments.setText(Util.NN(comments));
+    }
 
-  public void setCurrent(boolean current) {
-    myFinished.setEnabled(!current);
-    myIssue.setEnabled(!current);
-    myCurrentLabel.setVisible(current);
-  }
+    public void setCurrent(boolean current) {
+        myFinished.setEnabled(!current);
+        myIssue.setEnabled(!current);
+        myCurrentLabel.setVisible(current);
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        createUIComponents();
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:noGrow,center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:d:grow"));
+        ((FormLayout) myWholePanel.getLayout()).setRowGroups(new int[][]{new int[]{2, 4, 6}});
+        myIssueLabel = new JLabel();
+        myIssueLabel.setText("Issue:");
+        myIssueLabel.setDisplayedMnemonic('I');
+        myIssueLabel.setDisplayedMnemonicIndex(0);
+        CellConstraints cc = new CellConstraints();
+        myWholePanel.add(myIssueLabel, cc.xy(1, 2));
+        myIssue = new AComboBox();
+        myWholePanel.add(myIssue, cc.xyw(3, 2, 3));
+        final JLabel label1 = new JLabel();
+        label1.setText("Started:");
+        label1.setDisplayedMnemonic('S');
+        label1.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label1, cc.xy(1, 4));
+        myStarted.setColumns(10);
+        myWholePanel.add(myStarted, cc.xy(3, 4));
+        final JLabel label2 = new JLabel();
+        label2.setText("Finished:");
+        label2.setDisplayedMnemonic('F');
+        label2.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label2, cc.xy(1, 6));
+        myFinished.setColumns(10);
+        myWholePanel.add(myFinished, cc.xy(3, 6));
+        final JLabel label3 = new JLabel();
+        label3.setText("Comments:");
+        label3.setDisplayedMnemonic('C');
+        label3.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label3, cc.xy(1, 8, CellConstraints.DEFAULT, CellConstraints.TOP));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        myWholePanel.add(scrollPane1, cc.xyw(3, 8, 3, CellConstraints.FILL, CellConstraints.FILL));
+        myComments = new JTextArea();
+        myComments.setColumns(20);
+        myComments.setRows(4);
+        scrollPane1.setViewportView(myComments);
+        myCurrentLabel = new JLabel();
+        myCurrentLabel.setText("You can only edit start time and comments for the current period.");
+        myWholePanel.add(myCurrentLabel, cc.xyw(1, 1, 5));
+        myIssueLabel.setLabelFor(myIssue);
+        label1.setLabelFor(myStarted);
+        label2.setLabelFor(myFinished);
+        label3.setLabelFor(myComments);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

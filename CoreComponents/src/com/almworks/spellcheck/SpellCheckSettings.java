@@ -13,66 +13,187 @@ import com.almworks.util.ui.ComponentEnabler;
 import com.almworks.util.ui.actions.ActionContext;
 import com.almworks.util.ui.actions.AnActionListener;
 import com.almworks.util.ui.actions.CantPerformException;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.almworks.util.Collections15;
 
 import javax.swing.*;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ResourceBundle;
 
 class SpellCheckSettings {
-  public static final LocalizedAccessor.Value M_TITLE = SpellCheckManager.I18N.getFactory("spellcheck.settings.window.title");
+    public static final LocalizedAccessor.Value M_TITLE = SpellCheckManager.I18N.getFactory("spellcheck.settings.window.title");
 
-  private static final CanvasRenderer<SpellCheckerConfig.DicInfo> DICTIONARY_RENDERER = new CanvasRenderer<SpellCheckerConfig.DicInfo>() {
-    @Override
-    public void renderStateOn(CellState state, Canvas canvas, SpellCheckerConfig.DicInfo item) {
-      canvas.appendText(item.getDisplayName());
+    private static final CanvasRenderer<SpellCheckerConfig.DicInfo> DICTIONARY_RENDERER = new CanvasRenderer<SpellCheckerConfig.DicInfo>() {
+        @Override
+        public void renderStateOn(CellState state, Canvas canvas, SpellCheckerConfig.DicInfo item) {
+            canvas.appendText(item.getDisplayName());
+        }
+    };
+    public static final LocalizedAccessor.Value M_CHOOSE_FILE = SpellCheckManager.I18N.getFactory("spellcheck.settings.userDictionary.file.choose.name");
+
+    private JCheckBox myEnableCheck;
+    private JPanel myWholePanel;
+    private ACheckboxList<SpellCheckerConfig.DicInfo> myDictionaries;
+    private JCheckBox myUseUser;
+    private FileSelectionField myUserDictionaryFile;
+    private JLabel myDictionariesLabel;
+
+    public SpellCheckSettings() {
+        ComponentEnabler.create(myEnableCheck, myDictionariesLabel, myDictionaries, myUseUser, myUserDictionaryFile);
+        ComponentEnabler.create(myUseUser, myUserDictionaryFile);
+        myDictionaries.setCanvasRenderer(DICTIONARY_RENDERER);
+        myUserDictionaryFile.setActionName(M_CHOOSE_FILE.create());
     }
-  };
-  public static final LocalizedAccessor.Value M_CHOOSE_FILE = SpellCheckManager.I18N.getFactory("spellcheck.settings.userDictionary.file.choose.name");
 
-  private JCheckBox myEnableCheck;
-  private JPanel myWholePanel;
-  private ACheckboxList<SpellCheckerConfig.DicInfo> myDictionaries;
-  private JCheckBox myUseUser;
-  private FileSelectionField myUserDictionaryFile;
-  private JLabel myDictionariesLabel;
+    public static void showDialog(DialogManager manager, final SpellCheckerConfig config) {
+        DialogBuilder builder = manager.createBuilder("spellChecker.settings");
+        builder.setTitle(M_TITLE.create());
+        final SpellCheckSettings settings = new SpellCheckSettings();
+        settings.loadSettings(config);
+        builder.setContent(settings.myWholePanel);
+        builder.setEmptyOkAction();
+        builder.setEmptyCancelAction();
+        builder.addOkListener(new AnActionListener() {
+            @Override
+            public void perform(ActionContext context) throws CantPerformException {
+                settings.applyTo(config);
+            }
+        });
+        builder.setModal(false);
+        builder.showWindow();
+    }
 
-  public SpellCheckSettings() {
-    ComponentEnabler.create(myEnableCheck, myDictionariesLabel, myDictionaries, myUseUser, myUserDictionaryFile);
-    ComponentEnabler.create(myUseUser, myUserDictionaryFile);
-    myDictionaries.setCanvasRenderer(DICTIONARY_RENDERER);
-    myUserDictionaryFile.setActionName(M_CHOOSE_FILE.create());
-  }
+    private void applyTo(SpellCheckerConfig config) {
+        config.updateSettings(myEnableCheck.isSelected(), myUseUser.isSelected(), myUserDictionaryFile.getField().getText(), myDictionaries.getCheckedAccessor().getSelectedItems());
+    }
 
-  public static void showDialog(DialogManager manager, final SpellCheckerConfig config) {
-    DialogBuilder builder = manager.createBuilder("spellChecker.settings");
-    builder.setTitle(M_TITLE.create());
-    final SpellCheckSettings settings = new SpellCheckSettings();
-    settings.loadSettings(config);
-    builder.setContent(settings.myWholePanel);
-    builder.setEmptyOkAction();
-    builder.setEmptyCancelAction();
-    builder.addOkListener(new AnActionListener() {
-      @Override
-      public void perform(ActionContext context) throws CantPerformException {
-        settings.applyTo(config);
-      }
-    });
-    builder.setModal(false);
-    builder.showWindow();
-  }
+    private void loadSettings(SpellCheckerConfig config) {
+        myEnableCheck.setSelected(config.isEnabled());
+        myUseUser.setSelected(config.isUserDictionaryEnabled());
+        myUserDictionaryFile.getField().setText(config.getUserDictionaryPath());
+        ArrayList<SpellCheckerConfig.DicInfo> dictionaries = Collections15.arrayList(config.getAllDictionaries());
+        Collections.sort(dictionaries, SpellCheckerConfig.DicInfo.ORDER);
+        myDictionaries.setCollectionModel(FixedListModel.create(dictionaries));
+        myDictionaries.getCheckedAccessor().setSelected(config.getEnabledDictionaries());
+    }
 
-  private void applyTo(SpellCheckerConfig config) {
-    config.updateSettings(myEnableCheck.isSelected(), myUseUser.isSelected(), myUserDictionaryFile.getField().getText(), myDictionaries.getCheckedAccessor().getSelectedItems());
-  }
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
 
-  private void loadSettings(SpellCheckerConfig config) {
-    myEnableCheck.setSelected(config.isEnabled());
-    myUseUser.setSelected(config.isUserDictionaryEnabled());
-    myUserDictionaryFile.getField().setText(config.getUserDictionaryPath());
-    ArrayList<SpellCheckerConfig.DicInfo> dictionaries = Collections15.arrayList(config.getAllDictionaries());
-    Collections.sort(dictionaries, SpellCheckerConfig.DicInfo.ORDER);
-    myDictionaries.setCollectionModel(FixedListModel.create(dictionaries));
-    myDictionaries.getCheckedAccessor().setSelected(config.getEnabledDictionaries());
-  }
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
+        myEnableCheck = new JCheckBox();
+        this.$$$loadButtonText$$$(myEnableCheck, this.$$$getMessageFromBundle$$$("com/almworks/spellcheck/message", "spellcheck.settings.enableChecker.text"));
+        CellConstraints cc = new CellConstraints();
+        myWholePanel.add(myEnableCheck, cc.xyw(1, 1, 3));
+        myDictionariesLabel = new JLabel();
+        this.$$$loadLabelText$$$(myDictionariesLabel, this.$$$getMessageFromBundle$$$("com/almworks/spellcheck/message", "spellcheck.settings.dictionaries.label.text"));
+        myWholePanel.add(myDictionariesLabel, cc.xyw(1, 3, 3));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        myWholePanel.add(scrollPane1, cc.xyw(1, 5, 3));
+        myDictionaries = new ACheckboxList();
+        scrollPane1.setViewportView(myDictionaries);
+        myUseUser = new JCheckBox();
+        this.$$$loadButtonText$$$(myUseUser, this.$$$getMessageFromBundle$$$("com/almworks/spellcheck/message", "spellcheck.settings.userDictionary.enable.text"));
+        myWholePanel.add(myUseUser, cc.xy(1, 7));
+        myUserDictionaryFile = new FileSelectionField();
+        myWholePanel.add(myUserDictionaryFile, cc.xy(3, 7));
+        myDictionariesLabel.setLabelFor(myDictionaries);
+    }
+
+    private static Method $$$cachedGetBundleMethod$$$ = null;
+
+    /**
+     * @noinspection ALL
+     */
+    private String $$$getMessageFromBundle$$$(String path, String key) {
+        ResourceBundle bundle;
+        try {
+            Class<?> thisClass = this.getClass();
+            if ($$$cachedGetBundleMethod$$$ == null) {
+                Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
+                $$$cachedGetBundleMethod$$$ = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
+            }
+            bundle = (ResourceBundle) $$$cachedGetBundleMethod$$$.invoke(null, path, thisClass);
+        } catch (Exception e) {
+            bundle = ResourceBundle.getBundle(path);
+        }
+        return bundle.getString(key);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private void $$$loadLabelText$$$(JLabel component, String text) {
+        StringBuffer result = new StringBuffer();
+        boolean haveMnemonic = false;
+        char mnemonic = '\0';
+        int mnemonicIndex = -1;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&') {
+                i++;
+                if (i == text.length()) break;
+                if (!haveMnemonic && text.charAt(i) != '&') {
+                    haveMnemonic = true;
+                    mnemonic = text.charAt(i);
+                    mnemonicIndex = result.length();
+                }
+            }
+            result.append(text.charAt(i));
+        }
+        component.setText(result.toString());
+        if (haveMnemonic) {
+            component.setDisplayedMnemonic(mnemonic);
+            component.setDisplayedMnemonicIndex(mnemonicIndex);
+        }
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private void $$$loadButtonText$$$(AbstractButton component, String text) {
+        StringBuffer result = new StringBuffer();
+        boolean haveMnemonic = false;
+        char mnemonic = '\0';
+        int mnemonicIndex = -1;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&') {
+                i++;
+                if (i == text.length()) break;
+                if (!haveMnemonic && text.charAt(i) != '&') {
+                    haveMnemonic = true;
+                    mnemonic = text.charAt(i);
+                    mnemonicIndex = result.length();
+                }
+            }
+            result.append(text.charAt(i));
+        }
+        component.setText(result.toString());
+        if (haveMnemonic) {
+            component.setMnemonic(mnemonic);
+            component.setDisplayedMnemonicIndex(mnemonicIndex);
+        }
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

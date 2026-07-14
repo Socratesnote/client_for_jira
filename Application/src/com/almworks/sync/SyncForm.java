@@ -627,115 +627,173 @@ class SyncForm implements UIComponentWrapper {
     }
   }
 
-  static class ProblemForm implements ElementVisitor<JLabel> {
-    private ScrollablePanel myContainerPanel;
-    private JPanel myWholePanel;
-    private JComponent myProblemDescription;
-    private JTextField myProblemConnection;
-    private ALabel myProblemTitle;
-    private JTextField myProblemTimeOccurred;
-    private JTextField myProblemArtifact;
-    private JScrollPane myDescriptionScrollPane;
-    private JScrollPane myScrollpane;
-    private JLabel myArtifactLabel;
-    private JLabel myDescriptionLabel;
-    private JEditorPaneWrapper myProblemDescriptionWrapper;
+    static class ProblemForm implements ElementVisitor<JLabel> {
+      private ScrollablePanel myContainerPanel;
+      private JPanel myWholePanel;
+      private JComponent myProblemDescription;
+      private JTextField myProblemConnection;
+      private ALabel myProblemTitle;
+      private JTextField myProblemTimeOccurred;
+      private JTextField myProblemArtifact;
+      private JScrollPane myDescriptionScrollPane;
+      private JScrollPane myScrollpane;
+      private JLabel myArtifactLabel;
+      private JLabel myDescriptionLabel;
+      private JEditorPaneWrapper myProblemDescriptionWrapper;
 
-    public ProblemForm(DetachComposite uiDetach, TextDecoratorRegistry textDecoratorRegistry) {
-      LogHelper.assertError(textDecoratorRegistry != null, "ProblemForm.textDecoratorRegistry");
-      getTextDecoratorRegistry().setDelegate(textDecoratorRegistry);
-      AppBook.replaceText(PREFIX + "ProblemPanel.", myWholePanel);
+      public ProblemForm(DetachComposite uiDetach, TextDecoratorRegistry textDecoratorRegistry) {
+          $$$setupUI$$$();
+          LogHelper.assertError(textDecoratorRegistry != null, "ProblemForm.textDecoratorRegistry");
+          getTextDecoratorRegistry().setDelegate(textDecoratorRegistry);
+          AppBook.replaceText(PREFIX + "ProblemPanel.", myWholePanel);
 
-      myArtifactLabel.setText(Local.text(Terms.ref_Artifact));
-      myWholePanel.setBorder(UIUtil.EDITOR_PANEL_BORDER);
-      UIUtil.adjustFont(myProblemTitle, 1.2F, Font.BOLD, true);
-      myProblemTitle.setBorder(UIUtil.createSouthBevel(myWholePanel.getBackground()));
-      myProblemTitle.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
-      new DocumentFormAugmentor().augmentForm(uiDetach, myWholePanel, true);
+          myArtifactLabel.setText(Local.text(Terms.ref_Artifact));
+          myWholePanel.setBorder(UIUtil.EDITOR_PANEL_BORDER);
+          UIUtil.adjustFont(myProblemTitle, 1.2F, Font.BOLD, true);
+          myProblemTitle.setBorder(UIUtil.createSouthBevel(myWholePanel.getBackground()));
+          myProblemTitle.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
+          new DocumentFormAugmentor().augmentForm(uiDetach, myWholePanel, true);
 
-      // Hack to "baseline-align"
-      myDescriptionLabel.setBorder(new EmptyBorder(myDescriptionScrollPane.getInsets().top + myProblemDescription.getInsets().top, 0, 0, 0));
+          // Hack to "baseline-align"
+          myDescriptionLabel.setBorder(new EmptyBorder(myDescriptionScrollPane.getInsets().top + myProblemDescription.getInsets().top, 0, 0, 0));
 
-      myContainerPanel = new ScrollablePanel(myWholePanel) {
-        public void setVisible(boolean visible) {
-          super.setVisible(visible);
-          if (visible) {
-            invalidate();
-            validate();
+          myContainerPanel = new ScrollablePanel(myWholePanel) {
+              public void setVisible(boolean visible) {
+                  super.setVisible(visible);
+                  if (visible) {
+                      invalidate();
+                      validate();
+                  }
+              }
+
+              public Dimension getPreferredSize() {
+                  Dimension preferredSize = super.getPreferredSize();
+                  int height = myWholePanel.getPreferredSize().height;
+                  // adjust for scrollpane
+                  height -= myDescriptionScrollPane.getPreferredSize().height;
+                  height += myProblemDescription.getPreferredSize().height;
+                  height += 30; // todo fix magic number
+                  preferredSize = new Dimension(preferredSize.width, height);
+                  return preferredSize;
+              }
+          };
+          myContainerPanel.setOpaque(true);
+          myContainerPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+          myScrollpane = new JScrollPane(myContainerPanel);
+          Aqua.cleanScrollPaneBorder(myScrollpane);
+          Aero.cleanScrollPaneBorder(myScrollpane);
+          UIUtil.setDefaultLabelAlignment(myWholePanel);
+          UIUtil.visitComponents(myWholePanel, JLabel.class, this);
+      }
+
+      private TextDecoratorRegistry.Delegating myTextDecoratorRegistry;
+
+        private TextDecoratorRegistry.Delegating getTextDecoratorRegistry() {
+            if (myTextDecoratorRegistry == null) myTextDecoratorRegistry = new TextDecoratorRegistry.Delegating();
+            return myTextDecoratorRegistry;
+      }
+
+      public JComponent getComponent() {
+          return myScrollpane;
+      }
+
+      public void setProblem(SyncProblem problem) {
+          if (problem != null) {
+              myProblemTimeOccurred.setText(DateUtil.toLocalDateOrTime(problem.getTimeHappened()));
+              myProblemConnection.setText(problem.getConnectionSynchronizer().getTaskName());
+              myProblemDescriptionWrapper.setText(Util.NN(problem.getLongDescription()));
+              myProblemTitle.setText(problem.getShortDescription());
+              myProblemArtifact.setText(
+                      problem instanceof ItemSyncProblem ? ((ItemSyncProblem) problem).getDisplayableId() : "");
+          } else {
+              myProblemTimeOccurred.setText("");
+              myProblemConnection.setText("");
+              myProblemDescriptionWrapper.setText("");
+              myProblemTitle.setText("");
+              myProblemArtifact.setText("");
           }
+      }
+
+      public boolean isVisible() {
+          return myContainerPanel.isVisible();
+      }
+
+      public boolean visit(JLabel element) {
+          if (!(element instanceof ALabel)) {
+              element.setText(element.getText() + ":");
+          }
+          return true;
+      }
+
+      private void createUIComponents() {
+          createProblemDescription();
+      }
+
+      private void createProblemDescription() {
+          myProblemDescriptionWrapper = JEditorPaneWrapper.decoratedViewer(getTextDecoratorRegistry());
+          myProblemDescription = myProblemDescriptionWrapper.getComponent();
+          if (myProblemDescription instanceof JEditorPane) {
+              JEditorPane editor = (JEditorPane) myProblemDescription;
+              editor.setMargin(new Insets(3, 3, 3, 3));
+              editor.setBorder(new BasicBorders.MarginBorder());
+          }
+      }
+
+        /**
+         * Method generated by IntelliJ IDEA GUI Designer
+         * >>> IMPORTANT!! <<<
+         * DO NOT edit this method OR call it in your code!
+         *
+         * @noinspection ALL
+         */
+        private void $$$setupUI$$$() {
+            createUIComponents();
+            myWholePanel = new JPanel();
+            myWholePanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
+            final JLabel label1 = new JLabel();
+            label1.setText(":TimeOccured");
+            myWholePanel.add(label1, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myProblemTimeOccurred = new JTextField();
+            myProblemTimeOccurred.setEditable(false);
+            myProblemTimeOccurred.setEnabled(true);
+            myProblemTimeOccurred.setFocusable(true);
+            myWholePanel.add(myProblemTimeOccurred, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myProblemConnection = new JTextField();
+            myProblemConnection.setEditable(false);
+            myProblemConnection.setEnabled(true);
+            myWholePanel.add(myProblemConnection, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            final JLabel label2 = new JLabel();
+            label2.setText(":Connection");
+            myWholePanel.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myDescriptionLabel = new JLabel();
+            myDescriptionLabel.setText(":Description");
+            myWholePanel.add(myDescriptionLabel, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myDescriptionScrollPane = new JScrollPane();
+            myDescriptionScrollPane.setEnabled(true);
+            myWholePanel.add(myDescriptionScrollPane, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(250, -1), new Dimension(250, -1), null, 0, false));
+            myDescriptionScrollPane.setViewportView(myProblemDescription);
+            final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+            myWholePanel.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(5, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+            myArtifactLabel = new JLabel();
+            myArtifactLabel.setText(":Bug");
+            myWholePanel.add(myArtifactLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myProblemArtifact = new JTextField();
+            myProblemArtifact.setEditable(false);
+            myProblemArtifact.setEnabled(true);
+            myWholePanel.add(myProblemArtifact, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myProblemTitle = new ALabel();
+            myProblemTitle.setFocusable(false);
+            myProblemTitle.setRequestFocusEnabled(false);
+            myProblemTitle.setText("Problem Title");
+            myWholePanel.add(myProblemTitle, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         }
 
-        public Dimension getPreferredSize() {
-          Dimension preferredSize = super.getPreferredSize();
-          int height = myWholePanel.getPreferredSize().height;
-          // adjust for scrollpane
-          height -= myDescriptionScrollPane.getPreferredSize().height;
-          height += myProblemDescription.getPreferredSize().height;
-          height += 30; // todo fix magic number
-          preferredSize = new Dimension(preferredSize.width, height);
-          return preferredSize;
+        /**
+         * @noinspection ALL
+         */
+        public JComponent $$$getRootComponent$$$() {
+            return myWholePanel;
         }
-      };
-      myContainerPanel.setOpaque(true);
-      myContainerPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
-
-      myScrollpane = new JScrollPane(myContainerPanel);
-      Aqua.cleanScrollPaneBorder(myScrollpane);
-      Aero.cleanScrollPaneBorder(myScrollpane);
-      UIUtil.setDefaultLabelAlignment(myWholePanel);
-      UIUtil.visitComponents(myWholePanel, JLabel.class, this);
     }
-
-    private TextDecoratorRegistry.Delegating myTextDecoratorRegistry;
-    private TextDecoratorRegistry.Delegating getTextDecoratorRegistry() {
-      if (myTextDecoratorRegistry == null) myTextDecoratorRegistry = new TextDecoratorRegistry.Delegating();
-      return myTextDecoratorRegistry;
-    }
-
-    public JComponent getComponent() {
-      return myScrollpane;
-    }
-
-    public void setProblem(SyncProblem problem) {
-      if (problem != null) {
-        myProblemTimeOccurred.setText(DateUtil.toLocalDateOrTime(problem.getTimeHappened()));
-        myProblemConnection.setText(problem.getConnectionSynchronizer().getTaskName());
-        myProblemDescriptionWrapper.setText(Util.NN(problem.getLongDescription()));
-        myProblemTitle.setText(problem.getShortDescription());
-        myProblemArtifact.setText(
-          problem instanceof ItemSyncProblem ? ((ItemSyncProblem) problem).getDisplayableId() : "");
-      } else {
-        myProblemTimeOccurred.setText("");
-        myProblemConnection.setText("");
-        myProblemDescriptionWrapper.setText("");
-        myProblemTitle.setText("");
-        myProblemArtifact.setText("");
-      }
-    }
-
-    public boolean isVisible() {
-      return myContainerPanel.isVisible();
-    }
-
-    public boolean visit(JLabel element) {
-      if(!(element instanceof ALabel)) {
-        element.setText(element.getText() + ":");
-      }
-      return true;
-    }
-
-    private void createUIComponents() {
-      createProblemDescription();
-    }
-
-    private void createProblemDescription() {
-      myProblemDescriptionWrapper = JEditorPaneWrapper.decoratedViewer(getTextDecoratorRegistry());
-      myProblemDescription = myProblemDescriptionWrapper.getComponent();
-      if (myProblemDescription instanceof JEditorPane) {
-        JEditorPane editor = (JEditorPane) myProblemDescription;
-        editor.setMargin(new Insets(3, 3, 3, 3));
-        editor.setBorder(new BasicBorders.MarginBorder());
-      }
-    }
-  }
 }

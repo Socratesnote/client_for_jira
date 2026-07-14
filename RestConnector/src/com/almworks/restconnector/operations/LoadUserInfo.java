@@ -67,6 +67,7 @@ public class LoadUserInfo {
     assert response != null;
     String contentType = response.getHttpResponse().getContentType();
     int statusCode = response.getStatusCode();
+    //TODO: BUG: In newer Jira Cloud, this is text/html(200), not application/json.
     if (!"application/json".equals(contentType)) {
       LogHelper.warning("Wrong response format from", contentType, statusCode, session.getBaseUrl());
       String description = String.format("'application/json' content type was expected, but actual is '%s' status code: %s", contentType, statusCode);

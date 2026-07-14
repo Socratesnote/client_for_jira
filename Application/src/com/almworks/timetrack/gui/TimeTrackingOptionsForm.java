@@ -4,74 +4,143 @@ import com.almworks.timetrack.api.TimeTrackerSettings;
 import com.almworks.util.Env;
 import com.almworks.util.ui.ComponentEnabler;
 import com.almworks.util.ui.UIUtil;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class TimeTrackingOptionsForm {
-  private JCheckBox myEnableAutoPause;
-  private JPanel myWholePanel;
-  private JSpinner myIdlePeriod;
-  private JSpinner myIgnoreActivityThreshold;
-  private JCheckBox myNotification;
-  private JCheckBox myAlwaysOnTop;
-  private JLabel myAPIdleLabel;
-  private JLabel myAPIdleMin;
-  private JLabel myAPIgnoreLabel;
-  private JLabel myAPIgnoreSec;
+    private JCheckBox myEnableAutoPause;
+    private JPanel myWholePanel;
+    private JSpinner myIdlePeriod;
+    private JSpinner myIgnoreActivityThreshold;
+    private JCheckBox myNotification;
+    private JCheckBox myAlwaysOnTop;
+    private JLabel myAPIdleLabel;
+    private JLabel myAPIdleMin;
+    private JLabel myAPIgnoreLabel;
+    private JLabel myAPIgnoreSec;
 
-  private final SpinnerNumberModel myIdlePeriodModel = new SpinnerNumberModel(1, 1, 9999, 1);
-  private final SpinnerNumberModel myIgnoreActivityThresholdModel = new SpinnerNumberModel(1, 1, 9999, 1);
+    private final SpinnerNumberModel myIdlePeriodModel = new SpinnerNumberModel(1, 1, 9999, 1);
+    private final SpinnerNumberModel myIgnoreActivityThresholdModel = new SpinnerNumberModel(1, 1, 9999, 1);
 
-  public TimeTrackingOptionsForm() {
-    setSpinnerSize(myIdlePeriod);
-    setSpinnerSize(myIgnoreActivityThreshold);
-    myIdlePeriod.setModel(myIdlePeriodModel);
-    myIgnoreActivityThreshold.setModel(myIgnoreActivityThresholdModel);
-    ComponentEnabler.create(myEnableAutoPause, myAPIdleLabel, myIdlePeriod, myAPIdleMin, myAPIgnoreLabel,
-      myIgnoreActivityThreshold, myAPIgnoreSec, myNotification);
-    myAlwaysOnTop.setVisible(!Env.isMac());
-  }
-
-  private void setSpinnerSize(JSpinner spinner) {
-    JComponent e = spinner.getEditor();
-    if (e != null) {
-      Dimension dim = UIUtil.getRelativeDimension(e, 4, 1);
-      Dimension ps = e.getPreferredSize();
-      if (ps != null)
-        dim.height = ps.height;
-      e.setPreferredSize(dim);
+    public TimeTrackingOptionsForm() {
+        setSpinnerSize(myIdlePeriod);
+        setSpinnerSize(myIgnoreActivityThreshold);
+        myIdlePeriod.setModel(myIdlePeriodModel);
+        myIgnoreActivityThreshold.setModel(myIgnoreActivityThresholdModel);
+        ComponentEnabler.create(myEnableAutoPause, myAPIdleLabel, myIdlePeriod, myAPIdleMin, myAPIgnoreLabel,
+                myIgnoreActivityThreshold, myAPIgnoreSec, myNotification);
+        myAlwaysOnTop.setVisible(!Env.isMac());
     }
-  }
 
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
+    private void setSpinnerSize(JSpinner spinner) {
+        JComponent e = spinner.getEditor();
+        if (e != null) {
+            Dimension dim = UIUtil.getRelativeDimension(e, 4, 1);
+            Dimension ps = e.getPreferredSize();
+            if (ps != null)
+                dim.height = ps.height;
+            e.setPreferredSize(dim);
+        }
+    }
 
-  public void loadFrom(TimeTrackerSettings settings) {
-    myEnableAutoPause.setSelected(settings.isAutoPauseEnabled());
-    myIdlePeriodModel.setValue(settings.getAutoPauseTimeValue());
-    myIgnoreActivityThresholdModel.setValue(settings.getFalseResumeTimeoutValue());
-    myNotification.setSelected(settings.isNotifyUser());
-    myAlwaysOnTop.setSelected(settings.isAlwaysOnTop() || Env.isMac());
-  }
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
 
-  public Component getInitialFocusOwner() {
-    return myEnableAutoPause;
-  }
+    public void loadFrom(TimeTrackerSettings settings) {
+        myEnableAutoPause.setSelected(settings.isAutoPauseEnabled());
+        myIdlePeriodModel.setValue(settings.getAutoPauseTimeValue());
+        myIgnoreActivityThresholdModel.setValue(settings.getFalseResumeTimeoutValue());
+        myNotification.setSelected(settings.isNotifyUser());
+        myAlwaysOnTop.setSelected(settings.isAlwaysOnTop() || Env.isMac());
+    }
 
-  public void saveTo(TimeTrackerSettings settings) {
-    settings.setAutoPauseEnabled(myEnableAutoPause.isSelected());
-    settings.setNotifyUser(myNotification.isSelected());
-    settings.setAutoPauseTimeValue(getInt(myIdlePeriodModel));
-    settings.setFalseResumeTimeoutValue(getInt(myIgnoreActivityThresholdModel));
-    settings.setAlwaysOnTop(myAlwaysOnTop.isSelected() || Env.isMac());
-  }
+    public Component getInitialFocusOwner() {
+        return myEnableAutoPause;
+    }
 
-  private int getInt(SpinnerNumberModel model) {
-    Object value = model.getValue();
-    if (!(value instanceof Number))
-      return 0;
-    return ((Number) value).intValue();
-  }
+    public void saveTo(TimeTrackerSettings settings) {
+        settings.setAutoPauseEnabled(myEnableAutoPause.isSelected());
+        settings.setNotifyUser(myNotification.isSelected());
+        settings.setAutoPauseTimeValue(getInt(myIdlePeriodModel));
+        settings.setFalseResumeTimeoutValue(getInt(myIgnoreActivityThresholdModel));
+        settings.setAlwaysOnTop(myAlwaysOnTop.isSelected() || Env.isMac());
+    }
+
+    private int getInt(SpinnerNumberModel model) {
+        Object value = model.getValue();
+        if (!(value instanceof Number))
+            return 0;
+        return ((Number) value).intValue();
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:d:grow"));
+        ((FormLayout) myWholePanel.getLayout()).setRowGroups(new int[][]{new int[]{1, 3, 5, 7}});
+        myEnableAutoPause = new JCheckBox();
+        myEnableAutoPause.setText("Enable auto-pause");
+        myEnableAutoPause.setMnemonic('E');
+        myEnableAutoPause.setDisplayedMnemonicIndex(0);
+        CellConstraints cc = new CellConstraints();
+        myWholePanel.add(myEnableAutoPause, cc.xyw(1, 1, 3));
+        myAPIdleLabel = new JLabel();
+        myAPIdleLabel.setText("Auto-pause when computer is idle for:");
+        myAPIdleLabel.setDisplayedMnemonic('I');
+        myAPIdleLabel.setDisplayedMnemonicIndex(28);
+        myWholePanel.add(myAPIdleLabel, cc.xy(3, 3));
+        myIdlePeriod = new JSpinner();
+        myWholePanel.add(myIdlePeriod, cc.xy(5, 3, CellConstraints.FILL, CellConstraints.DEFAULT));
+        myAPIdleMin = new JLabel();
+        myAPIdleMin.setText("minutes");
+        myWholePanel.add(myAPIdleMin, cc.xy(7, 3));
+        final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+        myWholePanel.add(spacer1, cc.xy(9, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
+        myAPIgnoreLabel = new JLabel();
+        myAPIgnoreLabel.setText("When in auto-pause, ignore activity taking less than:");
+        myWholePanel.add(myAPIgnoreLabel, cc.xy(3, 5));
+        myIgnoreActivityThreshold = new JSpinner();
+        myWholePanel.add(myIgnoreActivityThreshold, cc.xy(5, 5, CellConstraints.FILL, CellConstraints.DEFAULT));
+        myAPIgnoreSec = new JLabel();
+        myAPIgnoreSec.setText("seconds");
+        myWholePanel.add(myAPIgnoreSec, cc.xy(7, 5));
+        myNotification = new JCheckBox();
+        myNotification.setText("Show notification");
+        myNotification.setMnemonic('N');
+        myNotification.setDisplayedMnemonicIndex(5);
+        myWholePanel.add(myNotification, cc.xy(3, 7));
+        final com.intellij.uiDesigner.core.Spacer spacer2 = new com.intellij.uiDesigner.core.Spacer();
+        myWholePanel.add(spacer2, cc.xy(1, 11, CellConstraints.DEFAULT, CellConstraints.FILL));
+        myAlwaysOnTop = new JCheckBox();
+        myAlwaysOnTop.setText("Make Time Tracker always on top");
+        myAlwaysOnTop.setMnemonic('T');
+        myAlwaysOnTop.setDisplayedMnemonicIndex(28);
+        myWholePanel.add(myAlwaysOnTop, cc.xyw(1, 9, 3));
+        myAPIdleLabel.setLabelFor(myIdlePeriod);
+        myAPIgnoreLabel.setLabelFor(myIgnoreActivityThreshold);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

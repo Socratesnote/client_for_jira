@@ -63,7 +63,7 @@ class ApplicationLoadStatusImpl implements ApplicationLoadStatus, Startable {
       remove = myActivities.remove(activity);
       startup = myActivities.isEmpty() && myStartupAllowed;
     }
-    LogHelper.debug("Startup activity finished", activity);
+    LogHelper.debug("Startup activity finished: ", activity);
     LogHelper.assertError(remove, "Unknown activity", activity);
     if (startup) {
       LogHelper.debug("Normal startup. Last activity just finished");

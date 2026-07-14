@@ -11,6 +11,8 @@ import com.almworks.util.ui.UIUtil;
 import com.almworks.util.ui.actions.ActionContext;
 import com.almworks.util.ui.actions.AnActionListener;
 import com.almworks.util.ui.actions.CantPerformException;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -21,110 +23,168 @@ import java.net.URL;
  * @author dyoma
  */
 public class HttpAuthForm implements UIComponentWrapper {
-  private JTextField myHost;
-  private JTextField myUsername;
-  private JPasswordField myPassword;
-  private JRadioButton myRememberPassword;
-  private JRadioButton myRememberPasswordUntilCloses;
-  private JPanel myWholePanel;
-  private JLabel myUsernameLabel;
-  private JLabel myPasswordLabel;
-  private JLabel myTopLabel;
-  private final ButtonGroup mySaveTypeButtonGroup = new ButtonGroup();
-  private PMDomain myLastDomain;
+    private JTextField myHost;
+    private JTextField myUsername;
+    private JPasswordField myPassword;
+    private JRadioButton myRememberPassword;
+    private JRadioButton myRememberPasswordUntilCloses;
+    private JPanel myWholePanel;
+    private JLabel myUsernameLabel;
+    private JLabel myPasswordLabel;
+    private JLabel myTopLabel;
+    private final ButtonGroup mySaveTypeButtonGroup = new ButtonGroup();
+    private PMDomain myLastDomain;
 
-  public HttpAuthForm(Configuration configuration) {
-    setupLabelFor();
-    setupButtons(configuration);
-    if(Env.isMac()) {
-      myWholePanel.setBorder(UIUtil.BORDER_5);
-    }
-    myTopLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
-    UIUtil.setDefaultLabelAlignment(myWholePanel);
-    Aqua.disableMnemonics(myWholePanel);
-  }
-
-  private void setupLabelFor() {
-    myUsernameLabel.setLabelFor(myUsername);
-    myPasswordLabel.setLabelFor(myPassword);
-  }
-
-  private void setupButtons(Configuration configuration) {
-    mySaveTypeButtonGroup.add(myRememberPassword);
-    mySaveTypeButtonGroup.add(myRememberPasswordUntilCloses);
-    UIUtil.setupButtonGroup(mySaveTypeButtonGroup, configuration, "rememberPassword");
-  }
-
-  public void dispose() {
-  }
-
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
-
-  public void loadDataForURL(@Nullable String url, final PasswordManager passman) {
-    if (url == null)
-      return;
-    URL uurl;
-    try {
-      uurl = new URL(url);
-    } catch (MalformedURLException e) {
-      return;
+    public HttpAuthForm(Configuration configuration) {
+        setupLabelFor();
+        setupButtons(configuration);
+        if (Env.isMac()) {
+            myWholePanel.setBorder(UIUtil.BORDER_5);
+        }
+        myTopLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
+        UIUtil.setDefaultLabelAlignment(myWholePanel);
+        Aqua.disableMnemonics(myWholePanel);
     }
 
-    String host = uurl.getHost();
-    int port = uurl.getPort();
-    String hostText = uurl.getProtocol() + "://" + host;
-    if (port > 0 && port != uurl.getDefaultPort())
-      hostText += ":" + port;
-    myHost.setText(hostText);
-
-    myLastDomain = new PMDomain(host, port);
-    ThreadGate.LONG(this).execute(new Runnable() {
-      public void run() {
-        PMCredentials credentials = passman.loadCredentials(myLastDomain);
-
-        myUsername.setText(credentials == null ? "" : credentials.getUsername());
-        myPassword.setText(credentials == null ? "" : credentials.getPassword());
-      }
-    });
-  }
-
-  public void saveData(final PasswordManager passman) {
-    if (myLastDomain == null) {
-      assert false;
-      return;
+    private void setupLabelFor() {
+        myUsernameLabel.setLabelFor(myUsername);
+        myPasswordLabel.setLabelFor(myPassword);
     }
 
-    final PMCredentials credentials = new PMCredentials(myUsername.getText(), myPassword.getText());
-    final boolean saveOnDisk = myRememberPassword.isSelected();
-    final PMDomain domain = myLastDomain;
-    ThreadGate.LONG(this).execute(new Runnable() {
-      public void run() {
-        passman.saveCredentials(domain, credentials, saveOnDisk);
-      }
-    });
-    myLastDomain = null;
-  }
+    private void setupButtons(Configuration configuration) {
+        mySaveTypeButtonGroup.add(myRememberPassword);
+        mySaveTypeButtonGroup.add(myRememberPasswordUntilCloses);
+        UIUtil.setupButtonGroup(mySaveTypeButtonGroup, configuration, "rememberPassword");
+    }
 
-  public static boolean askUser(Configuration formConfig, DialogBuilder builder, PasswordManager passwordManager,
-    @Nullable String url) {
-    HttpAuthForm form = new HttpAuthForm(formConfig);
-    builder.setContent(form);
-    builder.setTitle(L.dialog("HTTP Authentication"));
-    builder.setEmptyCancelAction();
-    builder.setModal(true);
-    builder.setEmptyOkAction();
-    final boolean[] ok = {false};
-    builder.addOkListener(new AnActionListener() {
-      public void perform(ActionContext context) throws CantPerformException {
-        ok[0] = true;
-      }
-    });
-    form.loadDataForURL(url, passwordManager);
-    builder.showWindow();
-    if (ok[0])
-      form.saveData(passwordManager);
-    return ok[0];
-  }
+    public void dispose() {
+    }
+
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
+
+    public void loadDataForURL(@Nullable String url, final PasswordManager passman) {
+        if (url == null)
+            return;
+        URL uurl;
+        try {
+            uurl = new URL(url);
+        } catch (MalformedURLException e) {
+            return;
+        }
+
+        String host = uurl.getHost();
+        int port = uurl.getPort();
+        String hostText = uurl.getProtocol() + "://" + host;
+        if (port > 0 && port != uurl.getDefaultPort())
+            hostText += ":" + port;
+        myHost.setText(hostText);
+
+        myLastDomain = new PMDomain(host, port);
+        ThreadGate.LONG(this).execute(new Runnable() {
+            public void run() {
+                PMCredentials credentials = passman.loadCredentials(myLastDomain);
+
+                myUsername.setText(credentials == null ? "" : credentials.getUsername());
+                myPassword.setText(credentials == null ? "" : credentials.getPassword());
+            }
+        });
+    }
+
+    public void saveData(final PasswordManager passman) {
+        if (myLastDomain == null) {
+            assert false;
+            return;
+        }
+
+        final PMCredentials credentials = new PMCredentials(myUsername.getText(), myPassword.getText());
+        final boolean saveOnDisk = myRememberPassword.isSelected();
+        final PMDomain domain = myLastDomain;
+        ThreadGate.LONG(this).execute(new Runnable() {
+            public void run() {
+                passman.saveCredentials(domain, credentials, saveOnDisk);
+            }
+        });
+        myLastDomain = null;
+    }
+
+    public static boolean askUser(Configuration formConfig, DialogBuilder builder, PasswordManager passwordManager,
+                                  @Nullable String url) {
+        HttpAuthForm form = new HttpAuthForm(formConfig);
+        builder.setContent(form);
+        builder.setTitle(L.dialog("HTTP Authentication"));
+        builder.setEmptyCancelAction();
+        builder.setModal(true);
+        builder.setEmptyOkAction();
+        final boolean[] ok = {false};
+        builder.addOkListener(new AnActionListener() {
+            public void perform(ActionContext context) throws CantPerformException {
+                ok[0] = true;
+            }
+        });
+        form.loadDataForURL(url, passwordManager);
+        builder.showWindow();
+        if (ok[0])
+            form.saveData(passwordManager);
+        return ok[0];
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow", "center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
+        ((FormLayout) myWholePanel.getLayout()).setRowGroups(new int[][]{new int[]{3, 5, 7}});
+        myTopLabel = new JLabel();
+        myTopLabel.setText("<html><body>Please enter username and password for HTTP authentication.<br>\n(These are not your account credentials!)</body></html>");
+        CellConstraints cc = new CellConstraints();
+        myWholePanel.add(myTopLabel, cc.xyw(1, 1, 3));
+        final JLabel label1 = new JLabel();
+        label1.setText("Host:");
+        myWholePanel.add(label1, cc.xy(1, 3));
+        myHost = new JTextField();
+        myHost.setEditable(false);
+        myHost.setEnabled(false);
+        myWholePanel.add(myHost, cc.xy(3, 3, CellConstraints.FILL, CellConstraints.FILL));
+        myUsernameLabel = new JLabel();
+        myUsernameLabel.setText("Username:");
+        myUsernameLabel.setDisplayedMnemonic('U');
+        myUsernameLabel.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(myUsernameLabel, cc.xy(1, 5));
+        myPasswordLabel = new JLabel();
+        myPasswordLabel.setText("Password:");
+        myPasswordLabel.setDisplayedMnemonic('P');
+        myPasswordLabel.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(myPasswordLabel, cc.xy(1, 7));
+        myPassword = new JPasswordField();
+        myWholePanel.add(myPassword, cc.xy(3, 7, CellConstraints.FILL, CellConstraints.FILL));
+        myUsername = new JTextField();
+        myWholePanel.add(myUsername, cc.xy(3, 5, CellConstraints.FILL, CellConstraints.FILL));
+        myRememberPassword = new JRadioButton();
+        myRememberPassword.setText("Remember password");
+        myWholePanel.add(myRememberPassword, cc.xyw(1, 9, 3));
+        myRememberPasswordUntilCloses = new JRadioButton();
+        myRememberPasswordUntilCloses.setText("Remember password until application closes");
+        myWholePanel.add(myRememberPasswordUntilCloses, cc.xyw(1, 11, 3));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

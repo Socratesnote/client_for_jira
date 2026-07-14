@@ -16,114 +16,177 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.io.File;
 
 public class HTMLParametersForm extends FileExporterUIHelper {
-  private static final int DEFAULT_BUGS_PER_PAGE = 30;
+    private static final int DEFAULT_BUGS_PER_PAGE = 30;
 
-  private JCheckBox myUseTempFile;
-  private JCheckBox myUseCss;
-  private JLabel myTargetFileLabel;
-  private FileSelectionField myTargetFile;
-  private FileSelectionField myCssFile;
-  private JPanel myWholePanel;
-  private JCheckBox myFormatForPrinting;
-  private JSpinner mySplitPagesSpinner;
-  private final WorkArea myWorkArea;
+    private JCheckBox myUseTempFile;
+    private JCheckBox myUseCss;
+    private JLabel myTargetFileLabel;
+    private FileSelectionField myTargetFile;
+    private FileSelectionField myCssFile;
+    private JPanel myWholePanel;
+    private JCheckBox myFormatForPrinting;
+    private JSpinner mySplitPagesSpinner;
+    private final WorkArea myWorkArea;
 
-  public HTMLParametersForm(Configuration config, WorkArea workArea) {
-    myWorkArea = workArea;
-    AppBook.replaceText("Export.HTML.Form", myWholePanel);
-    setupConfig(config);
-    setupErrorModel(myTargetFile);
-    setupFileChooser(myTargetFile, "HTML files");
-    setupUseTempFile(myUseTempFile, myTargetFile);
-    setupCssEnabled();
-    setupVisual();
-    setupFormatForPrinting();
-  }
-
-  private void setupFormatForPrinting() {
-    myLife.add(UIUtil.setupConditionalEnabled(myFormatForPrinting, false, mySplitPagesSpinner));
-  }
-
-  private void setupVisual() {
-    myTargetFileLabel.setLabelFor(myTargetFile);
-  }
-
-  private void setupCssEnabled() {
-    myLife.add(UIUtil.setupConditionalEnabled(myUseCss, false, myCssFile));
-  }
-
-  private void setupConfig(final Configuration config) {
-    ConfigAttach.attachCheckbox(myLife, myUseTempFile, config, "useTempFile", true);
-    ConfigAttach.attachCheckbox(myLife, myUseCss, config, "useCss", true);
-    ConfigAttach.attachTextField(myLife, myTargetFile.getField(), config, "targetFile", "");
-    ConfigAttach.attachTextField(myLife, myCssFile.getField(), config, "cssFile", getDefaultCssFile());
-    ConfigAttach.attachCheckbox(myLife, myFormatForPrinting, config, "splitPages", true);
-    attachSpinner(config);
-  }
-
-  private void attachSpinner(final Configuration config) {
-    final String setting = "splitBugsCount";
-    int count = config.getIntegerSetting(setting, DEFAULT_BUGS_PER_PAGE);
-    final SpinnerNumberModel model = new SpinnerNumberModel(count, 1, 9999, 1);
-    mySplitPagesSpinner.setModel(model);
-    final ChangeListener listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        Object value = mySplitPagesSpinner.getValue();
-        if (value instanceof Integer) {
-          config.setSetting(setting, ((Integer) value).intValue());
-        }
-      }
-    };
-    model.addChangeListener(listener);
-    myLife.add(new Detach() {
-      protected void doDetach() {
-        model.removeChangeListener(listener);
-      }
-    });
-  }
-
-  private String getDefaultCssFile() {
-    File etcFile = myWorkArea.getEtcFile(WorkArea.ETC_HTML_EXPORT_CSS);
-    return etcFile == null ? "" : etcFile.getAbsolutePath();
-  }
-
-  protected String getDefaultExtension() {
-    return "html";
-  }
-
-  public Detach getDetach() {
-    return myLife;
-  }
-
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
-
-  public void addParametersTo(PropertyMap parameters) {
-    parameters.put(HTMLParams.TARGET_FILE, myTargetFile.getFile());
-    File cssFile = getCssFile();
-    if (cssFile != null)
-      parameters.put(HTMLParams.CSS_FILE, cssFile);
-    if (myFormatForPrinting.isSelected()) {
-      Object value = mySplitPagesSpinner.getValue();
-      if (value instanceof Integer)
-        parameters.put(HTMLParams.BUGS_PER_TABLE, (Integer) value);
+    public HTMLParametersForm(Configuration config, WorkArea workArea) {
+        myWorkArea = workArea;
+        AppBook.replaceText("Export.HTML.Form", myWholePanel);
+        setupConfig(config);
+        setupErrorModel(myTargetFile);
+        setupFileChooser(myTargetFile, "HTML files");
+        setupUseTempFile(myUseTempFile, myTargetFile);
+        setupCssEnabled();
+        setupVisual();
+        setupFormatForPrinting();
     }
-  }
 
-  private File getCssFile() {
-    return myUseCss.isSelected() ? myCssFile.getFile() : null;
-  }
+    private void setupFormatForPrinting() {
+        myLife.add(UIUtil.setupConditionalEnabled(myFormatForPrinting, false, mySplitPagesSpinner));
+    }
 
-  @NotNull
-  public ScalarModel<String> getFormErrorModel() {
-    return myErrorModel;
-  }
+    private void setupVisual() {
+        myTargetFileLabel.setLabelFor(myTargetFile);
+    }
 
-  public void confirmExport() throws CantPerformException {
-    checkFileOverwrite(myTargetFile, myWholePanel);
-  }
+    private void setupCssEnabled() {
+        myLife.add(UIUtil.setupConditionalEnabled(myUseCss, false, myCssFile));
+    }
+
+    private void setupConfig(final Configuration config) {
+        ConfigAttach.attachCheckbox(myLife, myUseTempFile, config, "useTempFile", true);
+        ConfigAttach.attachCheckbox(myLife, myUseCss, config, "useCss", true);
+        ConfigAttach.attachTextField(myLife, myTargetFile.getField(), config, "targetFile", "");
+        ConfigAttach.attachTextField(myLife, myCssFile.getField(), config, "cssFile", getDefaultCssFile());
+        ConfigAttach.attachCheckbox(myLife, myFormatForPrinting, config, "splitPages", true);
+        attachSpinner(config);
+    }
+
+    private void attachSpinner(final Configuration config) {
+        final String setting = "splitBugsCount";
+        int count = config.getIntegerSetting(setting, DEFAULT_BUGS_PER_PAGE);
+        final SpinnerNumberModel model = new SpinnerNumberModel(count, 1, 9999, 1);
+        mySplitPagesSpinner.setModel(model);
+        final ChangeListener listener = new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                Object value = mySplitPagesSpinner.getValue();
+                if (value instanceof Integer) {
+                    config.setSetting(setting, ((Integer) value).intValue());
+                }
+            }
+        };
+        model.addChangeListener(listener);
+        myLife.add(new Detach() {
+            protected void doDetach() {
+                model.removeChangeListener(listener);
+            }
+        });
+    }
+
+    private String getDefaultCssFile() {
+        File etcFile = myWorkArea.getEtcFile(WorkArea.ETC_HTML_EXPORT_CSS);
+        return etcFile == null ? "" : etcFile.getAbsolutePath();
+    }
+
+    protected String getDefaultExtension() {
+        return "html";
+    }
+
+    public Detach getDetach() {
+        return myLife;
+    }
+
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
+
+    public void addParametersTo(PropertyMap parameters) {
+        parameters.put(HTMLParams.TARGET_FILE, myTargetFile.getFile());
+        File cssFile = getCssFile();
+        if (cssFile != null)
+            parameters.put(HTMLParams.CSS_FILE, cssFile);
+        if (myFormatForPrinting.isSelected()) {
+            Object value = mySplitPagesSpinner.getValue();
+            if (value instanceof Integer)
+                parameters.put(HTMLParams.BUGS_PER_TABLE, (Integer) value);
+        }
+    }
+
+    private File getCssFile() {
+        return myUseCss.isSelected() ? myCssFile.getFile() : null;
+    }
+
+    @NotNull
+    public ScalarModel<String> getFormErrorModel() {
+        return myErrorModel;
+    }
+
+    public void confirmExport() throws CantPerformException {
+        checkFileOverwrite(myTargetFile, myWholePanel);
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, -1));
+        myUseTempFile = new JCheckBox();
+        myUseTempFile.setText(":useTempFile");
+        myWholePanel.add(myUseTempFile, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), 2, 0));
+        myWholePanel.add(panel1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        myTargetFileLabel = new JLabel();
+        myTargetFileLabel.setText(":file");
+        panel1.add(myTargetFileLabel, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        myTargetFile = new FileSelectionField();
+        myTargetFile.setDefaultExtension("html");
+        panel1.add(myTargetFile, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+        myWholePanel.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_VERTICAL, 1, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), 2, 0));
+        myWholePanel.add(panel2, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        myCssFile = new FileSelectionField();
+        myCssFile.setDefaultExtension("css");
+        panel2.add(myCssFile, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        myUseCss = new JCheckBox();
+        myUseCss.setText(":useCss");
+        panel2.add(myUseCss, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), 3, 0));
+        myWholePanel.add(panel3, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        myFormatForPrinting = new JCheckBox();
+        myFormatForPrinting.setText(":splitPages");
+        panel3.add(myFormatForPrinting, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mySplitPagesSpinner = new JSpinner();
+        panel3.add(mySplitPagesSpinner, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final com.intellij.uiDesigner.core.Spacer spacer2 = new com.intellij.uiDesigner.core.Spacer();
+        panel3.add(spacer2, new com.intellij.uiDesigner.core.GridConstraints(0, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JLabel label1 = new JLabel();
+        label1.setText(":bugsPerPage");
+        panel3.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

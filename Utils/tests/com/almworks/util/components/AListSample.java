@@ -20,92 +20,144 @@ import java.util.Comparator;
  * @author : Dyoma
  */
 public class AListSample {
-  private JComponent myWholePanel;
-  private JTextField myNewElement;
-  private JButton myUp;
-  private JButton myDown;
-  private JButton myAdd;
-  private AList<String> myList;
-  private final OrderListModel<String> myModel = new OrderListModel<String>();
+    private JComponent myWholePanel;
+    private JTextField myNewElement;
+    private JButton myUp;
+    private JButton myDown;
+    private JButton myAdd;
+    private AList<String> myList;
+    private final OrderListModel<String> myModel = new OrderListModel<String>();
 
-  public AListSample() {
-    myList.setCollectionModel(myModel);
-    myList.addListSelectionListener(new ListSelectionListener() {
-      public void valueChanged(ListSelectionEvent e) {
-        ListSelectionModel selection = (ListSelectionModel) e.getSource();
-        int min = selection.getMinSelectionIndex();
-        if (min == -1) {
-          myUp.setEnabled(false);
-          myDown.setEnabled(false);
-          return;
-        }
-        myUp.setEnabled(min > 0);
-        myDown.setEnabled(selection.getMaxSelectionIndex() < myModel.getSize() - 1);
-      }
-    });
-    myUp.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        int[] selection = myList.getSelectionAccessor().getSelectedIndexes();
-        for (int i = 0; i < selection.length; i++) {
-          int index = selection[i];
-          myModel.swap(index - 1, index);
-        }
-      }
-    });
-    myDown.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        int[] selection = myList.getSelectionAccessor().getSelectedIndexes();
-        for (int i = selection.length - 1; i >= 0; i--) {
-          int index = selection[i];
-          myModel.swap(index, index + 1);
-        }
-      }
-    });
-    myAdd.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        int index = myModel.addElement(myNewElement.getText());
-        myList.setSelectionIndex(index);
-      }
-    });
-  }
+    public AListSample() {
+        myList.setCollectionModel(myModel);
+        myList.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                ListSelectionModel selection = (ListSelectionModel) e.getSource();
+                int min = selection.getMinSelectionIndex();
+                if (min == -1) {
+                    myUp.setEnabled(false);
+                    myDown.setEnabled(false);
+                    return;
+                }
+                myUp.setEnabled(min > 0);
+                myDown.setEnabled(selection.getMaxSelectionIndex() < myModel.getSize() - 1);
+            }
+        });
+        myUp.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int[] selection = myList.getSelectionAccessor().getSelectedIndexes();
+                for (int i = 0; i < selection.length; i++) {
+                    int index = selection[i];
+                    myModel.swap(index - 1, index);
+                }
+            }
+        });
+        myDown.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int[] selection = myList.getSelectionAccessor().getSelectedIndexes();
+                for (int i = selection.length - 1; i >= 0; i--) {
+                    int index = selection[i];
+                    myModel.swap(index, index + 1);
+                }
+            }
+        });
+        myAdd.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int index = myModel.addElement(myNewElement.getText());
+                myList.setSelectionIndex(index);
+            }
+        });
+    }
 
-  public JComponent getWholePanel() {
-    return myWholePanel;
-  }
+    public JComponent getWholePanel() {
+        return myWholePanel;
+    }
 
-  public AList<String> getList() {
-    return myList;
-  }
+    public AList<String> getList() {
+        return myList;
+    }
 
-  public static void main(String[] args) {
-    LAFUtil.initializeLookAndFeel();
-    AListSample sample = new AListSample();
-    JPanel panel = new JPanel(new GridLayout(1, 2));
-    panel.add(sample.getWholePanel());
-    AList<String> sortedView = new AList<String>();
-    SortedListDecorator<String> sorted = SortedListDecorator.createWithoutComparator(sample.myModel);
-    sortedView.setCollectionModel(sorted);
-    JPanel sortPanel = createSortedPanel(sortedView, sorted);
-    panel.add(sortPanel);
-    JFrame frame = LinkSample.showFrame(panel, "AList Sample");
-    frame.getRootPane().setDefaultButton(sample.myAdd);
-  }
+    public static void main(String[] args) {
+        LAFUtil.initializeLookAndFeel();
+        AListSample sample = new AListSample();
+        JPanel panel = new JPanel(new GridLayout(1, 2));
+        panel.add(sample.getWholePanel());
+        AList<String> sortedView = new AList<String>();
+        SortedListDecorator<String> sorted = SortedListDecorator.createWithoutComparator(sample.myModel);
+        sortedView.setCollectionModel(sorted);
+        JPanel sortPanel = createSortedPanel(sortedView, sorted);
+        panel.add(sortPanel);
+        JFrame frame = LinkSample.showFrame(panel, "AList Sample");
+        frame.getRootPane().setDefaultButton(sample.myAdd);
+    }
 
-  private static JPanel createSortedPanel(AList<String> sortedView, final SortedListDecorator<String> model) {
-    JPanel sortPanel = new JPanel(UIUtil.createBorderLayout());
-    sortPanel.add(new JScrollPane(sortedView), BorderLayout.CENTER);
-    final JCheckBox reverseSort = new JCheckBox("Reverse");
-    sortPanel.add(reverseSort, BorderLayout.NORTH);
-    reverseSort.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        Comparator<String> comparator = String.CASE_INSENSITIVE_ORDER;
-        if (reverseSort.isSelected())
-          comparator = Containers.reverse(comparator);
-        model.setComparator(comparator);
-      }
-    });
-    model.setComparator(String.CASE_INSENSITIVE_ORDER);
-    sortPanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED), "Sorted"));
-    return sortPanel;
-  }
+    private static JPanel createSortedPanel(AList<String> sortedView, final SortedListDecorator<String> model) {
+        JPanel sortPanel = new JPanel(UIUtil.createBorderLayout());
+        sortPanel.add(new JScrollPane(sortedView), BorderLayout.CENTER);
+        final JCheckBox reverseSort = new JCheckBox("Reverse");
+        sortPanel.add(reverseSort, BorderLayout.NORTH);
+        reverseSort.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Comparator<String> comparator = String.CASE_INSENSITIVE_ORDER;
+                if (reverseSort.isSelected())
+                    comparator = Containers.reverse(comparator);
+                model.setComparator(comparator);
+            }
+        });
+        model.setComparator(String.CASE_INSENSITIVE_ORDER);
+        sortPanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED), "Sorted"));
+        return sortPanel;
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(4, 3, new Insets(0, 0, 0, 0), -1, -1));
+        myAdd = new JButton();
+        myAdd.setText("Add");
+        myAdd.setMnemonic('A');
+        myAdd.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(myAdd, new com.intellij.uiDesigner.core.GridConstraints(0, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        myNewElement = new JTextField();
+        myWholePanel.add(myNewElement, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        myUp = new JButton();
+        myUp.setText("Move Up");
+        myUp.setMnemonic('U');
+        myUp.setDisplayedMnemonicIndex(5);
+        myWholePanel.add(myUp, new com.intellij.uiDesigner.core.GridConstraints(1, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        myDown = new JButton();
+        myDown.setText("Move Down");
+        myDown.setMnemonic('D');
+        myDown.setDisplayedMnemonicIndex(5);
+        myWholePanel.add(myDown, new com.intellij.uiDesigner.core.GridConstraints(2, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+        myWholePanel.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(3, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_VERTICAL, 1, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        myWholePanel.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 3, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        myList = new AList();
+        scrollPane1.setViewportView(myList);
+        final JLabel label1 = new JLabel();
+        label1.setText("New item:");
+        myWholePanel.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

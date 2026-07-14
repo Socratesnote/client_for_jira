@@ -7,97 +7,162 @@ import com.almworks.util.components.URLLink;
 import com.almworks.util.exec.ThreadGate;
 import com.almworks.util.ui.DialogsUtil;
 import com.almworks.util.ui.UIUtil;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 class AskCredentialsDialog {
-  private JPanel myWholePanel;
-  private JTextField myUsername;
-  private JPasswordField myPassword;
-  private JCheckBox myUseAccountCredentials;
-  private JTextArea myMessageArea;
-  private URLLink myConnectionLink;
+    private JPanel myWholePanel;
+    private JTextField myUsername;
+    private JPasswordField myPassword;
+    private JCheckBox myUseAccountCredentials;
+    private JTextArea myMessageArea;
+    private URLLink myConnectionLink;
 
-  public AskCredentialsDialog() {
-    init();
-  }
-
-  public static boolean show(DialogManager dialogManager, StringBuffer username, StringBuffer password,
-    @Nullable("Anonymous is not allowed") boolean[] anonymous, String connectionName, String baseUrl, String problemMessage)
-  {
-    DialogResult<Boolean> dr = new DialogResult<Boolean>(dialogManager.createBuilder("askCredentials"));
-    dr.setOkResult(Boolean.TRUE);
-    dr.setCancelResult(Boolean.FALSE);
-    dr.pack();
-
-    AskCredentialsDialog dialog = new AskCredentialsDialog();
-    if (anonymous == null) dialog.noAnonymous();
-    dialog.setup(username.toString(), password.toString(), problemMessage);
-    dialog.myConnectionLink.setUrlText(connectionName);
-    dialog.myConnectionLink.setUrl(baseUrl);
-    dialog.myConnectionLink.setShowTooltip(true);
-
-    Boolean r = dr.showModal("Please Enter Correct Jira Credentials", dialog.getComponent());
-    boolean result = r != null && r;
-
-    if (result) {
-      if (anonymous != null) anonymous[0] = !dialog.isCredentialUsed();
-      if (anonymous == null || !anonymous[0]) {
-        username.setLength(0);
-        username.append(dialog.getUsername());
-        password.setLength(0);
-        password.append(dialog.getPassword());
-      }
+    public AskCredentialsDialog() {
+        init();
     }
 
-    return result;
-  }
+    public static boolean show(DialogManager dialogManager, StringBuffer username, StringBuffer password,
+                               @Nullable("Anonymous is not allowed") boolean[] anonymous, String connectionName, String baseUrl, String problemMessage) {
+        DialogResult<Boolean> dr = new DialogResult<Boolean>(dialogManager.createBuilder("askCredentials"));
+        dr.setOkResult(Boolean.TRUE);
+        dr.setCancelResult(Boolean.FALSE);
+        dr.pack();
 
-  private void noAnonymous() {
-    myUseAccountCredentials.setSelected(true);
-    myUseAccountCredentials.setVisible(false);
-  }
+        AskCredentialsDialog dialog = new AskCredentialsDialog();
+        if (anonymous == null) dialog.noAnonymous();
+        dialog.setup(username.toString(), password.toString(), problemMessage);
+        dialog.myConnectionLink.setUrlText(connectionName);
+        dialog.myConnectionLink.setUrl(baseUrl);
+        dialog.myConnectionLink.setShowTooltip(true);
 
-  private void setup(String username, String password, String problemMessage) {
-    myUseAccountCredentials.setSelected(true);
-    myUsername.setText(username);
-    myPassword.setText(password);
-    String message = "Server did not accept your username and password. Probably they have changed. " +
-      "Please enter correct username and password." +
-      (myUseAccountCredentials.isVisible() ? " You can also switch to anonymous mode." : "") +
-      "\n\nProblem details: " +
-      problemMessage;
-    myMessageArea.setText(message);
-    UIUtil.scrollToTop(myMessageArea);
-  }
+        Boolean r = dr.showModal("Please Enter Correct Jira Credentials", dialog.getComponent());
+        boolean result = r != null && r;
 
-  private void init() {
-    UIUtil.setupConditionalEnabled(myUseAccountCredentials, false, myUsername, myPassword);
-  }
+        if (result) {
+            if (anonymous != null) anonymous[0] = !dialog.isCredentialUsed();
+            if (anonymous == null || !anonymous[0]) {
+                username.setLength(0);
+                username.append(dialog.getUsername());
+                password.setLength(0);
+                password.append(dialog.getPassword());
+            }
+        }
 
-  private String getPassword() {
-    return myPassword.getText();
-  }
+        return result;
+    }
 
-  private String getUsername() {
-    return myUsername.getText();
-  }
+    private void noAnonymous() {
+        myUseAccountCredentials.setSelected(true);
+        myUseAccountCredentials.setVisible(false);
+    }
 
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
+    private void setup(String username, String password, String problemMessage) {
+        myUseAccountCredentials.setSelected(true);
+        myUsername.setText(username);
+        myPassword.setText(password);
+        String message = "Server did not accept your username and password. Probably they have changed. " +
+                "Please enter correct username and password." +
+                (myUseAccountCredentials.isVisible() ? " You can also switch to anonymous mode." : "") +
+                "\n\nProblem details: " +
+                problemMessage;
+        myMessageArea.setText(message);
+        UIUtil.scrollToTop(myMessageArea);
+    }
 
-  public boolean isCredentialUsed() {
-    return myUseAccountCredentials.isSelected();
-  }
+    private void init() {
+        UIUtil.setupConditionalEnabled(myUseAccountCredentials, false, myUsername, myPassword);
+    }
 
-  public static void showWrongCredentials(final ConnectorException e) {
-    ThreadGate.AWT_OPTIMAL.execute(new Runnable() {
-      @Override
-      public void run() {
-        DialogsUtil.showErrorMessage(null, new JLabel("<html>" + e.getLongDescription()), "Jira Credentials");
-      }
-    });
-  }
+    private String getPassword() {
+        return myPassword.getText();
+    }
+
+    private String getUsername() {
+        return myUsername.getText();
+    }
+
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
+
+    public boolean isCredentialUsed() {
+        return myUseAccountCredentials.isSelected();
+    }
+
+    public static void showWrongCredentials(final ConnectorException e) {
+        ThreadGate.AWT_OPTIMAL.execute(new Runnable() {
+            @Override
+            public void run() {
+                DialogsUtil.showErrorMessage(null, new JLabel("<html>" + e.getLongDescription()), "Jira Credentials");
+            }
+        });
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:d:grow"));
+        final JLabel label1 = new JLabel();
+        label1.setText("Username:");
+        label1.setDisplayedMnemonic('N');
+        label1.setDisplayedMnemonicIndex(4);
+        CellConstraints cc = new CellConstraints();
+        myWholePanel.add(label1, cc.xy(1, 5));
+        myUsername = new JTextField();
+        myUsername.setEditable(false);
+        myWholePanel.add(myUsername, cc.xy(3, 5, CellConstraints.FILL, CellConstraints.DEFAULT));
+        final JLabel label2 = new JLabel();
+        label2.setText("Password:");
+        label2.setDisplayedMnemonic('P');
+        label2.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label2, cc.xy(1, 7));
+        myPassword = new JPasswordField();
+        myWholePanel.add(myPassword, cc.xy(3, 7, CellConstraints.FILL, CellConstraints.DEFAULT));
+        myUseAccountCredentials = new JCheckBox();
+        myUseAccountCredentials.setText("Use account credentials");
+        myUseAccountCredentials.setMnemonic('U');
+        myUseAccountCredentials.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(myUseAccountCredentials, cc.xyw(1, 3, 3));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        myWholePanel.add(scrollPane1, cc.xyw(1, 9, 3, CellConstraints.FILL, CellConstraints.FILL));
+        myMessageArea = new JTextArea();
+        myMessageArea.setColumns(50);
+        myMessageArea.setEditable(false);
+        myMessageArea.setLineWrap(true);
+        myMessageArea.setRows(7);
+        myMessageArea.setWrapStyleWord(true);
+        scrollPane1.setViewportView(myMessageArea);
+        myConnectionLink = new URLLink();
+        myConnectionLink.setHorizontalAlignment(2);
+        myWholePanel.add(myConnectionLink, cc.xy(3, 1, CellConstraints.LEFT, CellConstraints.DEFAULT));
+        final JLabel label3 = new JLabel();
+        label3.setText("Connection:");
+        myWholePanel.add(label3, cc.xy(1, 1));
+        label1.setLabelFor(myUsername);
+        label2.setLabelFor(myPassword);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

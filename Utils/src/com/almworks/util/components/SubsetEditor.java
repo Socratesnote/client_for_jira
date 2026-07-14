@@ -237,147 +237,238 @@ public final class SubsetEditor<T> extends UIComponentWrapper2Support {
     myForm.setCanvasRenderer(renderer);
   }
 
-  private class Form {
-    private AActionButton myAdd;
-    private AActionButton myMoveDown;
-    private AActionButton myMoveUp;
-    private AActionButton myRemove;
-    private AActionButton myAddNew;
-    private AList<T> mySourceList;
-    private AList<T> myTargetList;
-    private JLabel myAvailableLabel;
-    private JLabel mySelectedLabel;
-    private JPanel myWholePanel;
-    private JTextField mySearchText;
-    private JPanel mySearchPanel;
-    private JScrollPane mySourceListScrollpane;
+    private class Form {
+      private AActionButton myAdd;
+      private AActionButton myMoveDown;
+      private AActionButton myMoveUp;
+      private AActionButton myRemove;
+      private AActionButton myAddNew;
+      private AList<T> mySourceList;
+      private AList<T> myTargetList;
+      private JLabel myAvailableLabel;
+      private JLabel mySelectedLabel;
+      private JPanel myWholePanel;
+      private JTextField mySearchText;
+      private JPanel mySearchPanel;
+      private JScrollPane mySourceListScrollpane;
 
-    public final JPanel mySizingPanel = new JPanel(new SingleChildLayout(SingleChildLayout.CONTAINER)) {
-      public Dimension getPreferredSize() {
-        return UIUtil.getPreferredSizePropped(super.getPreferredSize(), 500, 0);
-      }
-    };
-
-    public Form(boolean filtering) {
-      mySelectedLabel.setLabelFor(myTargetList.getScrollable());
-      myAvailableLabel.setLabelFor(filtering ? mySearchText : mySourceList.getScrollable());
-      mySizingPanel.add(myWholePanel);
-      myAvailableLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
-      mySelectedLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
-      Aqua.disableMnemonics(myWholePanel);
-
-      if(filtering) {
-        initExtendedSearch();
-      } else {
-        myWholePanel.remove(mySearchPanel);
-        FormLayout layout = (FormLayout) myWholePanel.getLayout();
-        CellConstraints cc = layout.getConstraints(mySourceListScrollpane);
-        layout.setRowSpec(cc.gridY - 1, new RowSpec("0px"));
-        layout.setRowSpec(cc.gridY - 2, new RowSpec("0px"));
-      }
-    }
-
-    public void initAddNew(SubsetModel<T> model) {
-      myAddNew.setMargin(new Insets(2, 4, 2, 4));
-      myAddNew.setAnAction(new AddNewAction());
-    }
-
-    private void initExtendedSearch() {
-      mySearchText.getDocument().addDocumentListener(new DocumentAdapter() {
-        protected void documentChanged(DocumentEvent e) {
-          doTextSearch();
-        }
-      });
-
-      final KeyStroke enter = Shortcuts.ksPlain(KeyEvent.VK_ENTER);
-      mySearchText.addKeyListener(UIUtil.pressButtonWithKeyStroke(myAddNew, enter));
-
-      final Action browse = new AbstractAction() {
-        public void actionPerformed(ActionEvent e) {
-          mySourceList.getSelectionAccessor().ensureSelectionExists();
-          mySourceList.getScrollable().requestFocusInWindow();
-        }
+      public final JPanel mySizingPanel = new JPanel(new SingleChildLayout(SingleChildLayout.CONTAINER)) {
+          public Dimension getPreferredSize() {
+              return UIUtil.getPreferredSizePropped(super.getPreferredSize(), 500, 0);
+          }
       };
 
-      final KeyStroke up = Shortcuts.ksPlain(KeyEvent.VK_UP);
-      final KeyStroke dn = Shortcuts.ksPlain(KeyEvent.VK_DOWN);
-      action(WHEN_FOCUSED, mySearchText, browse, up);
-      action(WHEN_FOCUSED, mySearchText, browse, dn);
-      action(WHEN_FOCUSED, myAddNew, browse, up);
-      action(WHEN_FOCUSED, myAddNew, browse, dn);
-    }
+      public Form(boolean filtering) {
+          mySelectedLabel.setLabelFor(myTargetList.getScrollable());
+          myAvailableLabel.setLabelFor(filtering ? mySearchText : mySourceList.getScrollable());
+          mySizingPanel.add(myWholePanel);
+          myAvailableLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
+          mySelectedLabel.putClientProperty(UIUtil.SET_DEFAULT_LABEL_ALIGNMENT, false);
+          Aqua.disableMnemonics(myWholePanel);
 
-    private void doTextSearch() {
-      final Pattern pattern = getSearchPattern();
-      if(pattern != null) {
-        myCondition.setPattern(pattern);
-      }
-    }
-
-    private Pattern getSearchPattern() {
-      try {
-        final String s = mySearchText.getText().trim();
-        return Pattern.compile(s, Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
-      } catch(PatternSyntaxException e) {
-        return null;
-      }
-    }
-
-    private void action(int condition, JComponent component, Action action, KeyStroke keyStroke) {
-      component.getInputMap(condition).put(keyStroke, action);
-      component.getActionMap().put(action, action);
-    }
-
-    public void setCanvasRenderer(CanvasRenderer<? super T> renderer) {
-      mySourceList.setCanvasRenderer(renderer);
-      myTargetList.setCanvasRenderer(renderer);
-      ListSpeedSearch.install(mySourceList);
-      ListSpeedSearch.install(myTargetList);
-    }
-
-    public void setModels(Lifespan life, AListModel<T> source, SubsetModel<T> target) {
-      myLife.add(mySourceList.setCollectionModel(source));
-      myLife.add(AComponentUtil.selectNewElements(mySourceList));
-      myLife.add(myTargetList.setCollectionModel(target));
-      myLife.add(AComponentUtil.selectNewElements(myTargetList));
-      mySourceList.getSelectionAccessor().ensureSelectionExists();
-      myTargetList.getSelectionAccessor().ensureSelectionExists();
-    }
-
-    private class AddNewAction extends SimpleAction {
-      public AddNewAction() {
-        super("", Icons.ACTION_GENERIC_ADD);
-      }
-
-      protected void customUpdate(UpdateContext context) throws CantPerformException {
-        context.updateOnChange(mySearchText.getDocument());
-        context.setEnabled(mySearchText.getText().trim().length() > 0);
-      }
-
-      protected void doPerform(ActionContext context) throws CantPerformException {
-        final SelectionAccessor<T> accessor = mySourceList.getSelectionAccessor();
-        T item = accessor.getSelection();
-        boolean clearText = false;
-        if(item == null) {
-          assert myCreator != null;
-          item = myCreator.invoke(mySearchText.getText().trim());
-          if(item != null) {
-            clearText = true;
+          if (filtering) {
+              initExtendedSearch();
+          } else {
+              myWholePanel.remove(mySearchPanel);
+              FormLayout layout = (FormLayout) myWholePanel.getLayout();
+              CellConstraints cc = layout.getConstraints(mySourceListScrollpane);
+              layout.setRowSpec(cc.gridY - 1, new RowSpec("0px"));
+              layout.setRowSpec(cc.gridY - 2, new RowSpec("0px"));
           }
+      }
+
+      public void initAddNew(SubsetModel<T> model) {
+          myAddNew.setMargin(new Insets(2, 4, 2, 4));
+          myAddNew.setAnAction(new AddNewAction());
+      }
+
+      private void initExtendedSearch() {
+          mySearchText.getDocument().addDocumentListener(new DocumentAdapter() {
+              protected void documentChanged(DocumentEvent e) {
+                  doTextSearch();
+              }
+          });
+
+          final KeyStroke enter = Shortcuts.ksPlain(KeyEvent.VK_ENTER);
+          mySearchText.addKeyListener(UIUtil.pressButtonWithKeyStroke(myAddNew, enter));
+
+          final Action browse = new AbstractAction() {
+              public void actionPerformed(ActionEvent e) {
+                  mySourceList.getSelectionAccessor().ensureSelectionExists();
+                  mySourceList.getScrollable().requestFocusInWindow();
+              }
+          };
+
+          final KeyStroke up = Shortcuts.ksPlain(KeyEvent.VK_UP);
+          final KeyStroke dn = Shortcuts.ksPlain(KeyEvent.VK_DOWN);
+          action(WHEN_FOCUSED, mySearchText, browse, up);
+          action(WHEN_FOCUSED, mySearchText, browse, dn);
+          action(WHEN_FOCUSED, myAddNew, browse, up);
+          action(WHEN_FOCUSED, myAddNew, browse, dn);
+      }
+
+      private void doTextSearch() {
+          final Pattern pattern = getSearchPattern();
+          if (pattern != null) {
+              myCondition.setPattern(pattern);
+          }
+      }
+
+      private Pattern getSearchPattern() {
+          try {
+              final String s = mySearchText.getText().trim();
+              return Pattern.compile(s, Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
+          } catch (PatternSyntaxException e) {
+              return null;
+          }
+      }
+
+      private void action(int condition, JComponent component, Action action, KeyStroke keyStroke) {
+          component.getInputMap(condition).put(keyStroke, action);
+          component.getActionMap().put(action, action);
+      }
+
+      public void setCanvasRenderer(CanvasRenderer<? super T> renderer) {
+          mySourceList.setCanvasRenderer(renderer);
+          myTargetList.setCanvasRenderer(renderer);
+          ListSpeedSearch.install(mySourceList);
+          ListSpeedSearch.install(myTargetList);
+      }
+
+      public void setModels(Lifespan life, AListModel<T> source, SubsetModel<T> target) {
+          myLife.add(mySourceList.setCollectionModel(source));
+          myLife.add(AComponentUtil.selectNewElements(mySourceList));
+          myLife.add(myTargetList.setCollectionModel(target));
+          myLife.add(AComponentUtil.selectNewElements(myTargetList));
+          mySourceList.getSelectionAccessor().ensureSelectionExists();
+          myTargetList.getSelectionAccessor().ensureSelectionExists();
+      }
+
+        {
+            // GUI initializer generated by IntelliJ IDEA GUI Designer
+            // >>> IMPORTANT!! <<<
+            // DO NOT EDIT OR ADD ANY CODE HERE!
+            $$$setupUI$$$();
         }
-        if(item != null) {
-          myModel.add(item);
-          updateComplementSelection(myForm.myTargetList, Collections.singletonList(item));
-          UIUtil.requestFocusInWindowLater(mySearchText);
+
+        /**
+         * Method generated by IntelliJ IDEA GUI Designer
+         * >>> IMPORTANT!! <<<
+         * DO NOT edit this method OR call it in your code!
+         *
+         * @noinspection ALL
+         */
+        private void $$$setupUI$$$() {
+            myWholePanel = new JPanel();
+            myWholePanel.setLayout(new FormLayout("fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow", "center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,center:d:grow"));
+            ((FormLayout) myWholePanel.getLayout()).setRowGroups(new int[][]{new int[]{5, 7, 9, 11}});
+            ((FormLayout) myWholePanel.getLayout()).setColumnGroups(new int[][]{new int[]{1, 5}});
+            myWholePanel.setEnabled(true);
+            mySelectedLabel = new JLabel();
+            mySelectedLabel.setText("Selected:");
+            mySelectedLabel.setDisplayedMnemonic('S');
+            mySelectedLabel.setDisplayedMnemonicIndex(0);
+            CellConstraints cc = new CellConstraints();
+            myWholePanel.add(mySelectedLabel, cc.xy(1, 1));
+            final JScrollPane scrollPane1 = new JScrollPane();
+            myWholePanel.add(scrollPane1, cc.xywh(1, 3, 1, 10, CellConstraints.FILL, CellConstraints.FILL));
+            myTargetList = new AList();
+            scrollPane1.setViewportView(myTargetList);
+            myAvailableLabel = new JLabel();
+            myAvailableLabel.setText("Available:");
+            myAvailableLabel.setDisplayedMnemonic('V');
+            myAvailableLabel.setDisplayedMnemonicIndex(1);
+            myWholePanel.add(myAvailableLabel, cc.xy(5, 1));
+            mySearchPanel = new JPanel();
+            mySearchPanel.setLayout(new FormLayout("fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:noGrow"));
+            myWholePanel.add(mySearchPanel, cc.xy(5, 3, CellConstraints.DEFAULT, CellConstraints.FILL));
+            mySearchText = new JTextField();
+            mySearchText.setColumns(10);
+            mySearchPanel.add(mySearchText, cc.xy(1, 1, CellConstraints.FILL, CellConstraints.CENTER));
+            myAddNew = new AActionButton();
+            myAddNew.setText("");
+            mySearchPanel.add(myAddNew, cc.xy(3, 1, CellConstraints.DEFAULT, CellConstraints.FILL));
+            myMoveUp = new AActionButton();
+            myMoveUp.setFocusable(false);
+            myMoveUp.setHorizontalAlignment(2);
+            myMoveUp.setMargin(new Insets(3, 5, 3, 5));
+            myMoveUp.setText("Move Up");
+            myMoveUp.setMnemonic('U');
+            myMoveUp.setDisplayedMnemonicIndex(5);
+            myWholePanel.add(myMoveUp, cc.xy(3, 9));
+            myMoveDown = new AActionButton();
+            myMoveDown.setFocusable(false);
+            myMoveDown.setHorizontalAlignment(2);
+            myMoveDown.setMargin(new Insets(3, 5, 3, 5));
+            myMoveDown.setText("Move Down");
+            myMoveDown.setMnemonic('D');
+            myMoveDown.setDisplayedMnemonicIndex(5);
+            myWholePanel.add(myMoveDown, cc.xy(3, 11));
+            myAdd = new AActionButton();
+            myAdd.setFocusable(false);
+            myAdd.setHorizontalAlignment(2);
+            myAdd.setHorizontalTextPosition(11);
+            myAdd.setMargin(new Insets(3, 5, 3, 5));
+            myAdd.setText("Add");
+            myAdd.setMnemonic('A');
+            myAdd.setDisplayedMnemonicIndex(0);
+            myWholePanel.add(myAdd, cc.xy(3, 5));
+            myRemove = new AActionButton();
+            myRemove.setFocusable(false);
+            myRemove.setHorizontalAlignment(2);
+            myRemove.setHorizontalTextPosition(11);
+            myRemove.setMargin(new Insets(3, 5, 3, 5));
+            myRemove.setText("Remove");
+            myRemove.setMnemonic('R');
+            myRemove.setDisplayedMnemonicIndex(0);
+            myWholePanel.add(myRemove, cc.xy(3, 7));
+            mySourceListScrollpane = new JScrollPane();
+            myWholePanel.add(mySourceListScrollpane, cc.xywh(5, 5, 1, 8, CellConstraints.FILL, CellConstraints.FILL));
+            mySourceList = new AList();
+            mySourceListScrollpane.setViewportView(mySourceList);
         }
-        if(clearText) {
-          mySearchText.setText("");
-        } else {
-          doTextSearch();
+
+        /**
+         * @noinspection ALL
+         */
+        public JComponent $$$getRootComponent$$$() {
+            return myWholePanel;
         }
+
+        private class AddNewAction extends SimpleAction {
+            public AddNewAction() {
+                super("", Icons.ACTION_GENERIC_ADD);
+            }
+
+            protected void customUpdate(UpdateContext context) throws CantPerformException {
+                context.updateOnChange(mySearchText.getDocument());
+                context.setEnabled(mySearchText.getText().trim().length() > 0);
+            }
+
+            protected void doPerform(ActionContext context) throws CantPerformException {
+                final SelectionAccessor<T> accessor = mySourceList.getSelectionAccessor();
+                T item = accessor.getSelection();
+                boolean clearText = false;
+                if (item == null) {
+                    assert myCreator != null;
+                    item = myCreator.invoke(mySearchText.getText().trim());
+                    if (item != null) {
+                        clearText = true;
+                    }
+                }
+                if (item != null) {
+                    myModel.add(item);
+                    updateComplementSelection(myForm.myTargetList, Collections.singletonList(item));
+                    UIUtil.requestFocusInWindowLater(mySearchText);
+                }
+                if (clearText) {
+                    mySearchText.setText("");
+                } else {
+                    doTextSearch();
+                }
+            }
       }
     }
-  }
 
 
   private class FilteringCondition extends Condition<T> {

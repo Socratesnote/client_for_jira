@@ -103,9 +103,8 @@ class ComponentContainerImpl implements MutableComponentContainer, ComponentCont
       Method startMethod = Startable.class.getMethod("start");
       new LifecycleVisitor(startMethod, Startable.class, true) {
         public void visitComponentAdapter(ComponentAdapter componentAdapter) {
-          ComponentAdapter c = componentAdapter;
-          if (!(c instanceof DecoratingComponentAdapter)) {
-            Class clazz = c.getComponentImplementation();
+            if (!(componentAdapter instanceof DecoratingComponentAdapter)) {
+            Class clazz = componentAdapter.getComponentImplementation();
             Log.debug("starting: " + clazz.getName());
           }
           super.visitComponentAdapter(componentAdapter);

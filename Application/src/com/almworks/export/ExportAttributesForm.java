@@ -21,77 +21,120 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 class ExportAttributesForm {
-  private JButton mySameAsInBugsTable;
-  private JPanel mySubsetEditorPlace;
-  private JPanel myWholePanel;
-  private JLabel myBanner;
-  private final DialogManager myDialogManager;
-  private final SubsetModel<ItemExport> myAttributesModel;
-  private final List<String> myTableColumns;
+    private JButton mySameAsInBugsTable;
+    private JPanel mySubsetEditorPlace;
+    private JPanel myWholePanel;
+    private JLabel myBanner;
+    private final DialogManager myDialogManager;
+    private final SubsetModel<ItemExport> myAttributesModel;
+    private final List<String> myTableColumns;
 
-  private SubsetEditor<ItemExport> mySubsetEditor = null;
+    private SubsetEditor<ItemExport> mySubsetEditor = null;
 
-  public ExportAttributesForm(DialogManager dialogManager, SubsetModel<ItemExport> attributesModel,
-    List<String> tableColumns)
-  {
-    myDialogManager = dialogManager;
-    myAttributesModel = attributesModel;
-    myTableColumns = tableColumns;
-    AppBook.replaceText("ExportAttributesForm", myWholePanel);
-    setupSameButton();
-    setupVisual();
-  }
-
-  private void setupVisual() {
-    UIUtil.adjustFont(myBanner, -1, Font.BOLD, false);
-  }
-
-  private void setupSameButton() {
-    mySameAsInBugsTable.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        setupFieldsFromTable(myAttributesModel, myTableColumns);
-      }
-    });
-    NameMnemonic
-      .parseString(Local.parse("&Same as in " + Terms.ref_Artifacts + " Table"))
-      .setToButton(mySameAsInBugsTable);
-  }
-
-  static void setupFieldsFromTable(SubsetModel<ItemExport> attributesModel, List<String> tableColumns) {
-    List<ItemExport> exports = Collections15.arrayList();
-    List<ItemExport> all = attributesModel.getFullSet().toList();
-    for (String column : tableColumns) {
-      if (column == null) continue;
-      ItemExport export = null;
-      for (ItemExport itemExport : all) {
-        if (column.equals(itemExport.getId())) {
-          export = itemExport;
-          break;
-        }
-      }
-      if (export == null) LogHelper.warning("Export not found", column);
-      else exports.add(export);
+    public ExportAttributesForm(DialogManager dialogManager, SubsetModel<ItemExport> attributesModel,
+                                List<String> tableColumns) {
+        myDialogManager = dialogManager;
+        myAttributesModel = attributesModel;
+        myTableColumns = tableColumns;
+        AppBook.replaceText("ExportAttributesForm", myWholePanel);
+        setupSameButton();
+        setupVisual();
     }
-    attributesModel.setSubset(exports);
-  }
 
-  public void show() {
-    maybeInitializeSubsetEditor();
-    DialogBuilder builder = myDialogManager.createBuilder("exportAttributesForm");
-    builder.setTitle("Select Attributes for Export");
-    builder.setModal(true);
-    builder.setCancelAction("Close Window");
-    builder.setContent(myWholePanel);
-    builder.showWindow();
-  }
+    private void setupVisual() {
+        UIUtil.adjustFont(myBanner, -1, Font.BOLD, false);
+    }
 
-  private void maybeInitializeSubsetEditor() {
-    if (mySubsetEditor != null)
-      return;
-    mySubsetEditor = SubsetEditor.create(myAttributesModel, ItemExport.DISPLAY_NAME_COMPARATOR, "&Selected Attributes:",
-      "A&vailable Attributes:", true);
-    mySubsetEditor.setCanvasRenderer(ItemExport.DISPLAY_NAME_RENDERER);
-    mySubsetEditorPlace.setLayout(new SingleChildLayout(SingleChildLayout.CONTAINER));
-    mySubsetEditorPlace.add(mySubsetEditor.getComponent());
-  }
+    private void setupSameButton() {
+        mySameAsInBugsTable.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                setupFieldsFromTable(myAttributesModel, myTableColumns);
+            }
+        });
+        NameMnemonic
+                .parseString(Local.parse("&Same as in " + Terms.ref_Artifacts + " Table"))
+                .setToButton(mySameAsInBugsTable);
+    }
+
+    static void setupFieldsFromTable(SubsetModel<ItemExport> attributesModel, List<String> tableColumns) {
+        List<ItemExport> exports = Collections15.arrayList();
+        List<ItemExport> all = attributesModel.getFullSet().toList();
+        for (String column : tableColumns) {
+            if (column == null) continue;
+            ItemExport export = null;
+            for (ItemExport itemExport : all) {
+                if (column.equals(itemExport.getId())) {
+                    export = itemExport;
+                    break;
+                }
+            }
+            if (export == null) LogHelper.warning("Export not found", column);
+            else exports.add(export);
+        }
+        attributesModel.setSubset(exports);
+    }
+
+    public void show() {
+        maybeInitializeSubsetEditor();
+        DialogBuilder builder = myDialogManager.createBuilder("exportAttributesForm");
+        builder.setTitle("Select Attributes for Export");
+        builder.setModal(true);
+        builder.setCancelAction("Close Window");
+        builder.setContent(myWholePanel);
+        builder.showWindow();
+    }
+
+    private void maybeInitializeSubsetEditor() {
+        if (mySubsetEditor != null)
+            return;
+        mySubsetEditor = SubsetEditor.create(myAttributesModel, ItemExport.DISPLAY_NAME_COMPARATOR, "&Selected Attributes:",
+                "A&vailable Attributes:", true);
+        mySubsetEditor.setCanvasRenderer(ItemExport.DISPLAY_NAME_RENDERER);
+        mySubsetEditorPlace.setLayout(new SingleChildLayout(SingleChildLayout.CONTAINER));
+        mySubsetEditorPlace.add(mySubsetEditor.getComponent());
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+        myBanner = new JLabel();
+        myBanner.setHorizontalAlignment(10);
+        myBanner.setText(":selectAttributesToExport");
+        myWholePanel.add(myBanner, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        myWholePanel.add(panel1, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        mySameAsInBugsTable = new JButton();
+        mySameAsInBugsTable.setText(":sameAsInBugsTable");
+        panel1.add(mySameAsInBugsTable, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+        panel1.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new BorderLayout(0, 0));
+        myWholePanel.add(panel2, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        mySubsetEditorPlace = new JPanel();
+        mySubsetEditorPlace.setLayout(new BorderLayout(0, 0));
+        panel2.add(mySubsetEditorPlace, BorderLayout.CENTER);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

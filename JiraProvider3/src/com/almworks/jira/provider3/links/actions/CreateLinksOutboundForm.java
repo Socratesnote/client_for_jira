@@ -18,102 +18,156 @@ import org.almworks.util.Collections15;
 import org.almworks.util.TypedKey;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 class CreateLinksOutboundForm {
-  private static final TableColumnAccessor<Map<TypedKey<?>, ?>, String> KEY_COLUMN = createColumn(LoadedLink.KEY);
-  private static final TableColumnAccessor<Map<TypedKey<?>, ?>, String> SUMMARY_COLUMN = createColumn(LoadedLink.SUMMARY);
+    private static final TableColumnAccessor<Map<TypedKey<?>, ?>, String> KEY_COLUMN = createColumn(LoadedLink.KEY);
+    private static final TableColumnAccessor<Map<TypedKey<?>, ?>, String> SUMMARY_COLUMN = createColumn(LoadedLink.SUMMARY);
     // todo add STP icons column
 
-  private ATable<Map<TypedKey<?>, ?>> mySourceIssue;
-  private JTextArea myOppositeIssues;
-  private AComboBox<DirectionalLinkType> myLinkType;
-  private JPanel myWholePanel;
-  private final GuiFeaturesManager myFeatures;
+    private ATable<Map<TypedKey<?>, ?>> mySourceIssue;
+    private JTextArea myOppositeIssues;
+    private AComboBox<DirectionalLinkType> myLinkType;
+    private JPanel myWholePanel;
+    private final GuiFeaturesManager myFeatures;
 
-  public CreateLinksOutboundForm(GuiFeaturesManager features) {
-    myFeatures = features;
-    myLinkType.setCanvasRenderer(DirectionalLinkType.RENDERER);
-    setupTable(mySourceIssue);
-    UIUtil.setDefaultLabelAlignment(myWholePanel);
-    Aqua.disableMnemonics(myWholePanel);
-    mySourceIssue.setColumnModel(FixedListModel.create(KEY_COLUMN, SUMMARY_COLUMN));
-  }
-
-  private static TableColumnAccessor<Map<TypedKey<?>, ?>, String> createColumn(TypedKey<String> key) {
-    return new TableColumnBuilder<Map<TypedKey<?>, ?>, String>()
-      .setId(key.getName())
-      .setValueCanvasRenderer(Renderers.defaultCanvasRenderer())
-      .setConvertor(Convertors.getFromMap(key))
-      .createColumn();
-  }
-
-  private void setupTable(ATable<?> table) {
-    table.setGridHidden();
-    final JComponent jtable = table.getSwingComponent();
-    jtable.setEnabled(false);
-    jtable.setFocusable(false);
-  }
-
-  public void setSourceIssues(List<LoadedItem> issues) {
-    ArrayList<Map<TypedKey<?>, ?>> maps = Collections15.arrayList();
-    ModelKey<String> key = MetaSchema.issueKey(myFeatures);
-    ModelKey<String> summary = MetaSchema.issueSummary(myFeatures);
-    for (LoadedItem issue : issues) {
-      if (issue == null) continue;
-      HashMap<TypedKey<?>, Object> map = Collections15.hashMap();
-      copyValue(issue, key, map, LoadedLink.KEY);
-      copyValue(issue, summary, map, LoadedLink.SUMMARY);
-      maps.add(map);
+    public CreateLinksOutboundForm(GuiFeaturesManager features) {
+        myFeatures = features;
+        $$$setupUI$$$();
+        myLinkType.setCanvasRenderer(DirectionalLinkType.RENDERER);
+        setupTable(mySourceIssue);
+        UIUtil.setDefaultLabelAlignment(myWholePanel);
+        Aqua.disableMnemonics(myWholePanel);
+        mySourceIssue.setColumnModel(FixedListModel.create(KEY_COLUMN, SUMMARY_COLUMN));
     }
-    mySourceIssue.setCollectionModel(FixedListModel.create(maps));
-  }
 
-  public void setSourceKeys(List<String> keys) {
-    ArrayList<Map<TypedKey<?>, ?>> maps = Collections15.arrayList();
-    for (String key : keys) {
-      HashMap<TypedKey<?>, Object> map = Collections15.hashMap();
-      LoadedLink.KEY.putTo(map, key);
-      maps.add(map);
+    private static TableColumnAccessor<Map<TypedKey<?>, ?>, String> createColumn(TypedKey<String> key) {
+        return new TableColumnBuilder<Map<TypedKey<?>, ?>, String>()
+                .setId(key.getName())
+                .setValueCanvasRenderer(Renderers.defaultCanvasRenderer())
+                .setConvertor(Convertors.getFromMap(key))
+                .createColumn();
     }
-    mySourceIssue.setCollectionModel(FixedListModel.create(maps));
-  }
 
-  private void copyValue(LoadedItem source, ModelKey<String> modelKey, HashMap<TypedKey<?>, Object> target,
-    TypedKey<String> key)
-  {
-    if (modelKey == null) return;
-    key.putTo(target, source.getModelKeyValue(modelKey));
-  }
+    private void setupTable(ATable<?> table) {
+        table.setGridHidden();
+        final JComponent jtable = table.getSwingComponent();
+        jtable.setEnabled(false);
+        jtable.setFocusable(false);
+    }
 
-  public AComboBox<DirectionalLinkType> getLinkType() {
-    return myLinkType;
-  }
-
-  public JTextArea getOppositeIssues() {
-    return myOppositeIssues;
-  }
-
-  public JPanel getWholePanel() {
-    return myWholePanel;
-  }
-
-  private void createUIComponents() {
-    myWholePanel = new JPanel() {
-      private boolean myWidthsUpdate = false;
-
-      @Override
-      public void reshape(int x, int y, int w, int h) {
-        boolean widthChanged = myWidthsUpdate || (w != getWidth());
-        super.reshape(x, y, w, h);
-        if (widthChanged) {
-          mySourceIssue.forcePreferredColumnWidths();
-          myWidthsUpdate = true;
+    public void setSourceIssues(List<LoadedItem> issues) {
+        ArrayList<Map<TypedKey<?>, ?>> maps = Collections15.arrayList();
+        ModelKey<String> key = MetaSchema.issueKey(myFeatures);
+        ModelKey<String> summary = MetaSchema.issueSummary(myFeatures);
+        for (LoadedItem issue : issues) {
+            if (issue == null) continue;
+            HashMap<TypedKey<?>, Object> map = Collections15.hashMap();
+            copyValue(issue, key, map, LoadedLink.KEY);
+            copyValue(issue, summary, map, LoadedLink.SUMMARY);
+            maps.add(map);
         }
-      }
-    };
-  }
+        mySourceIssue.setCollectionModel(FixedListModel.create(maps));
+    }
+
+    public void setSourceKeys(List<String> keys) {
+        ArrayList<Map<TypedKey<?>, ?>> maps = Collections15.arrayList();
+        for (String key : keys) {
+            HashMap<TypedKey<?>, Object> map = Collections15.hashMap();
+            LoadedLink.KEY.putTo(map, key);
+            maps.add(map);
+        }
+        mySourceIssue.setCollectionModel(FixedListModel.create(maps));
+    }
+
+    private void copyValue(LoadedItem source, ModelKey<String> modelKey, HashMap<TypedKey<?>, Object> target,
+                           TypedKey<String> key) {
+        if (modelKey == null) return;
+        key.putTo(target, source.getModelKeyValue(modelKey));
+    }
+
+    public AComboBox<DirectionalLinkType> getLinkType() {
+        return myLinkType;
+    }
+
+    public JTextArea getOppositeIssues() {
+        return myOppositeIssues;
+    }
+
+    public JPanel getWholePanel() {
+        return myWholePanel;
+    }
+
+    private void createUIComponents() {
+        myWholePanel = new JPanel() {
+            private boolean myWidthsUpdate = false;
+
+            @Override
+            public void reshape(int x, int y, int w, int h) {
+                boolean widthChanged = myWidthsUpdate || (w != getWidth());
+                super.reshape(x, y, w, h);
+                if (widthChanged) {
+                    mySourceIssue.forcePreferredColumnWidths();
+                    myWidthsUpdate = true;
+                }
+            }
+        };
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        createUIComponents();
+        myWholePanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+        final JLabel label1 = new JLabel();
+        label1.setText("Source:");
+        myWholePanel.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        myLinkType = new AComboBox();
+        myWholePanel.add(myLinkType, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label2 = new JLabel();
+        label2.setText("Link Type:");
+        label2.setDisplayedMnemonic('L');
+        label2.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        scrollPane1.setMinimumSize(new Dimension(50, 42));
+        scrollPane1.setVerticalScrollBarPolicy(20);
+        myWholePanel.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        myOppositeIssues = new JTextArea();
+        myOppositeIssues.setColumns(40);
+        myOppositeIssues.setLineWrap(true);
+        myOppositeIssues.setRows(2);
+        myOppositeIssues.setWrapStyleWord(true);
+        scrollPane1.setViewportView(myOppositeIssues);
+        final JScrollPane scrollPane2 = new JScrollPane();
+        scrollPane2.setMinimumSize(new Dimension(50, 16));
+        scrollPane2.setVerticalScrollBarPolicy(20);
+        myWholePanel.add(scrollPane2, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        mySourceIssue = new ATable();
+        mySourceIssue.setEnabled(false);
+        scrollPane2.setViewportView(mySourceIssue);
+        final JLabel label3 = new JLabel();
+        label3.setText("Targets:");
+        label3.setDisplayedMnemonic('T');
+        label3.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label2.setLabelFor(myLinkType);
+        label3.setLabelFor(myOppositeIssues);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }

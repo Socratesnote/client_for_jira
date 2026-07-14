@@ -121,7 +121,7 @@ public class SQLiteDatabase extends BaseDatabase {
     c.write(DBPriority.BACKGROUND, handle);
     handle.waitForCompletion();
     if (!handle.isSuccessful()) {
-      throw new DBException("error materializing system attributes", handle.getError());
+      throw new DBException(String.format("error materializing system attributes on %s", c.toString()), handle.getError());
     }
   }
 

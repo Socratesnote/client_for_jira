@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
@@ -178,118 +179,177 @@ public class TextAttribute implements AttributeConstraintType<String> {
     EmptyQueryHelper.registerEmptyParser(registry, "textIs", INSTANCE);
   }
 
-  private static class MyConstraintEditor extends AbstractConstraintEditor {
-    private static final BooleanPropertyKey ALL = BooleanPropertyKey.createKey("all", false);
+    private static class MyConstraintEditor extends AbstractConstraintEditor {
+      private static final BooleanPropertyKey ALL = BooleanPropertyKey.createKey("all", false);
 
-    private JComponent myComponent;
-    private JTextField myField;
-    private JRadioButton myAll;
-    private JRadioButton myAny;
-    private JCheckBox myEmpty;
-    private JLabel myPatternLabel;
-    private JLabel myHint;
-    private JLabel myMatchesLabel;
-    private final boolean myAllowAny;
+      private JComponent myComponent;
+      private JTextField myField;
+      private JRadioButton myAll;
+      private JRadioButton myAny;
+      private JCheckBox myEmpty;
+      private JLabel myPatternLabel;
+      private JLabel myHint;
+      private JLabel myMatchesLabel;
+      private final boolean myAllowAny;
 
-    public MyConstraintEditor(ConstraintEditorNodeImpl node, boolean allowAny, String textLabel, @Nullable String hintText) {
-      super(node);
-      myAllowAny = allowAny;
+      public MyConstraintEditor(ConstraintEditorNodeImpl node, boolean allowAny, String textLabel, @Nullable String hintText) {
+          super(node);
+          myAllowAny = allowAny;
 
-      myPatternLabel.setLabelFor(myField);
-      if (textLabel != null) NameMnemonic.parseString(textLabel).setToLabel(myPatternLabel);
-      if (allowAny) {
-        UIUtil.transferFocus(myAll, myField);
-        UIUtil.transferFocus(myAny, myField);
-      } else {
-        myAll.setVisible(false);
-        myAny.setVisible(false);
-        myEmpty.setVisible(false);
-        myMatchesLabel.setVisible(false);
-      }
-
-      final ActionListener listener = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          final boolean notEmpty = !isEmpty();
-          myField.setEnabled(notEmpty);
-          if (myAllowAny) {
-            myAll.setEnabled(notEmpty);
-            myAny.setEnabled(notEmpty);
-            myMatchesLabel.setEnabled(notEmpty);
-            myPatternLabel.setEnabled(notEmpty);
+          myPatternLabel.setLabelFor(myField);
+          if (textLabel != null) NameMnemonic.parseString(textLabel).setToLabel(myPatternLabel);
+          if (allowAny) {
+              UIUtil.transferFocus(myAll, myField);
+              UIUtil.transferFocus(myAny, myField);
+          } else {
+              myAll.setVisible(false);
+              myAny.setVisible(false);
+              myEmpty.setVisible(false);
+              myMatchesLabel.setVisible(false);
           }
+
+          final ActionListener listener = new ActionListener() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                  final boolean notEmpty = !isEmpty();
+                  myField.setEnabled(notEmpty);
+                  if (myAllowAny) {
+                      myAll.setEnabled(notEmpty);
+                      myAny.setEnabled(notEmpty);
+                      myMatchesLabel.setEnabled(notEmpty);
+                      myPatternLabel.setEnabled(notEmpty);
+                  }
+              }
+          };
+          final ComponentKeyBinder binder = getBinder();
+          binder.setDocument(ConstraintEditorNodeImpl.TEXT, myField);
+          if (allowAny) {
+              binder.setBoolean(ALL, myAll);
+              binder.setInvertedBoolean(ALL, myAny);
+              binder.setBoolean(PK_EMPTY, myEmpty);
+              myEmpty.addActionListener(listener);
+          }
+
+          listener.actionPerformed(null);
+          if (hintText != null) myHint.setText(hintText);
+          else {
+              myHint.setText("");
+              myHint.setVisible(false);
+          }
+      }
+
+      @Override
+      public boolean isModified() {
+          return myAllowAny ?
+                  wasChanged(ConstraintEditorNodeImpl.TEXT, ALL, PK_EMPTY) :
+                  wasChanged(ConstraintEditorNodeImpl.TEXT);
+      }
+
+      private String getCurrentText() {
+          return getValue(ConstraintEditorNodeImpl.TEXT);
+      }
+
+      @Override
+      @NotNull
+      public FilterNode createFilterNode(ConstraintDescriptor descriptor) {
+          final PropertyMap data = isEmpty()
+                  ? EmptyQueryHelper.createEmptyValues()
+                  : createValues(getCurrentText(), isAll());
+          return new ConstraintFilterNode(descriptor, data);
+      }
+
+      private boolean isAll() {
+          return !myAllowAny || getValue(ALL);
+      }
+
+      private boolean isEmpty() {
+          return myAllowAny && getBooleanValue(PK_EMPTY);
+      }
+
+      @Override
+      public void renderOn(Canvas canvas, CellState state, ConstraintDescriptor descriptor) {
+          canvas.setIcon(MY_ICON);
+          descriptor.getPresentation().renderOn(canvas, state);
+          if (isEmpty()) {
+              canvas.appendText(" is empty");
+          } else {
+              canvas.appendText(" " + TOKENS.get(isAll()));
+              canvas.appendText(" " + getCurrentText());
+          }
+      }
+
+      @Override
+      public JComponent getComponent() {
+          return myComponent;
+      }
+
+      public static PropertyMap convertToEditorData(PropertyMap data) {
+          final PropertyMap values = new PropertyMap();
+          ConstraintEditorNodeImpl.TEXT.setInitialValue(values, data.get(TEXT));
+          ALL.setInitialValue(values, TextAttribute.isAll(data));
+          PK_EMPTY.setInitialValue(values, isEmptyOption(data));
+          return values;
+      }
+
+        {
+            // GUI initializer generated by IntelliJ IDEA GUI Designer
+            // >>> IMPORTANT!! <<<
+            // DO NOT EDIT OR ADD ANY CODE HERE!
+            $$$setupUI$$$();
         }
-      };
-      final ComponentKeyBinder binder = getBinder();
-      binder.setDocument(ConstraintEditorNodeImpl.TEXT, myField);
-      if (allowAny) {
-        binder.setBoolean(ALL, myAll);
-        binder.setInvertedBoolean(ALL, myAny);
-        binder.setBoolean(PK_EMPTY, myEmpty);
-        myEmpty.addActionListener(listener);
-      }
 
-      listener.actionPerformed(null);
-      if (hintText != null) myHint.setText(hintText);
-      else {
-        myHint.setText("");
-        myHint.setVisible(false);
-      }
-    }
+        /**
+         * Method generated by IntelliJ IDEA GUI Designer
+         * >>> IMPORTANT!! <<<
+         * DO NOT edit this method OR call it in your code!
+         *
+         * @noinspection ALL
+         */
+        private void $$$setupUI$$$() {
+            myComponent = new JPanel();
+            myComponent.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(6, 4, new Insets(0, 0, 0, 0), -1, -1));
+            myPatternLabel = new JLabel();
+            myPatternLabel.setText("Search string:");
+            myPatternLabel.setDisplayedMnemonic('S');
+            myPatternLabel.setDisplayedMnemonicIndex(7);
+            myComponent.add(myPatternLabel, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+            myComponent.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(5, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_VERTICAL, 1, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+            myMatchesLabel = new JLabel();
+            myMatchesLabel.setText("Matches:");
+            myComponent.add(myMatchesLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myAll = new JRadioButton();
+            myAll.setText("All words");
+            myAll.setMnemonic('L');
+            myAll.setDisplayedMnemonicIndex(1);
+            myComponent.add(myAll, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myAny = new JRadioButton();
+            myAny.setSelected(true);
+            myAny.setText("Any word");
+            myAny.setMnemonic('N');
+            myAny.setDisplayedMnemonicIndex(1);
+            myComponent.add(myAny, new com.intellij.uiDesigner.core.GridConstraints(2, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            final com.intellij.uiDesigner.core.Spacer spacer2 = new com.intellij.uiDesigner.core.Spacer();
+            myComponent.add(spacer2, new com.intellij.uiDesigner.core.GridConstraints(2, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+            myField = new JTextField();
+            myComponent.add(myField, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 4, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+            myEmpty = new JCheckBox();
+            myEmpty.setText("Is empty");
+            myEmpty.setMnemonic('E');
+            myEmpty.setDisplayedMnemonicIndex(3);
+            myComponent.add(myEmpty, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            myHint = new JLabel();
+            myHint.setText("hint");
+            myComponent.add(myHint, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        }
 
-    @Override
-    public boolean isModified() {
-      return myAllowAny ?
-        wasChanged(ConstraintEditorNodeImpl.TEXT, ALL, PK_EMPTY) :
-        wasChanged(ConstraintEditorNodeImpl.TEXT);
+        /**
+         * @noinspection ALL
+         */
+        public JComponent $$$getRootComponent$$$() {
+            return myComponent;
+        }
     }
-
-    private String getCurrentText() {
-      return getValue(ConstraintEditorNodeImpl.TEXT);
-    }
-
-    @Override
-    @NotNull
-    public FilterNode createFilterNode(ConstraintDescriptor descriptor) {
-      final PropertyMap data = isEmpty()
-        ? EmptyQueryHelper.createEmptyValues()
-        : createValues(getCurrentText(), isAll());
-      return new ConstraintFilterNode(descriptor, data);
-    }
-
-    private boolean isAll() {
-      return !myAllowAny || getValue(ALL);
-    }
-
-    private boolean isEmpty() {
-      return myAllowAny && getBooleanValue(PK_EMPTY);
-    }
-
-    @Override
-    public void renderOn(Canvas canvas, CellState state, ConstraintDescriptor descriptor) {
-      canvas.setIcon(MY_ICON);
-      descriptor.getPresentation().renderOn(canvas, state);
-      if(isEmpty()) {
-        canvas.appendText(" is empty");
-      } else {
-        canvas.appendText(" " + TOKENS.get(isAll()));
-        canvas.appendText(" " + getCurrentText());
-      }
-    }
-
-    @Override
-    public JComponent getComponent() {
-      return myComponent;
-    }
-
-    public static PropertyMap convertToEditorData(PropertyMap data) {
-      final PropertyMap values = new PropertyMap();
-      ConstraintEditorNodeImpl.TEXT.setInitialValue(values, data.get(TEXT));
-      ALL.setInitialValue(values, TextAttribute.isAll(data));
-      PK_EMPTY.setInitialValue(values, isEmptyOption(data));
-      return values;
-    }
-  }
 
   @NotNull
   public static List<String> parseTextFragments(String text) {

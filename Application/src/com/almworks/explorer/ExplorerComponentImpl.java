@@ -108,7 +108,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
     } else {
 //      assert false : item;
       Log.warn(
-        "not a loaded item: " + item + " " + (item == null ? "" : String.valueOf(item.getClass())));
+              "not a loaded item: " + item + " " + String.valueOf(item.getClass()));
     }
   }
 

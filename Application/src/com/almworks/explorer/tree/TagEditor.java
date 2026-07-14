@@ -25,6 +25,8 @@ import com.almworks.util.ui.UIUtil;
 import com.almworks.util.ui.actions.ActionContext;
 import com.almworks.util.ui.actions.CantPerformException;
 import com.almworks.util.ui.actions.PresentationMapping;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.almworks.util.Util;
 import org.almworks.util.detach.Lifespan;
 import org.jetbrains.annotations.NotNull;
@@ -34,205 +36,248 @@ import java.io.File;
 import java.util.Collection;
 
 public class TagEditor {
-  private static final long MINIMUM_RESCAN_PERIOD = 120000;
-  private static final IconData DEFAULT_ICON = new IconData("default icon", Icons.TAG_DEFAULT, "");
-  private static final IconData NO_ICON = new IconData("no icon", PresentationMapping.EMPTY_ICON, TagIcons.NO_ICON);
+    private static final long MINIMUM_RESCAN_PERIOD = 120000;
+    private static final IconData DEFAULT_ICON = new IconData("default icon", Icons.TAG_DEFAULT, "");
+    private static final IconData NO_ICON = new IconData("no icon", PresentationMapping.EMPTY_ICON, TagIcons.NO_ICON);
 
-  private static TagEditor ourInstance;
+    private static TagEditor ourInstance;
 
-  private boolean myLocked;
-  private long myLastRescanTime;
-  private int myLastRescanFocusCount = -1;
+    private boolean myLocked;
+    private long myLastRescanTime;
+    private int myLastRescanFocusCount = -1;
 
-  private JPanel myWholePanel;
-  private JTextField myTagName;
-  private AComboBox<IconData> myTagIcon;
+    private JPanel myWholePanel;
+    private JTextField myTagName;
+    private AComboBox<IconData> myTagIcon;
 
-  private final OrderListModel<IconData> myModel = OrderListModel.create();
-  private final SelectionInListModel<IconData> myComboModel =
-    SelectionInListModel.create(Lifespan.FOREVER, myModel, null);
+    private final OrderListModel<IconData> myModel = OrderListModel.create();
+    private final SelectionInListModel<IconData> myComboModel =
+            SelectionInListModel.create(Lifespan.FOREVER, myModel, null);
 
-  public TagEditor() {
-    myTagIcon.setModel(myComboModel);
-    myTagIcon.setCanvasRenderer(Renderers.defaultCanvasRenderer());
-    UIUtil.setDefaultLabelAlignment(myWholePanel);
-    Aqua.disableMnemonics(myWholePanel);
-  }
-
-  public static synchronized TagEditor instance() {
-    TagEditor instance = ourInstance;
-    if (instance == null) {
-      ourInstance = instance = new TagEditor();
+    public TagEditor() {
+        myTagIcon.setModel(myComboModel);
+        myTagIcon.setCanvasRenderer(Renderers.defaultCanvasRenderer());
+        UIUtil.setDefaultLabelAlignment(myWholePanel);
+        Aqua.disableMnemonics(myWholePanel);
     }
-    if (!instance.lockUse()) {
-      return new TagEditor();
-    }
-    return instance;
-  }
 
-  private boolean lockUse() {
-    if (myLocked)
-      return false;
-    myLocked = true;
-    return true;
-  }
-
-  public void dispose() {
-    assert myLocked : this;
-    myLocked = false;
-  }
-
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
-
-  public void applyTo(TagNodeImpl tagNode) {
-    String name = myTagName.getText().trim();
-    IconData selected = myComboModel.getSelectedItem();
-    tagNode.updatePresentation(name, selected == null ? null : selected.getIconPath());
-  }
-
-  public void resetTo(TagNodeImpl tagNode) {
-    resetTo(tagNode.getName(), tagNode.getIconPath());
-  }
-
-  private void resetTo(String name, String iconPath) {
-    maybeRescanIcons();
-    UIUtil.setFieldText(myTagName, name);
-    UIUtil.scrollToTop(myTagName);
-    myTagName.selectAll();
-    myComboModel.setSelectedItem(findIconData(iconPath));
-  }
-
-  @NotNull
-  private IconData findIconData(String iconPath) {
-    int count = myModel.getSize();
-    for (int i = 0; i < count; i++) {
-      IconData data = myModel.getAt(i);
-      if (Util.equals(iconPath, data.getIconPath())) {
-        return data;
-      }
-    }
-    return NO_ICON;
-  }
-
-  private void maybeRescanIcons() {
-    ApplicationManager manager = Context.get(ApplicationManager.class);
-    int count = manager == null ? 0 : manager.getFocusSwitchCount();
-    long now = System.currentTimeMillis();
-    if (myLastRescanTime < now - MINIMUM_RESCAN_PERIOD || count > myLastRescanFocusCount) {
-      rescan();
-      myLastRescanTime = now;
-      myLastRescanFocusCount = count;
-    }
-  }
-
-  private void rescan() {
-    myModel.clear();
-    myModel.addElement(DEFAULT_ICON);
-    myModel.addElement(NO_ICON);
-    WorkArea workArea = Context.get(WorkArea.class);
-    if (workArea != null) {
-      Collection<File> files = workArea.getEtcCollectionFiles(TagIcons.TAG_ICONS_COLLECTION);
-      if (files != null) {
-        for (File file : files) {
-          String name = file.getName();
-          if (isIconFile(name)) {
-            Icon icon = new FileCollectionBasedIcon(TagIcons.TAG_ICONS_COLLECTION, name, true);
-            myModel.addElement(new IconData(stripExtension(name), icon, name));
-          }
+    public static synchronized TagEditor instance() {
+        TagEditor instance = ourInstance;
+        if (instance == null) {
+            ourInstance = instance = new TagEditor();
         }
-      }
-    }
-  }
-
-  private String stripExtension(String name) {
-    int k = name.lastIndexOf('.');
-    return k > 0 ? name.substring(0, k) : name;
-  }
-
-  private boolean isIconFile(String name) {
-    return Util.lower(name).endsWith(".png");
-  }
-
-  public static boolean editNode(TagNodeImpl tagNode, ActionContext context) throws CantPerformException {
-    DialogResult result = DialogResult.create(context, "editTag");
-    result.pack();
-    result.setOkResult("ok").setCancelResult("cancel").setBottomBevel(false);
-    TagEditor editor = TagEditor.instance();
-    editor.resetTo(tagNode);
-    result.setInitialFocusOwner(editor.myTagName);
-    Object r = result.showModal("Edit Tag", editor.getComponent());
-    boolean ok = "ok".equals(r);
-    if (ok) {
-      editor.applyTo(tagNode);
-    }
-    editor.dispose();
-    return ok;
-  }
-
-  public static TagNode editAndCreateNode(ActionContext context)
-    throws CantPerformException
-  {
-    DialogResult result = DialogResult.create(context, "editTag");
-    result.pack();
-    result.setOkResult("ok").setCancelResult("cancel").setBottomBevel(false);
-    TagEditor editor = instance();
-    editor.resetTo("New Tag", "");
-    result.setInitialFocusOwner(editor.myTagName);
-    Object r = result.showModal("New Tag", editor.getComponent());
-    boolean ok = "ok".equals(r);
-    TagNode tagNode = null;
-    if (ok) {
-      ExplorerComponent explorerComponent = Context.require(ExplorerComponent.class);
-      RootNode rootNode = explorerComponent.getRootNode();
-      assert rootNode != null;
-      TreeNodeFactory nodeFactory = rootNode.getNodeFactory();
-      tagNode = nodeFactory.createTag(getTagsFolder(rootNode));
-      editor.applyTo((TagNodeImpl) tagNode);
-      nodeFactory.selectNode(tagNode, true);
-    }
-    editor.dispose();
-    return tagNode;
-  }
-
-  @ThreadAWT
-  public static TagsFolderNode getTagsFolder(@NotNull RootNode rootNode) {
-    for (int i = 0; i < rootNode.getChildrenCount(); i++) {
-      GenericNode child = rootNode.getChildAt(i);
-      if (child instanceof TagsFolderNode) {
-        return (TagsFolderNode) child;
-      }
-    }
-    return null;
-  }
-
-  public static void editTag(TagNode tag, String name, String iconPath) {
-    if (tag instanceof TagNodeImpl) {
-      ((TagNodeImpl)tag).updatePresentation(name, iconPath);
-    } else assert false : tag;
-  }
-
-  private static class IconData implements CanvasRenderable {
-    private final String myText;
-    private final Icon myIcon;
-    private final String myIconPath;
-
-    public IconData(String text, Icon icon, String iconPath) {
-      myText = text;
-      myIcon = icon;
-      myIconPath = iconPath;
+        if (!instance.lockUse()) {
+            return new TagEditor();
+        }
+        return instance;
     }
 
-    public void renderOn(Canvas canvas, CellState state) {
-      if (myIcon != null)
-        canvas.setIcon(myIcon);
-      if (myText != null)
-        canvas.appendText(myText);
+    private boolean lockUse() {
+        if (myLocked)
+            return false;
+        myLocked = true;
+        return true;
     }
 
-    public String getIconPath() {
-      return myIconPath;
+    public void dispose() {
+        assert myLocked : this;
+        myLocked = false;
     }
-  }
+
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
+
+    public void applyTo(TagNodeImpl tagNode) {
+        String name = myTagName.getText().trim();
+        IconData selected = myComboModel.getSelectedItem();
+        tagNode.updatePresentation(name, selected == null ? null : selected.getIconPath());
+    }
+
+    public void resetTo(TagNodeImpl tagNode) {
+        resetTo(tagNode.getName(), tagNode.getIconPath());
+    }
+
+    private void resetTo(String name, String iconPath) {
+        maybeRescanIcons();
+        UIUtil.setFieldText(myTagName, name);
+        UIUtil.scrollToTop(myTagName);
+        myTagName.selectAll();
+        myComboModel.setSelectedItem(findIconData(iconPath));
+    }
+
+    @NotNull
+    private IconData findIconData(String iconPath) {
+        int count = myModel.getSize();
+        for (int i = 0; i < count; i++) {
+            IconData data = myModel.getAt(i);
+            if (Util.equals(iconPath, data.getIconPath())) {
+                return data;
+            }
+        }
+        return NO_ICON;
+    }
+
+    private void maybeRescanIcons() {
+        ApplicationManager manager = Context.get(ApplicationManager.class);
+        int count = manager == null ? 0 : manager.getFocusSwitchCount();
+        long now = System.currentTimeMillis();
+        if (myLastRescanTime < now - MINIMUM_RESCAN_PERIOD || count > myLastRescanFocusCount) {
+            rescan();
+            myLastRescanTime = now;
+            myLastRescanFocusCount = count;
+        }
+    }
+
+    private void rescan() {
+        myModel.clear();
+        myModel.addElement(DEFAULT_ICON);
+        myModel.addElement(NO_ICON);
+        WorkArea workArea = Context.get(WorkArea.class);
+        if (workArea != null) {
+            Collection<File> files = workArea.getEtcCollectionFiles(TagIcons.TAG_ICONS_COLLECTION);
+            if (files != null) {
+                for (File file : files) {
+                    String name = file.getName();
+                    if (isIconFile(name)) {
+                        Icon icon = new FileCollectionBasedIcon(TagIcons.TAG_ICONS_COLLECTION, name, true);
+                        myModel.addElement(new IconData(stripExtension(name), icon, name));
+                    }
+                }
+            }
+        }
+    }
+
+    private String stripExtension(String name) {
+        int k = name.lastIndexOf('.');
+        return k > 0 ? name.substring(0, k) : name;
+    }
+
+    private boolean isIconFile(String name) {
+        return Util.lower(name).endsWith(".png");
+    }
+
+    public static boolean editNode(TagNodeImpl tagNode, ActionContext context) throws CantPerformException {
+        DialogResult result = DialogResult.create(context, "editTag");
+        result.pack();
+        result.setOkResult("ok").setCancelResult("cancel").setBottomBevel(false);
+        TagEditor editor = TagEditor.instance();
+        editor.resetTo(tagNode);
+        result.setInitialFocusOwner(editor.myTagName);
+        Object r = result.showModal("Edit Tag", editor.getComponent());
+        boolean ok = "ok".equals(r);
+        if (ok) {
+            editor.applyTo(tagNode);
+        }
+        editor.dispose();
+        return ok;
+    }
+
+    public static TagNode editAndCreateNode(ActionContext context)
+            throws CantPerformException {
+        DialogResult result = DialogResult.create(context, "editTag");
+        result.pack();
+        result.setOkResult("ok").setCancelResult("cancel").setBottomBevel(false);
+        TagEditor editor = instance();
+        editor.resetTo("New Tag", "");
+        result.setInitialFocusOwner(editor.myTagName);
+        Object r = result.showModal("New Tag", editor.getComponent());
+        boolean ok = "ok".equals(r);
+        TagNode tagNode = null;
+        if (ok) {
+            ExplorerComponent explorerComponent = Context.require(ExplorerComponent.class);
+            RootNode rootNode = explorerComponent.getRootNode();
+            assert rootNode != null;
+            TreeNodeFactory nodeFactory = rootNode.getNodeFactory();
+            tagNode = nodeFactory.createTag(getTagsFolder(rootNode));
+            editor.applyTo((TagNodeImpl) tagNode);
+            nodeFactory.selectNode(tagNode, true);
+        }
+        editor.dispose();
+        return tagNode;
+    }
+
+    @ThreadAWT
+    public static TagsFolderNode getTagsFolder(@NotNull RootNode rootNode) {
+        for (int i = 0; i < rootNode.getChildrenCount(); i++) {
+            GenericNode child = rootNode.getChildAt(i);
+            if (child instanceof TagsFolderNode) {
+                return (TagsFolderNode) child;
+            }
+        }
+        return null;
+    }
+
+    public static void editTag(TagNode tag, String name, String iconPath) {
+        if (tag instanceof TagNodeImpl) {
+            ((TagNodeImpl) tag).updatePresentation(name, iconPath);
+        } else assert false : tag;
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
+        ((FormLayout) myWholePanel.getLayout()).setRowGroups(new int[][]{new int[]{1, 3}});
+        final JLabel label1 = new JLabel();
+        label1.setText("Name:");
+        label1.setDisplayedMnemonic('N');
+        label1.setDisplayedMnemonicIndex(0);
+        CellConstraints cc = new CellConstraints();
+        myWholePanel.add(label1, cc.xy(1, 1));
+        myTagName = new JTextField();
+        myWholePanel.add(myTagName, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
+        final JLabel label2 = new JLabel();
+        label2.setText("Icon:");
+        label2.setDisplayedMnemonic('I');
+        label2.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(label2, cc.xy(1, 3));
+        myTagIcon = new AComboBox();
+        myWholePanel.add(myTagIcon, cc.xy(3, 3, CellConstraints.FILL, CellConstraints.DEFAULT));
+        label1.setLabelFor(myTagName);
+        label2.setLabelFor(myTagIcon);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
+
+    private static class IconData implements CanvasRenderable {
+        private final String myText;
+        private final Icon myIcon;
+        private final String myIconPath;
+
+        public IconData(String text, Icon icon, String iconPath) {
+            myText = text;
+            myIcon = icon;
+            myIconPath = iconPath;
+        }
+
+        public void renderOn(Canvas canvas, CellState state) {
+            if (myIcon != null)
+                canvas.setIcon(myIcon);
+            if (myText != null)
+                canvas.appendText(myText);
+        }
+
+        public String getIconPath() {
+            return myIconPath;
+        }
+    }
 }

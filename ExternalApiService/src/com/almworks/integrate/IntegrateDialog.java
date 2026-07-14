@@ -12,83 +12,128 @@ import org.almworks.util.Collections15;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
 class IntegrateDialog implements CanvasRenderer<IntegrationProcedure> {
-  private AList<IntegrationProcedure> myIdeList;
-  private JLabel mySelectIdeLabel;
-  private JPanel myIdeOptionPanel;
-  private JPanel myWholePanel;
+    private AList<IntegrationProcedure> myIdeList;
+    private JLabel mySelectIdeLabel;
+    private JPanel myIdeOptionPanel;
+    private JPanel myWholePanel;
 
-  private final PlaceHolder myOptions = new PlaceHolder();
-  private final IntegrateWithIDEA myIdeaIntegration = new IntegrateWithIDEA();
-  private final JLabel myNoOptions = createNoOptions();
-  private final OrderListModel<IntegrationProcedure> myIdeModel = OrderListModel.create();
-  private final BasicScalarModel<IntegrationProcedure> mySelectedProcedure = BasicScalarModel.createWithValue(null, true);
+    private final PlaceHolder myOptions = new PlaceHolder();
+    private final IntegrateWithIDEA myIdeaIntegration = new IntegrateWithIDEA();
+    private final JLabel myNoOptions = createNoOptions();
+    private final OrderListModel<IntegrationProcedure> myIdeModel = OrderListModel.create();
+    private final BasicScalarModel<IntegrationProcedure> mySelectedProcedure = BasicScalarModel.createWithValue(null, true);
 
-  private static JLabel createNoOptions() {
-    JLabel label = new JLabel("No IDE selected");
-    label.setHorizontalAlignment(SwingConstants.CENTER);
-    return label;
-  }
-
-  public IntegrateDialog() {
-    setupVisual();
-    setupIDEs();
-    setupOptions();
-  }
-
-  private void setupIDEs() {
-    java.util.List<IntegrationProcedure> integrations =
-      Collections15.arrayList(new IntegrateWithIDEA(), new IntegrateWithVS());
-    for (IntegrationProcedure integration : integrations) {
-      if (integration.checkAvailability())
-        myIdeModel.addElement(integration);
+    private static JLabel createNoOptions() {
+        JLabel label = new JLabel("No IDE selected");
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        return label;
     }
-    myIdeList.setCollectionModel(myIdeModel);
-    myIdeList.setCanvasRenderer(this);
-  }
 
-  public void renderStateOn(CellState state, Canvas canvas, IntegrationProcedure item) {
-    canvas.appendText(item.getTitle());  
-  }
+    public IntegrateDialog() {
+        setupVisual();
+        setupIDEs();
+        setupOptions();
+    }
 
-  private void setupOptions() {
-    myIdeOptionPanel.setLayout(new BorderLayout());
-    myIdeOptionPanel.add(myOptions, BorderLayout.CENTER);
+    private void setupIDEs() {
+        java.util.List<IntegrationProcedure> integrations =
+                Collections15.arrayList(new IntegrateWithIDEA(), new IntegrateWithVS());
+        for (IntegrationProcedure integration : integrations) {
+            if (integration.checkAvailability())
+                myIdeModel.addElement(integration);
+        }
+        myIdeList.setCollectionModel(myIdeModel);
+        myIdeList.setCanvasRenderer(this);
+    }
 
-    myIdeList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-      public void valueChanged(ListSelectionEvent e) {
+    public void renderStateOn(CellState state, Canvas canvas, IntegrationProcedure item) {
+        canvas.appendText(item.getTitle());
+    }
+
+    private void setupOptions() {
+        myIdeOptionPanel.setLayout(new BorderLayout());
+        myIdeOptionPanel.add(myOptions, BorderLayout.CENTER);
+
+        myIdeList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                onSelection();
+            }
+        });
         onSelection();
-      }
-    });
-    onSelection();
-  }
-
-  private void onSelection() {
-    int selectedIndex = myIdeList.getSelectedIndex();
-    if (selectedIndex < 0) {
-      myOptions.show(myNoOptions);
-      mySelectedProcedure.setValue(null);
-    } else {
-      IntegrationProcedure ip = myIdeModel.getAt(selectedIndex);
-      myOptions.show(ip.getComponent());
-      mySelectedProcedure.setValue(ip);
     }
-  }
 
-  private void setupVisual() {
-    mySelectIdeLabel.setLabelFor(myIdeList);
-    mySelectIdeLabel.setBorder(new EmptyBorder(9, 0, 0, 0));
-  }
+    private void onSelection() {
+        int selectedIndex = myIdeList.getSelectedIndex();
+        if (selectedIndex < 0) {
+            myOptions.show(myNoOptions);
+            mySelectedProcedure.setValue(null);
+        } else {
+            IntegrationProcedure ip = myIdeModel.getAt(selectedIndex);
+            myOptions.show(ip.getComponent());
+            mySelectedProcedure.setValue(ip);
+        }
+    }
 
-  public JComponent getComponent() {
-    return myWholePanel;
-  }
+    private void setupVisual() {
+        mySelectIdeLabel.setLabelFor(myIdeList);
+        mySelectIdeLabel.setBorder(new EmptyBorder(9, 0, 0, 0));
+    }
 
-  public ScalarModel<IntegrationProcedure> getSelectedIntegrationModel() {
-    return mySelectedProcedure;
-  }
+    public JComponent getComponent() {
+        return myWholePanel;
+    }
+
+    public ScalarModel<IntegrationProcedure> getSelectedIntegrationModel() {
+        return mySelectedProcedure;
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        myWholePanel = new JPanel();
+        myWholePanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, 2));
+        final JLabel label1 = new JLabel();
+        label1.setText("<html><body>Integration with an IDE using TrackLink plug-in allows you to<br>monitor queries and view issues in IDE.");
+        myWholePanel.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        myWholePanel.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 100), null, 0, false));
+        myIdeList = new AList();
+        myIdeList.setEnabled(true);
+        scrollPane1.setViewportView(myIdeList);
+        myIdeOptionPanel = new JPanel();
+        myWholePanel.add(myIdeOptionPanel, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(-1, 200), null, 0, false));
+        myIdeOptionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        mySelectIdeLabel = new JLabel();
+        mySelectIdeLabel.setText("Select IDE to integrate with:");
+        mySelectIdeLabel.setDisplayedMnemonic('S');
+        mySelectIdeLabel.setDisplayedMnemonicIndex(0);
+        myWholePanel.add(mySelectIdeLabel, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
+        myWholePanel.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_VERTICAL, 1, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 9), null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return myWholePanel;
+    }
 }
