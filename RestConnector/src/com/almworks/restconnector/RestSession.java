@@ -310,6 +310,7 @@ public class RestSession {
     private final String myUrl;
     private final String myDebugName;
     @Nullable
+    //TODO: What's with the Polizei?
     private final LogPrivacyPolizei myPolizei;
     private final Map<String, String> myRequestHeaders = Collections15.hashMap();
     private Boolean myCopyQueryOnRedirect = null;

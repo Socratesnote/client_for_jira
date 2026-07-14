@@ -31,6 +31,8 @@ public class JqlSearch {
 
   private static final String JQL_MAX_RESULT = "jiraclient.jql.maxresult";
 
+    //TODO: Ideally, bring the whole API up to speed with V3.
+  //TODO: BUG: Deprecated: https://developer.atlassian.com/changelog/#CHANGE-2046
   private static final String PATH = "api/2/search";
 
   private final JqlQuery myJql;
