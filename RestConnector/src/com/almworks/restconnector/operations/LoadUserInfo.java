@@ -52,11 +52,15 @@ public class LoadUserInfo {
   public static LoadUserInfo loadMe(RestSession session, RequestPolicy policy, boolean auxiliary) throws ConnectorException {
     ConnectorException ex = null;
     RestResponse response = null;
+    //TODO: Why is this called twice?
     for (int i = 0; i < 2; i++) {
       try {
         String url = session.getRestResourcePath(MYSELF);
+        RestSession.Request this_req = RestSession.GetDelete.get(url, RestSession.getDebugName(MYSELF));
+        this_req.addRequestHeader("Accept", "application/json"); // Doesn't actually change the response.
+        this_req.addRequestHeader("Content-type", "application/json"); // Doesn't actually change the response.
         response = session
-          .perform(new RestSession.Job(RestSession.GetDelete.get(url, RestSession.getDebugName(MYSELF)), policy, auxiliary))
+          .perform(new RestSession.Job(this_req, policy, auxiliary))
           .ensureHasResponse();
       } catch (ConnectorException e) {
         if (ex == null) ex = e;
@@ -67,11 +71,17 @@ public class LoadUserInfo {
     assert response != null;
     String contentType = response.getHttpResponse().getContentType();
     int statusCode = response.getStatusCode();
-    //TODO: BUG: In newer Jira Cloud, this is text/html(200), not application/json.
-    if (!"application/json".equals(contentType)) {
-      LogHelper.warning("Wrong response format from", contentType, statusCode, session.getBaseUrl());
-      String description = String.format("'application/json' content type was expected, but actual is '%s' status code: %s", contentType, statusCode);
-      throw new ConnectorException("Wrong response content type", "Wrong response content type", description);
+    //TODO: BUG: If you provide the URL with "/jira" at the end, this fails because the response will be (valid) HTML.
+    if ("text/html".equals(contentType)) {
+      if (statusCode == 200) {
+        LogHelper.error("Wrong response format from", contentType, statusCode, session.getBaseUrl(), ". Please provide the URL without /jira.");
+        String description = String.format("'application/json' content type was expected, but actual is '%s' status code: %s. Please provide the URL without /jira.", contentType, statusCode);
+        throw new ConnectorException("Wrong response content type: wrong URL", "Wrong response content type: ", description);
+      } else {
+        LogHelper.warning("Wrong response format from", contentType, statusCode, session.getBaseUrl());
+        String description = String.format("'application/json' content type was expected, but actual is '%s' status code: %s", contentType, statusCode);
+        throw new ConnectorException("Wrong response content type", "Wrong response content type: ", description);
+      }
     }
     try {
       JSONObject json = response.getJSONObject();
