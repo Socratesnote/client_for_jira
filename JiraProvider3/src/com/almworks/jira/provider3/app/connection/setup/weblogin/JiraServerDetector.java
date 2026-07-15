@@ -172,8 +172,8 @@ class JiraServerDetector {
     }
 
     private DetectedJiraServer doDetect() throws Exception {
-      List<Cookie> altasCookies = WebCookieManager.findCookie(myCookies, ATLAS_COOKIE);
-      if (altasCookies.isEmpty()) {
+      List<Cookie> atlasCookies = WebCookieManager.findCookie(myCookies, ATLAS_COOKIE);
+      if (atlasCookies.isEmpty()) {
         log.debug("No ATLAS_COOKIE", myBaseUris);
         return null;
       }
@@ -184,7 +184,7 @@ class JiraServerDetector {
       }
       if (jiras.isEmpty()) return null;
       if (jiras.size() > 1)
-        LogHelper.error("Several Jiras detected:", jiras); // todo choose the authenticated one (if this even happen)
+        LogHelper.error("Several Jiras detected:", jiras); //TODO: choose the authenticated one (if this even happen)
       return jiras.get(0);
     }
 
@@ -199,7 +199,7 @@ class JiraServerDetector {
         RestAuth1Session auth = RestAuth1Session.get(session, RequestPolicy.SAFE_TO_RETRY, true);
         myself = auth.hasUsername() ? auth.getUserInfo() : null;
         checkCancelled();
-        RestResponse response = session.restGet(LoadServerInfo.PATH, RequestPolicy.SAFE_TO_RETRY);
+        RestResponse response = session.restGet(LoadServerInfo.PATH_SERVERINFO, RequestPolicy.SAFE_TO_RETRY);
         serverInfo = LoadServerInfo.fromResponse(response);
       } catch (ConnectionException e) {
         log.debug("No JIRA at", session.getBaseUrl(), e.getMessage());

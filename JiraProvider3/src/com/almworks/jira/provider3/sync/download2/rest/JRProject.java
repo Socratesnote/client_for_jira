@@ -34,7 +34,7 @@ public class JRProject {
    */
   public static final ArrayKey<JSONObject> VERSIONS = ArrayKey.objectArray("versions");
   /**
-   * Map "Role name" -&gt; "Role url" (format [server]/rest/api/2/project/[prjKey]/role/[roleId])
+   * Map "Role name" -&gt; "Role url" (format [server]/rest/PATH_PROJECT/[prjKey]/role/[roleId])
    */
   public static final JSONKey<JSONObject> ROLES = JSONKey.object("roles");
   /**

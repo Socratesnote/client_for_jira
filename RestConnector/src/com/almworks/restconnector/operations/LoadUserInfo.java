@@ -15,8 +15,8 @@ import org.json.simple.parser.ParseException;
 import java.util.TimeZone;
 
 public class LoadUserInfo {
-  private static final String PATH_USER = "api/2/user";
-  private static final String MYSELF = "api/2/myself";
+  private static final String PATH_USER = "api/2/user/";
+  private static final String PATH_MYSELF = "api/2/myself/";
   private static final JSONKey<TimeZone> USER_TIME_ZONE = JSONKey.timeZoneID("timeZone");
   private static final JSONKey<String> DISPLAY_NAME = JSONKey.text("displayName");
   private static final JSONKey<String> ACCOUNT_ID = JSONKey.text("accountId");
@@ -55,8 +55,8 @@ public class LoadUserInfo {
     //TODO: Why is this called twice?
     for (int i = 0; i < 2; i++) {
       try {
-        String url = session.getRestResourcePath(MYSELF);
-        RestSession.Request this_req = RestSession.GetDelete.get(url, RestSession.getDebugName(MYSELF));
+        String url = session.getRestResourcePath(PATH_MYSELF);
+        RestSession.Request this_req = RestSession.GetDelete.get(url, RestSession.getDebugName(PATH_MYSELF));
         this_req.addRequestHeader("Accept", "application/json"); // Doesn't actually change the response.
         this_req.addRequestHeader("Content-type", "application/json"); // Doesn't actually change the response.
         response = session
@@ -88,7 +88,7 @@ public class LoadUserInfo {
       return new LoadUserInfo(json);
     } catch (ParseException e) {
       LogHelper.warning("Failed to parse response", statusCode, session.getBaseUrl());
-      throw new CannotParseException(MYSELF, e.getMessage());
+      throw new CannotParseException(PATH_MYSELF, e.getMessage());
     }
   }
 

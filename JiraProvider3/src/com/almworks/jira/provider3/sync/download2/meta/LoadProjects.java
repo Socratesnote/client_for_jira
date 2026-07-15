@@ -28,7 +28,7 @@ import org.json.simple.JSONObject;
 import java.util.*;
 
 /**
- * Loads from rest/api/2/project, rest/api/2/project/KEY
+ * Loads from PATH_PROJECT, PATH_PROJECT/KEY
  * <ul>
  * <li>projects</li>
  * <li>issue types</li>

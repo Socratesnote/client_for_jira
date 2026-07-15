@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 class LoadEditMeta extends MetaOperation {
+  private static final String PATH_ISSUE = "api/2/issue/";
   private final FieldCollector myFieldCollector;
 
   protected LoadEditMeta(FieldCollector fieldCollector) {
@@ -69,7 +70,7 @@ class LoadEditMeta extends MetaOperation {
         )).addFields("key").querySingle(session);
         if (issue == null) continue;
         String key = JRIssue.KEY.getValue(issue);
-        RestResponse response = session.restGet(String.format("api/2/issue/%s/editmeta", key), RequestPolicy.SAFE_TO_RETRY);
+        RestResponse response = session.restGet(String.format(PATH_ISSUE + "%s/editmeta", key), RequestPolicy.SAFE_TO_RETRY);
         if (!response.isSuccessful()) {
           myFieldCollector.addAllScope(prjId, typeId);
           continue;

@@ -40,6 +40,7 @@ class LoadCreateMeta extends MetaOperation {
   private final FieldCollector myCustomFields;
   private final TLongObjectHashMap<IntArray> myLevelsInProjects = new TLongObjectHashMap<>();
   private final IntArray myLevelOrder = new IntArray();
+  private static final String PATH_ISSUE = "api/2/issue/";
 
   public LoadCreateMeta(FieldCollector customFields) {
     super(3);
@@ -61,7 +62,7 @@ class LoadCreateMeta extends MetaOperation {
         return;
       }
     } catch (ConnectorException e) {
-      LogHelper.warning("Load createmeta failed", e);
+      LogHelper.warning("Load create meta failed (request)", e);
       return;
     }
     LocationHandler handler = new CreateMetaFields() {
@@ -88,7 +89,7 @@ class LoadCreateMeta extends MetaOperation {
   }
 
   private String createRequest(@Nullable ProjectsAndTypes projects) {
-    StringBuilder request = new StringBuilder("api/2/issue/createmeta?expand=projects.issuetypes.fields.");
+    StringBuilder request = new StringBuilder(PATH_ISSUE + "createmeta?expand=projects.issuetypes.fields.");
     if (projects == null) {
       LogHelper.warning("No project info. No project filter is added (see previous exceptions or warnings)");
       return request.toString();

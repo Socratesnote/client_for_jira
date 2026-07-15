@@ -35,6 +35,7 @@ class DownloadIssuesByKey extends BaseOperation implements DBConnectorOperation 
   private final AtomicReference<Boolean> mySuccessfullyDone = new AtomicReference<Boolean>(null);
   private long myLastIcn = 0;
   private ConnectorException myError;
+  private static final String PATH_ISSUE = "api/2/issue/";
 
   public DownloadIssuesByKey(List<String> keys, ScalarModel<Boolean> cancelFlag, ServerInfo serverInfo, Progress progress,
     RemoteMetaConfig metaConfig) {
@@ -101,7 +102,7 @@ class DownloadIssuesByKey extends BaseOperation implements DBConnectorOperation 
         ProgressInfo progress = progressInfos[i];
         progress.startActivity(RestIssueProcessor.PROGRESS_LOAD_NEXT.formatMessage(String.valueOf(i), String.valueOf(keysSize)));
         String key = keys.get(i);
-        String path = "api/2/issue/" + key;
+        String path = PATH_ISSUE + key;
         RestResponse response = session.restGet(path, RequestPolicy.SAFE_TO_RETRY);
         progress.setDone();
         int code = response.getStatusCode();

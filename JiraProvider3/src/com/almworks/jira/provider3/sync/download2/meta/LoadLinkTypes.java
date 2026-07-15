@@ -29,6 +29,7 @@ class LoadLinkTypes {
   private static final JSONKey<String> NAME = JSONKey.text("name");
   private static final JSONKey<String> INWARD = JSONKey.text("inward");
   private static final JSONKey<String> OUTWARD = JSONKey.text("outward");
+  private static final String PATH_ISSUELINKTYPE = "api/2/issueLinkType/";
 
   public static void perform(RestSession session, EntityTransaction transaction) {
     List<JSONObject> typesList = loadLinkTypes(session);
@@ -48,7 +49,7 @@ class LoadLinkTypes {
   @Nullable("When failed to load link types")
   private static List<JSONObject> loadLinkTypes(RestSession session) {
     try {
-      RestResponse response = session.restGet("api/2/issueLinkType", RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.restGet(PATH_ISSUELINKTYPE, RequestPolicy.SAFE_TO_RETRY);
       if (!response.isSuccessful()) {
         LogHelper.debug("Failed to load linkTypes"); // An old JIRA has no this resource
         return null;

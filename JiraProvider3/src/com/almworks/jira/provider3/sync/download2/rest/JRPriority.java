@@ -6,7 +6,8 @@ import com.almworks.restconnector.json.SelfIdExtractor;
 import com.almworks.util.collections.Convertor;
 
 public class JRPriority {
-  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/rest/api/2/priority/");
+  private static final String PATH_PRIORITY = "api/2/priority/";
+  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/rest/" + PATH_PRIORITY);
   public static final JSONKey<Integer> ID = new JSONKey<Integer>("self", ID_EXTRACTOR);
   public static final JSONKey<String> NAME = JSONKey.text("name");
   public static final JSONKey<String> COLOR = JSONKey.text("statusColor");

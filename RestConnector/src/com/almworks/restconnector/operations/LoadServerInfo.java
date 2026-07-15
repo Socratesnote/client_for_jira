@@ -15,7 +15,7 @@ import org.json.simple.parser.ParseException;
 public class LoadServerInfo {
   public static final LoadServerInfo DEFAULT = new LoadServerInfo(RequestPolicy.SAFE_TO_RETRY);
 
-  public static final String PATH = "api/2/serverInfo";
+  public static final String PATH_SERVERINFO = "api/2/serverInfo/";
 
   private static final TypedKey<RestServerInfo> INSTANCE_KEY = TypedKey.create("serverInfo");
   private final RequestPolicy myRequestPolicy;
@@ -43,7 +43,7 @@ public class LoadServerInfo {
 
   @NotNull
   private RestServerInfo loadServerInfo(RestSession session) throws ConnectorException {
-    RestResponse response = session.restGet(PATH, myRequestPolicy);
+    RestResponse response = session.restGet(PATH_SERVERINFO, myRequestPolicy);
     return fromResponse(response);
   }
 

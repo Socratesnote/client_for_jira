@@ -30,6 +30,8 @@ class LoadCustomFields extends MetaOperation {
   private static final ArrayKey<JSONObject> JQL_FIELDS = ArrayKey.objectArray("visibleFieldNames");
   private static final JSONKey<String> JQL_FIELD_CFID = JSONKey.text("cfid");
   private static final ArrayKey<String> JQL_FIELD_OPERATORS = ArrayKey.textArray("operators");
+  private static final String PATH_JQL = "api/2/jql/";
+  private static final String PATH_FIELD = "api/2/field/";
 
   private final CustomFieldsComponent myFieldsComponent;
 
@@ -49,7 +51,7 @@ class LoadCustomFields extends MetaOperation {
   private static void loadFieldSearch(RestSession session, EntityTransaction transaction, ProgressInfo progress) {
     JSONObject rawJSON = null;
     try {
-      RestResponse response = session.restGet("api/2/jql/autocompletedata", RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.restGet(PATH_JQL + "autocompletedata", RequestPolicy.SAFE_TO_RETRY);
       if (!response.isSuccessful()) {
         LogHelper.warning("/jql/autocompletedata not available", response.getStatusCode());
         return;
@@ -80,7 +82,7 @@ class LoadCustomFields extends MetaOperation {
   private void loadFieldSet(RestSession session, EntityTransaction transaction, ProgressInfo progress) {
     List<JSONObject> list;
     try {
-      RestResponse response = session.restGet("api/2/field", RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.restGet(PATH_FIELD, RequestPolicy.SAFE_TO_RETRY);
       response.ensureSuccessful();
       Object rawJSON = response.getJSON();
       list = ArrayKey.ROOT_ARRAY.list(rawJSON);

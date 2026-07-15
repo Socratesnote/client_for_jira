@@ -31,9 +31,9 @@ public class JqlSearch {
 
   private static final String JQL_MAX_RESULT = "jiraclient.jql.maxresult";
 
-    //TODO: Ideally, bring the whole API up to speed with V3.
+  //TODO: Ideally, bring the whole API up to speed with V3.
   //TODO: BUG: Deprecated: https://developer.atlassian.com/changelog/#CHANGE-2046
-  private static final String PATH = "api/2/search";
+  private static final String PATH_SEARCH = "api/2/search";
 
   private final JqlQuery myJql;
   private int myStart = 0;
@@ -111,7 +111,7 @@ public class JqlSearch {
 
   public RestResponse request(RestSession session) throws ConnectorException {
     JSONObject request = createRequest();
-    RestResponse response = session.restPostJson(PATH, request, RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = session.restPostJson(PATH_SEARCH, request, RequestPolicy.SAFE_TO_RETRY);
     if (!response.isSuccessful()) LogHelper.warning("Failed to query issues", request); // Hunting a bug - query sometimes fails
     return response;
   }
@@ -134,7 +134,7 @@ public class JqlSearch {
     try {
       reply = response.getJSONObject();
     } catch (ParseException e) {
-      LogHelper.warning("Failed to parse query resule", e);
+      LogHelper.warning("Failed to parse query result", e);
       throw new JiraInternalException("Failed query issues");
     }
     List<JSONObject> issues = ISSUES.list(reply);

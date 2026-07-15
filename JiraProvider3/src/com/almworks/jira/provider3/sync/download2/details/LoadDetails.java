@@ -36,6 +36,7 @@ import java.util.Map;
 public class LoadDetails {
   private static final LocalizedAccessor.Value M_LOADING_VOTERS = ConnectorManager.LOCAL.getFactory("progress.message.loadVoters");
   private static final LocalizedAccessor.Value M_LOADING_WATCHERS = ConnectorManager.LOCAL.getFactory("progress.message.loadWatchers");
+  private static final String PATH_ISSUE = "api/2/issue/";
   private final EntityTransaction myTransaction;
   private final CustomFieldsSchema.RestLoader mySchemaLoader;
   /**
@@ -57,7 +58,7 @@ public class LoadDetails {
     String connectionId) throws ConnectorException {
     try {
       LoadDetails loader = new LoadDetails(transaction, new CustomFieldsSchema.RestLoader(customFields, connectionId));
-      String path = "api/2/issue/" + issueId + "?expand=names%2Cschema";
+      String path = PATH_ISSUE + issueId + "?expand=names%2Cschema";
       progress.checkCancelled();
       RestResponse response = session.restGet(path, RequestPolicy.SAFE_TO_RETRY);
       progress.spawn(0.8).setDone();

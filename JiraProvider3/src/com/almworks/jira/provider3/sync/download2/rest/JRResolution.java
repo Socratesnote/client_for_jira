@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 public class JRResolution {
-  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/rest/api/2/resolution/");
+  private static final String PATH_RESOLUTION = "api/2/resolution/";
+  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/rest/" + PATH_RESOLUTION);
 
   public static final JSONKey<Integer> ID = new JSONKey<Integer>("self", ID_EXTRACTOR);
   public static final JSONKey<String> NAME = JSONKey.text("name");
