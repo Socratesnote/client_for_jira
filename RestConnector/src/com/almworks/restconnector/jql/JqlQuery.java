@@ -16,39 +16,42 @@ import java.util.Objects;
 public class JqlQuery {
   public static final JqlQuery EMPTY = new JqlQuery(null);
 
-  private final Constraint myJqlConstrain;
+  private final Constraint myJqlConstraint;
   @Nullable
   private final String myOrderBy;
-  private String myText;
+  private String myText = null;
 
-  public JqlQuery(Constraint jqlConstrain) {
-    this(jqlConstrain, null);
+  public JqlQuery(Constraint jqlConstraint) {
+    this(jqlConstraint, null);
   }
 
-  public JqlQuery(Constraint jqlConstrain, @Nullable  String orderBy) {
-    myJqlConstrain = jqlConstrain;
+  public JqlQuery(Constraint jqlConstraint, @Nullable  String orderBy) {
+    myJqlConstraint = jqlConstraint;
     myOrderBy = orderBy;
   }
 
   public JqlQuery orderBy(String orderBy) {
     if (Objects.equals(myOrderBy, orderBy)) return this;
-    return new JqlQuery(myJqlConstrain, orderBy);
+    return new JqlQuery(myJqlConstraint, orderBy);
   }
 
-  public Constraint getJqlConstrain() {
-    return myJqlConstrain;
+  public Constraint getJqlConstraint() {
+    return myJqlConstraint;
   }
 
   @NotNull
   public String getJqlText() {
-    String jql = myText;
-    if (jql == null) {
-      jql = myJqlConstrain == null ? null : createJqlText(myJqlConstrain);
-      if (jql == null) jql = "";
-      if (myOrderBy != null) jql += " " + myOrderBy;
-      myText = jql;
+    // Initialize with last text.
+    //TODO: But doesn't this effectively lock the JQL text once a change has been made? And isn't it limited to only the SimpleConstant version?
+    String jqlText = myText;
+    if (jqlText == null || jqlText.isEmpty()) {
+      jqlText = myJqlConstraint == null ? null : createJqlText(myJqlConstraint);
+      if (jqlText == null) jqlText = "";
+      if (myOrderBy != null) jqlText += " " + myOrderBy;
+      // Store for next call.
+      myText = jqlText;
     }
-    return jql;
+    return jqlText;
   }
 
   private static String createJqlText(Constraint jqlConstraint) {

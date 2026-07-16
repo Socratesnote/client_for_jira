@@ -116,8 +116,8 @@ public class Launcher {
     }
 
     // 2. Try to find workspace at home
-    File athome = new File(Setup.getHomeDir(), Setup.DIR_WORKSPACE_OLD_FASHIONED);
-    workspace = validateWorkspaceDir(athome.getAbsolutePath(), false);
+    File atHome = new File(Setup.getHomeDir(), Setup.DIR_WORKSPACE_OLD_FASHIONED);
+    workspace = validateWorkspaceDir(atHome.getAbsolutePath(), false);
     if (workspace != null) {
       Setup.setWorkspaceDir(workspace, true);
       return;
@@ -142,7 +142,7 @@ public class Launcher {
     }
 
     // 4. If no home (?) - use home dir anyway
-    workspace = validateWorkspaceDir(athome.getAbsolutePath(), true);
+    workspace = validateWorkspaceDir(atHome.getAbsolutePath(), true);
     if (workspace != null) {
       Setup.setWorkspaceDir(workspace, true);
       return;
@@ -150,8 +150,8 @@ public class Launcher {
 
     // 5. Cannot do anything
     logger().log(Level.SEVERE,
-      "cannot set up workspace directory, consider using " + TrackerProperties.WORKSPACE + " option");
-    throw new RuntimeException("cannot set up workspace directory");
+      "Cannot set up workspace directory, consider using " + TrackerProperties.WORKSPACE + " option");
+    throw new RuntimeException("Cannot set up workspace directory");
   }
 
   private File validateWorkspaceDir(String dirname, boolean mayCreate) {
@@ -161,7 +161,7 @@ public class Launcher {
     try {
       dir = new File(dirname).getAbsoluteFile();
     } catch (Exception e) {
-      logger().log(Level.WARNING, "cannot use workspace dir [" + dirname + "]");
+      logger().log(Level.WARNING, "Cannot use workspace dir [" + dirname + "]");
       return null;
     }
     logger().info("Trying workspace directory: '" + dir + "' mayCreate:" + mayCreate);
@@ -556,7 +556,7 @@ public class Launcher {
     String s = Setup.getStringProperty(TrackerProperties.DEBUG_LEVEL);
     if (s != null)
       try {
-        return Level.parse(s);
+        return Level.parse(s.toUpperCase());
       } catch (IllegalArgumentException e) {
         // bad level
       }

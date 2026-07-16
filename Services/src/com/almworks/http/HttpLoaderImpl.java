@@ -815,7 +815,6 @@ public class HttpLoaderImpl implements HttpLoader {
     return credentialsChanged ? AuthResult.AVAILABLE_NEW : AuthResult.AVAILABLE_THESAME;
   }
 
-  @SuppressWarnings({"OverlyComplexMethod"})
   private void loadPreliminaryCredentials(HttpClient httpClient, HttpMethodBase method, boolean proxy)
     throws IOException, AbortLoading, HttpCancelledException
   {
@@ -830,20 +829,20 @@ public class HttpLoaderImpl implements HttpLoader {
     if (proxy && (hc == null || hc.getProxyHost() == null)) {
       return;
     }
-    String host = (proxy && hc != null) ? hc.getProxyHost() : uri.getHost();
-    int port = (proxy && hc != null) ? hc.getProxyPort() : uri.getPort();
+    String host = proxy ? hc.getProxyHost() : uri.getHost();
+    int port = proxy ? hc.getProxyPort() : uri.getPort();
     if (host == null) {
       return;
     }
     AuthScope authscope = new AuthScope(host, port);
     String scheme = KNOWN_AUTHTYPES.get(authscope);
     if (scheme == null || !scheme.equalsIgnoreCase(AuthState.PREEMPTIVE_AUTH_SCHEME)) {
-      Log.debug("[LC] preliminary credentials skipped: authtype is not known");
+      Log.debug("[LC] Preliminary credentials skipped: authtype is not known");
       return;
     }
 
     if (httpClient == null) {
-      Log.debug("[LC] no httpclient");
+      Log.debug("[LC] No httpclient");
       return;
     }
 
@@ -851,7 +850,7 @@ public class HttpLoaderImpl implements HttpLoader {
     Credentials currentCredentials =
       proxy ? httpState.getProxyCredentials(authscope) : httpState.getCredentials(authscope);
     if (currentCredentials != null) {
-      Log.debug("[LC] preliminary credentials skipped: credentials already set");
+      Log.debug("[LC] Preliminary credentials skipped: credentials already set");
       return;
     }
 

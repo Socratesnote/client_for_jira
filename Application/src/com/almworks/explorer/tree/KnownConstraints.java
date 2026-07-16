@@ -34,7 +34,7 @@ public class KnownConstraints {
         if (children == null)
           return false;
         for (Constraint constraint : children) {
-          if (constraint == null || !isValid(constraint))
+          if (!isValid(constraint))
             return false;
         }
         return true;
@@ -45,7 +45,7 @@ public class KnownConstraints {
     checkers.put(ConstraintNegation.NEGATION, new Condition<ConstraintNegation>() {
       public boolean isAccepted(ConstraintNegation negation) {
         Constraint constraint = negation.getNegated();
-        return constraint != null && isValid(constraint);
+        return isValid(constraint);
       }
     });
 

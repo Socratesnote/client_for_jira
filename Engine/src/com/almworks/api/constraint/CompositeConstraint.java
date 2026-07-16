@@ -17,7 +17,7 @@ public interface CompositeConstraint extends Constraint {
   TypedKey<? extends CompositeConstraint> getType();
 
   /**
-   * @return valid CompositeConstraint returns not null, not empty list, noone of elements is null
+   * @return valid CompositeConstraint returns not null, not empty list, none of elements is null
    */
   List<? extends Constraint> getChildren();
 

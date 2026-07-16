@@ -96,7 +96,7 @@ public class MockContext implements ConnectionContext {
 
   public void loadInitState(DBReader reader) {
     // todo kludge: we have to force class initialization before restorePersistable
-    Log.debug("kludge:" + InitializationState.NOT_INITIALIZED);
+    Log.debug("kludge: " + InitializationState.NOT_INITIALIZED);
     InitializationState state = INIT_STATE.getValue(reader, myConnection.getConnectionObj());
     if (state == null) {
       state = InitializationState.NOT_INITIALIZED;

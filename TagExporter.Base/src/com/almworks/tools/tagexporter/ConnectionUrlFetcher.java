@@ -40,8 +40,8 @@ public class ConnectionUrlFetcher {
         Map<String, String> urls = fetchConnectionUrls(configFile);
         Log.warn("Using config file " + configFile);
         return urls;
-      } catch (Exception ignored) {
-        Log.warn(ignored.getMessage());
+      } catch (Exception e) {
+        Log.warn(e.getMessage());
       }
     }
     if (ioe != null) throw ioe;
@@ -61,11 +61,11 @@ public class ConnectionUrlFetcher {
         return name.startsWith(JDOMConfigurator.BACKUP_FILE_PREFIX);
       }
     }));
-    Collections.sort(files, new Comparator<File>() {
-      @Override
-      public int compare(File o1, File o2) {
-        return -Util.compareLongs(o1.lastModified(), o2.lastModified());
-      }
+    files.sort(new Comparator<File>() {
+        @Override
+        public int compare(File o1, File o2) {
+            return -Util.compareLongs(o1.lastModified(), o2.lastModified());
+        }
     });
     return files;
   }

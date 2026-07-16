@@ -115,8 +115,9 @@ public class Constraints {
     return false;
   }
 
+  //TODO: Remove?
   private static boolean negate(boolean negate, boolean value) {
-    return negate ? !value : value;
+    return negate != value;
   }
 
   @Nullable
@@ -126,7 +127,6 @@ public class Constraints {
     ConstraintNegation not = cast(ConstraintNegation.NEGATION, constraint);
     if (not == null)
       return null;
-    //noinspection SimplifiableConditionalExpression
     return not.getNegated().getType() == Constraint.TRUE ? false : null;
   }
 

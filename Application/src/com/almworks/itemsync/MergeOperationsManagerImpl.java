@@ -27,12 +27,12 @@ class MergeOperationsManagerImpl implements MergeOperationsManager {
     }
     Long type = reader.getValue(item, DBAttribute.TYPE);
     Map<DBItemType, ItemAutoMerge> typeToOperation = collectByType();
-    if (typeToOperation == null) typeToOperation = Collections.emptyMap();
     for (Map.Entry<DBItemType, ItemAutoMerge> entry : typeToOperation.entrySet()) {
       assert type != null;
       long t = reader.findMaterialized(entry.getKey());
       if (t == type) return entry.getValue();
     }
+    //TODO: Is this a problem?
     Log.warn("AutoMerge operations not found for " + item + " connection " + connection + " type:" + getItemType(reader, item) );
     return null;
   }

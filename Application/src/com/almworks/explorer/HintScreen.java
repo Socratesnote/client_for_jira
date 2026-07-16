@@ -98,7 +98,7 @@ public class HintScreen implements Startable {
   private String readWhatsNew(boolean onlyIfNewer) {
     File whatsnew = myWorkArea.getEtcFile(WorkArea.ETC_WELCOME_HTML);
     if (whatsnew == null) {
-      Log.warn("not whats new file");
+      Log.warn("No 'whats new' file");
       return null;
     }
     if (!whatsnew.isFile()) {
@@ -106,7 +106,7 @@ public class HintScreen implements Startable {
       return null;
     }
     if (!whatsnew.canRead()) {
-      Log.warn("cannot read " + whatsnew);
+      Log.warn("Cannot read " + whatsnew);
       return null;
     }
 
@@ -123,7 +123,7 @@ public class HintScreen implements Startable {
     try {
       text = FileUtil.readFile(whatsnew);
     } catch (IOException e) {
-      Log.warn("cannot read " + whatsnew, e);
+      Log.warn("Cannot read " + whatsnew, e);
       return null;
     }
 

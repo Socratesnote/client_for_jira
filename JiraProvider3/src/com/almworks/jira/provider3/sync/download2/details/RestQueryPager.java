@@ -28,7 +28,9 @@ public class RestQueryPager {
   private String[] myFields = null;
   private int myTotal = -1;
   private int myMaxResult = -1;
-  private int myStart;
+  private String myStart = null;
+
+  // Helpful? https://community.atlassian.com/forums/Jira-articles/How-to-use-the-new-Jira-cloud-issue-search-API/ba-p/3006109
 
   public RestQueryPager(@NotNull JqlQuery jql) {
     myJql = jql;
@@ -36,6 +38,7 @@ public class RestQueryPager {
 
   public static RestQueryPager allFields(@NotNull JqlQuery jql) {
     RestQueryPager pager = new RestQueryPager(jql);
+    //TODO: BUG: This is no longer allowed.
     pager.setFields(new String[]{"*all"});
     return pager;
   }
@@ -76,13 +79,12 @@ public class RestQueryPager {
   /**
    * Set next page start
    */
-  public void setStart(int start) {
+  public void setStart(String start) {
     myStart = start;
   }
 
   /**
-   * Sets desired max query result. It should no be too big because of it may lead to JIRA failure.
-   * @param maxResult
+   * @param maxResult Sets desired max query result. It should not be too big because it may lead to JIRA failure.
    */
   public void setMaxResult(int maxResult) {
     myMaxResult = maxResult;
@@ -102,7 +104,7 @@ public class RestQueryPager {
     if (!response.isSuccessful()) {
       int statusCode = response.getStatusCode();
       if (myNoResultCodes.contains(statusCode)) {
-        myTotal = myStart; // Set query ended state
+        myTotal = myStart == null ? 0 : Integer.parseInt(myStart) ; // Set query ended state
         return 0;
       }
       RestResponse.ErrorResponse errorResponse = response.createErrorResponse();
@@ -130,7 +132,8 @@ public class RestQueryPager {
       throw new JiraInternalException("Failed to load query. Cannot understand server reply.");
     }
     myTotal = total;
-    LogHelper.assertError(startAt == myStart, "Wrong start", myStart, startAt);
+    Integer myStartInt = myStart == null ? 0 : Integer.parseInt(myStart);
+    LogHelper.assertError(startAt.equals(myStartInt), "Wrong start", myStart, myStartInt, startAt);
     return maxResults;
   }
 
@@ -153,15 +156,16 @@ public class RestQueryPager {
         else progress.checkCancelled();
       }
       int maxResults = loadNext(session, issueHandler);
+      int myStartInt = myStart == null ? 0 : Integer.parseInt(myStart);
       if (progress != null) {
-        int left = myTotal - myStart;
+        int left = myTotal - myStartInt;
         (left == 0 ? progress : progress.spawn(Math.min(1.0, ((double) maxResults)/ left))).setDone();
       }
-      myStart += maxResults;
-      if (myStart >= myTotal) break;
+      myStartInt += maxResults;
+      if (myStartInt >= myTotal) break;
       if (myMaxResult > 0 && maxResults >= myMaxResult) break;
       if (maxResults <= 0) {
-        LogHelper.error("No issues loaded", myStart, myMaxResult, myTotal, maxResults);
+        LogHelper.error("No issues loaded", myStart, myStartInt, myMaxResult, myTotal, maxResults);
         break;
       }
     }
