@@ -32,11 +32,12 @@ public class JqlSearch {
   private static final String JQL_MAX_RESULT = "jiraclient.jql.maxresult";
 
   //TODO: Ideally, bring the whole API up to speed with V3.
-  //TODO: BUG: Deprecated: https://developer.atlassian.com/changelog/#CHANGE-2046
-  private static final String PATH_SEARCH = "api/2/search";
+  //TODO: BUG: Raw /search/ has been deprecated: https://developer.atlassian.com/changelog/#CHANGE-2046
+  private static final String PATH_SEARCH = "api/3/search/jql";
 
   private final JqlQuery myJql;
-  private int myStart = 0;
+  //TODO: startAt has been removed and replaced by nextPageToken in the response body.
+  private String myStart = null;
   private int myMaxResult = -1;
   private final List<String> myFields = Collections15.arrayList();
   private final List<String> myExpand = Collections15.arrayList();
@@ -50,7 +51,7 @@ public class JqlSearch {
   }
 
   public void reset() {
-    myStart = 0;
+    myStart = null; // First page has a null token.
     myMaxResult = -1;
     myFields.clear();
     myExpand.clear();
@@ -60,7 +61,7 @@ public class JqlSearch {
   public JSONObject createRequest() {
     JSONObject request = new JSONObject();
     request.put("jql", myJql.getJqlText());
-    request.put("startAt", myStart);
+    request.put("nextPageToken", myStart);
     if (myMaxResult > 0) request.put("maxResults", myMaxResult);
     else LogHelper.error("Missing maxResult");
     if (!myFields.isEmpty()) {
@@ -76,7 +77,7 @@ public class JqlSearch {
     return request;
   }
 
-  public void setStart(int start) {
+  public void setStart(String start) {
     myStart = start;
   }
 
@@ -112,7 +113,9 @@ public class JqlSearch {
   public RestResponse request(RestSession session) throws ConnectorException {
     JSONObject request = createRequest();
     RestResponse response = session.restPostJson(PATH_SEARCH, request, RequestPolicy.SAFE_TO_RETRY);
-    if (!response.isSuccessful()) LogHelper.warning("Failed to query issues", request); // Hunting a bug - query sometimes fails
+    if (!response.isSuccessful()) {
+      LogHelper.warning("Failed to query issues: ", request);
+    }
     return response;
   }
 

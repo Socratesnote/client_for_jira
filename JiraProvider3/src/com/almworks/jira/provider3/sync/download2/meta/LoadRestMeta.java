@@ -26,6 +26,7 @@ import com.almworks.util.i18n.text.CurrentLocale;
 import com.almworks.util.i18n.text.LocalizedAccessor;
 import org.almworks.util.Collections15;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -85,7 +86,7 @@ public class LoadRestMeta extends BaseOperation {
       @Override
       public void perform(RestSession session, EntityTransaction transaction, ProgressInfo progress, LoadMetaContext context) throws CancelledException {
         try {
-          loadCommentsVisibility(session, transaction, progress);
+          loadCommentsVisibility(session, transaction, context, progress);
         } catch (CancelledException e) {
           throw e;
         } catch (ConnectorException e) {
@@ -145,12 +146,13 @@ public class LoadRestMeta extends BaseOperation {
     myServerInfo.getSyncManager().writeDownloaded(update).waitForCompletion();
   }
 
-  private void loadCommentsVisibility(RestSession session, EntityTransaction transaction, ProgressInfo progress) throws ConnectorException {
-    List<String> groups = LoadCommentVisibility.loadCommentVisibilityGroups(session);
+  private void loadCommentsVisibility(RestSession session, EntityTransaction transaction, LoadMetaContext context, ProgressInfo progress) throws ConnectorException {
+    List<String> groups = LoadCommentVisibility.loadCommentVisibilityGroups(session, context);
     progress.setDone();
     if (groups == null) return;
     EntityHolder connection = ServerInfo.changeConnection(transaction);
-    connection.setValue(ServerProjectRole.PROJECT_ROLES_ONLY, groups.isEmpty());
+      assert connection != null: "Connection is null";
+      connection.setValue(ServerProjectRole.PROJECT_ROLES_ONLY, groups.isEmpty());
     for (String group : groups) transaction.addEntity(ServerGroup.TYPE, ServerGroup.ID, group);
   }
 

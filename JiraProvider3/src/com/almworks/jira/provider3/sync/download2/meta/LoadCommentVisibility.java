@@ -1,12 +1,20 @@
 package com.almworks.jira.provider3.sync.download2.meta;
 
 import com.almworks.api.connector.ConnectorException;
+import com.almworks.api.constraint.CompositeConstraint;
+import com.almworks.api.constraint.Constraint;
+import com.almworks.api.constraint.FieldSubsetConstraint;
+import com.almworks.integers.IntIterator;
+import com.almworks.integers.IntList;
 import com.almworks.jira.connector2.JiraInternalException;
+import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.services.JiraPatterns;
+import com.almworks.jira.provider3.sync.download2.meta.core.LoadMetaContext;
 import com.almworks.jira.provider3.sync.download2.rest.JqlSearch;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
+import com.almworks.restconnector.jql.JQLCompareConstraint;
 import com.almworks.restconnector.jql.JqlQuery;
 import com.almworks.restconnector.json.JSONKey;
 import com.almworks.util.LogHelper;
@@ -18,13 +26,21 @@ import org.jdom.Element;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
+import static com.almworks.jira.provider3.sync.download2.meta.LoadRestMeta.PROJECTS;
 
 class LoadCommentVisibility {
   private static final JSONKey<Integer> ISSUE_ID = JSONKey.integer("id");
   private static final JSONKey<String> ISSUE_KEY = JSONKey.text("key");
+
+  private static Constraint buildProjectConstraint(List<Long> projectIds) {
+    if (projectIds == null || projectIds.isEmpty()) {
+      return Constraint.FALSE;
+    }
+    // Build: project IN (id1, id2, ...)
+    return FieldSubsetConstraint.Simple.intersection(Issue.PROJECT, projectIds);
+  }
 
   /**
    * Extracts visibility groups (skips project roles) from Add Comment page
@@ -32,9 +48,19 @@ class LoadCommentVisibility {
    * empty list if only project roles are allowed for comment visibility<br>
    * not empty list of groups if groups are allowed for comment visibility
    */
-  public static List<String> loadCommentVisibilityGroups(RestSession session) throws ConnectorException {
-    // Load "any issue" ID-KEY
-    JSONObject issue = new JqlSearch(JqlQuery.EMPTY).addFields("key").querySingle(session);
+  public static List<String> loadCommentVisibilityGroups(RestSession session, LoadMetaContext context) throws ConnectorException {
+    //TODO: Check all JqlQuery.EMPTY: this is no longer allowed. Draw all IDs from the context instead, and format a query for all elements in all projects.
+    // Get project IDs from context.
+    ProjectsAndTypes projectsAndTypes = context.getData(PROJECTS);
+    IntList projectIdsInt = projectsAndTypes.getProjectIds();
+    List<String> projectIdsString = new ArrayList<>(Collections.emptyList());
+    int i;
+    for (i = 0; i < projectIdsInt.size(); i++) {
+      projectIdsString.add(String.valueOf(projectIdsInt.get(i)));
+    }
+    CompositeConstraint query2 = CompositeConstraint.and(JQLCompareConstraint.in("project", projectIdsString, false, "Project"));
+
+    JSONObject issue = new JqlSearch(query2).addFields("key").querySingle(session);
     if (issue == null) return null;
     Integer id = ISSUE_ID.getValue(issue);
     String key = ISSUE_KEY.getValue(issue);
