@@ -1,11 +1,11 @@
 package com.almworks.jira.provider3.sync.download2.rest;
 
 import com.almworks.jira.provider3.sync.schema.ServerComponent;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 
 public class JRComponent {
-  public static final JSONKey<Integer> ID = JSONKey.integer("id");
-  public static final JSONKey<String> NAME = JSONKey.text("name");
+  public static final JsonKey<Integer> ID = JsonKey.integer("id");
+  public static final JsonKey<String> NAME = JsonKey.text("name");
   public static final EntityParser PARSER =
     new EntityParser.Builder()
       .map(ID, ServerComponent.ID)

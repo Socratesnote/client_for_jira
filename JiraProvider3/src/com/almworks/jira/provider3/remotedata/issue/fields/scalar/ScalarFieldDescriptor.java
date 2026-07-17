@@ -12,8 +12,9 @@ import com.almworks.jira.provider3.services.upload.PostUploadContext;
 import com.almworks.jira.provider3.services.upload.UploadJsonUtil;
 import com.almworks.jira.provider3.sync.download2.details.JsonIssueField;
 import com.almworks.jira.provider3.sync.download2.details.fields.ScalarField;
+import com.almworks.jira.provider3.sync.download2.rest.AdfText;
 import com.almworks.jira.provider3.sync.schema.ServerJira;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.operations.RestServerInfo;
 import com.almworks.util.LogHelper;
 import com.almworks.util.collections.Convertor;
@@ -69,6 +70,9 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
     }
   };
 
+  //TODO: Conflict detection compares ADF-extracted plain text against local plain-text edits, so a server-side
+  // rich-text edit that only changes formatting produces identical extracted text and is not detected as a conflict.
+  // Revisit once upload-side ADF support exists (compare raw ADF, or a canonical form).
   public static final Equality<String> TEXT_EQUALITY = new Equality<String>() {
     @Override
     public boolean areEqual(String a, String b) {
@@ -100,19 +104,19 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
   };
 
   public static final ScalarProperties<String> EDITABLE_TEXT =
-    new ScalarProperties<String>(JSONKey.emptyTextToNull(JSONKey.TEXT_TRIM), ScalarUploadType.TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
+    new ScalarProperties<String>(JsonKey.emptyTextToNull(AdfText.adfAware(JsonKey.TEXT_TRIM)), ScalarUploadType.TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
   public static final ScalarProperties<String> READONLY_TEXT =
-    new ScalarProperties<String>(JSONKey.TEXT_TRIM_TO_NULL, null, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
+    new ScalarProperties<String>(AdfText.adfAware(JsonKey.TEXT_TRIM_TO_NULL), null, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
   public static final ScalarProperties<Date> EDITABLE_DATE =
-    new ScalarProperties<Date>(JSONKey.DATE_TIME, ScalarUploadType.DATE, DATE_EQUALITY, DATE_TO_DISPLAYABLE, Date.class);
+    new ScalarProperties<Date>(JsonKey.DATE_TIME, ScalarUploadType.DATE, DATE_EQUALITY, DATE_TO_DISPLAYABLE, Date.class);
   public static final ScalarProperties<Date> READ_ONLY_DATE =
-    new ScalarProperties<Date>(JSONKey.DATE_TIME, null, DATE_EQUALITY, DATE_TO_DISPLAYABLE, Date.class);
+    new ScalarProperties<Date>(JsonKey.DATE_TIME, null, DATE_EQUALITY, DATE_TO_DISPLAYABLE, Date.class);
   public static final ScalarProperties<Integer>
-    EDITABLE_DAYS = new ScalarProperties<Integer>(JSONKey.DAYS_DATE, ScalarUploadType.DAYS, Equality.GENERAL, DaysUpload.INSTANCE, Integer.class);
-  public static final ScalarProperties<Integer> READONLY_DAYS = new ScalarProperties<Integer>(JSONKey.DAYS_DATE, null, Equality.GENERAL, DaysUpload.INSTANCE, Integer.class);
+    EDITABLE_DAYS = new ScalarProperties<Integer>(JsonKey.DAYS_DATE, ScalarUploadType.DAYS, Equality.GENERAL, DaysUpload.INSTANCE, Integer.class);
+  public static final ScalarProperties<Integer> READONLY_DAYS = new ScalarProperties<Integer>(JsonKey.DAYS_DATE, null, Equality.GENERAL, DaysUpload.INSTANCE, Integer.class);
   public static final ScalarProperties<BigDecimal>
-    EDITABLE_DECIMAL = new ScalarProperties<BigDecimal>(JSONKey.DECIMAL, ScalarUploadType.DECIMAL, DECIMAL_EQUALITY, DISPLAY_DECIMAL, BigDecimal.class);
-  public static final ScalarProperties<BigDecimal> READONLY_DECIMAL = new ScalarProperties<BigDecimal>(JSONKey.DECIMAL, null, DECIMAL_EQUALITY, DISPLAY_DECIMAL, BigDecimal.class);
+    EDITABLE_DECIMAL = new ScalarProperties<BigDecimal>(JsonKey.DECIMAL, ScalarUploadType.DECIMAL, DECIMAL_EQUALITY, DISPLAY_DECIMAL, BigDecimal.class);
+  public static final ScalarProperties<BigDecimal> READONLY_DECIMAL = new ScalarProperties<BigDecimal>(JsonKey.DECIMAL, null, DECIMAL_EQUALITY, DISPLAY_DECIMAL, BigDecimal.class);
 
   private final ScalarProperties<T> myScalarProperties;
   private final EntityKey<T> myKey;

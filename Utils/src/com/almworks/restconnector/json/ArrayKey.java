@@ -9,7 +9,7 @@ import org.json.simple.JSONObject;
 import java.util.Collections;
 import java.util.List;
 
-public class ArrayKey<T> extends JSONKey<JSONArray> {
+public class ArrayKey<T> extends JsonKey<JSONArray> {
   private static final CastConvertor<JSONArray> CONVERTOR = CastConvertor.create(JSONArray.class);
 
   /**

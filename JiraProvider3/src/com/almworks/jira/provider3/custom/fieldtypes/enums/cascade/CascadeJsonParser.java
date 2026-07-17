@@ -5,7 +5,7 @@ import com.almworks.jira.provider3.sync.download2.details.fields.ValueSupplement
 import com.almworks.jira.provider3.sync.download2.rest.EntityParser;
 import com.almworks.jira.provider3.sync.download2.rest.JsonEntityParser;
 import com.almworks.jira.provider3.sync.schema.ServerCustomField;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
@@ -13,9 +13,9 @@ import org.json.simple.JSONObject;
 class CascadeJsonParser implements EntityParser {
   private static final EntityParser INSTANCE = new CascadeJsonParser();
 
-  private final JSONKey<Integer> ID = JSONKey.integer("id");
-  private final JSONKey<String> NAME = JSONKey.textTrim("value");
-  private final JSONKey<JSONObject> CHILD = JSONKey.object("child");
+  private final JsonKey<Integer> ID = JsonKey.integer("id");
+  private final JsonKey<String> NAME = JsonKey.textTrim("value");
+  private final JsonKey<JSONObject> CHILD = JsonKey.object("child");
 
   private CascadeJsonParser() {
   }
@@ -27,7 +27,7 @@ class CascadeJsonParser implements EntityParser {
   @Override
   public boolean fillEntity(Object value, @NotNull Entity entity) {
     if (value == null) return false;
-    JSONObject obj = JSONKey.OBJECT.convert(value);
+    JSONObject obj = JsonKey.OBJECT.convert(value);
     JSONObject childObj = CHILD.getValue(obj);
     if (childObj != null) {
       if (!loadEntity(entity, childObj)) return false;

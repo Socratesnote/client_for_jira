@@ -13,7 +13,7 @@ import com.almworks.jira.provider3.sync.schema.ServerCustomField;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.sax.*;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
@@ -73,7 +73,7 @@ public class ParsedIssueFields {
     LocationHandler check = PeekObjectEntry.objectEntry("id", new JSONCollector(new Procedure<Object>() {
       @Override
       public void invoke(Object arg) {
-        Integer actual = JSONKey.INTEGER.convert(arg);
+        Integer actual = JsonKey.INTEGER.convert(arg);
         LogHelper.assertError(Util.equals(actual, actionId), "Expected action", actionId, "but was", arg);
       }
     }));

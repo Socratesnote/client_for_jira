@@ -13,7 +13,7 @@ import com.almworks.jira.provider3.sync.download2.rest.StringIdToEntityConvertor
 import com.almworks.jira.provider3.sync.download2.rest.SupplyReference;
 import com.almworks.jira.provider3.sync.schema.ServerCustomField;
 import com.almworks.jira.provider3.sync.schema.ServerUser;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import org.almworks.util.Collections15;
 import org.almworks.util.TypedKey;
@@ -86,12 +86,12 @@ public class EnumKind {
     map.put("userIdNum", new ParticipantsParser());
     map.put("ghSprint", new GhSprintParser());
     map.put("subComponent", new EntityParser.Builder()
-      .map(JSONKey.textTrim("name"), ServerCustomField.ENUM_DISPLAY_NAME)
-      .map(JSONKey.textOrInteger("id"), ServerCustomField.ENUM_STRING_ID)
+      .map(JsonKey.textTrim("name"), ServerCustomField.ENUM_DISPLAY_NAME)
+      .map(JsonKey.textOrInteger("id"), ServerCustomField.ENUM_STRING_ID)
       .create(SupplyReference.supplyProject(ServerCustomField.PROJECT)));
     map.put("tempoAccount", new EntityParser.Builder()
-      .map(JSONKey.textTrim("name"), ServerCustomField.ENUM_DISPLAY_NAME)
-      .map(new JSONKey<>("id", JSONKey.TEXT_INTEGER), ServerCustomField.ENUM_STRING_ID)
+      .map(JsonKey.textTrim("name"), ServerCustomField.ENUM_DISPLAY_NAME)
+      .map(new JsonKey<>("id", JsonKey.TEXT_INTEGER), ServerCustomField.ENUM_STRING_ID)
       .create(null));
     JSON_PARSERS = map;
   }
@@ -122,7 +122,7 @@ public class EnumKind {
     @Override
     public boolean fillEntity(Object value, @NotNull Entity entity) {
       if (value == null) return false;
-      String idNum = JSONKey.TEXT_TRIM.convert(value);
+      String idNum = JsonKey.TEXT_TRIM.convert(value);
       if (idNum == null || idNum.isEmpty()) return false;
       Matcher m = ID_NUM.matcher(idNum);
       String userId;
@@ -180,7 +180,7 @@ public class EnumKind {
 
     @Override
     public boolean fillEntity(Object object, @NotNull Entity entity) {
-      String value = JSONKey.TEXT_TRIM.convert(object);
+      String value = JsonKey.TEXT_TRIM.convert(object);
       if (value == null || value.isEmpty()) return false;
       ParseGHSprint sprint = ParseGHSprint.perform(value);
       String name = sprint.getName();

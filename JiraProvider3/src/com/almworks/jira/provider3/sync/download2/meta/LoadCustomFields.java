@@ -18,7 +18,7 @@ import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import org.almworks.util.Collections15;
 import org.json.simple.JSONObject;
@@ -28,7 +28,7 @@ import java.util.List;
 
 class LoadCustomFields extends MetaOperation {
   private static final ArrayKey<JSONObject> JQL_FIELDS = ArrayKey.objectArray("visibleFieldNames");
-  private static final JSONKey<String> JQL_FIELD_CFID = JSONKey.text("cfid");
+  private static final JsonKey<String> JQL_FIELD_CFID = JsonKey.text("cfid");
   private static final ArrayKey<String> JQL_FIELD_OPERATORS = ArrayKey.textArray("operators");
   private static final String PATH_JQL = "api/3/jql/";
   private static final String PATH_FIELD = "api/3/field/";
@@ -56,7 +56,7 @@ class LoadCustomFields extends MetaOperation {
         LogHelper.warning("/jql/autocompletedata not available", response.getStatusCode());
         return;
       }
-      rawJSON = JSONKey.ROOT_OBJECT.getValue(response.getJSON());
+      rawJSON = JsonKey.ROOT_OBJECT.getValue(response.getJSON());
     } catch (ConnectorException e) {
       LogHelper.warning("Failed to load auto complete data", e);
       return;

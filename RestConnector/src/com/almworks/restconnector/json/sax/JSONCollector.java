@@ -1,6 +1,6 @@
 package com.almworks.restconnector.json.sax;
 
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.commons.Procedure;
 import org.almworks.util.Collections15;
@@ -52,7 +52,7 @@ public class JSONCollector implements LocationHandler {
     return new JSONCollector(new Procedure<Object>() {
       @Override
       public void invoke(Object arg) {
-        JSONObject object = JSONKey.ROOT_OBJECT.getValue(arg);
+        JSONObject object = JsonKey.ROOT_OBJECT.getValue(arg);
         if (object != null) consumer.invoke(object);
       }
     });
@@ -106,7 +106,7 @@ public class JSONCollector implements LocationHandler {
    * @see #getObject()
    */
   public Integer getInteger() {
-    return JSONKey.INTEGER.convert(myObject);
+    return JsonKey.INTEGER.convert(myObject);
   }
 
   /**

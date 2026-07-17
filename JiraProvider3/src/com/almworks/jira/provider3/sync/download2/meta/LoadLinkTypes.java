@@ -9,7 +9,7 @@ import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.JSONValueException;
 import com.almworks.util.LocalLog;
 import com.almworks.util.LogHelper;
@@ -25,10 +25,10 @@ import java.util.List;
 class LoadLinkTypes {
   private static final LocalLog log = LocalLog.topLevel("loadLinkTypes");
   private static final ArrayKey<JSONObject> ISSUE_LINK_TYPES = ArrayKey.objectArray("issueLinkTypes");
-  private static final JSONKey<Integer> ID = JSONKey.integer("id");
-  private static final JSONKey<String> NAME = JSONKey.text("name");
-  private static final JSONKey<String> INWARD = JSONKey.text("inward");
-  private static final JSONKey<String> OUTWARD = JSONKey.text("outward");
+  private static final JsonKey<Integer> ID = JsonKey.integer("id");
+  private static final JsonKey<String> NAME = JsonKey.text("name");
+  private static final JsonKey<String> INWARD = JsonKey.text("inward");
+  private static final JsonKey<String> OUTWARD = JsonKey.text("outward");
   private static final String PATH_ISSUELINKTYPE = "api/3/issueLinkType/";
 
   public static void perform(RestSession session, EntityTransaction transaction) {

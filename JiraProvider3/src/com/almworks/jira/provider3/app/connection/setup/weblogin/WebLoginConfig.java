@@ -1,6 +1,6 @@
 package com.almworks.jira.provider3.app.connection.setup.weblogin;
 
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.collections.MultiMap;
 import com.almworks.util.http.CookieStore;
 import com.almworks.util.http.WebCookieManager;
@@ -17,7 +17,7 @@ import java.util.Objects;
  * To modify configuration, first deserialize this object, then make modifications and serialize it back.
  */
 public class WebLoginConfig {
-  private static final JSONKey<JSONObject> COOKIES = JSONKey.object("cookies");
+  private static final JsonKey<JSONObject> COOKIES = JsonKey.object("cookies");
 
   private final CookieStore myCookies;
 
@@ -35,7 +35,7 @@ public class WebLoginConfig {
 
   @Nullable
   public static WebLoginConfig fromJson(String json) {
-    JSONObject root = JSONKey.ROOT_OBJECT.parseNoExceptions(json);
+    JSONObject root = JsonKey.ROOT_OBJECT.parseNoExceptions(json);
     if (root == null) return null;
     CookieStore cookieStore = CookieStore.fromJsonObject(COOKIES.getValue(root));
     if (cookieStore == null) return null;

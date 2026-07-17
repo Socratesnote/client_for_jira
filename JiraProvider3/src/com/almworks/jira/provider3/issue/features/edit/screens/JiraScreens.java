@@ -10,7 +10,7 @@ import com.almworks.jira.provider3.schema.Project;
 import com.almworks.jira.provider3.sync.ServerInfo;
 import com.almworks.jira.provider3.sync.schema.ServerJira;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.JSONValueException;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
@@ -27,19 +27,19 @@ class JiraScreens {
   private static final EntityKey<String> JIRA_FIELD_CONFIG = EntityKey.string("connection.field.config", null);
   private static final DBAttribute<String> FIELDS_CONFIG = ServerJira.toScalarAttribute(JIRA_FIELD_CONFIG);
 
-  private static final JSONKey<Integer> VERSION = JSONKey.integer("version");
+  private static final JsonKey<Integer> VERSION = JsonKey.integer("version");
   private static final ArrayKey<JSONObject> CONFIGS = ArrayKey.objectArray("configs");
   private static final ArrayKey<JSONObject> SCREENS = ArrayKey.objectArray("screens");
   private static final ArrayKey<JSONObject> TYPES = ArrayKey.objectArray("types");
   private static final ArrayKey<JSONObject> SCREEN_ITEMS = ArrayKey.objectArray("items");
   private static final ArrayKey<JSONObject> TABS = ArrayKey.objectArray("tabs");
   private static final ArrayKey<JSONObject> FIELDS = ArrayKey.objectArray("fields");
-  private static final JSONKey<Long> SCREEN_ID = JSONKey.longInt("screenId");
-  private static final JSONKey<Long> LID = JSONKey.longInt("id");
-  private static final JSONKey<String> SID = JSONKey.textNNTrim("id");
-  private static final JSONKey<Integer> POSITION = JSONKey.integer("position");
-  private static final JSONKey<String> NAME = JSONKey.textNNTrim("name");
-  private static final JSONKey<String> OPERATION = JSONKey.textNNTrim("opName");
+  private static final JsonKey<Long> SCREEN_ID = JsonKey.longInt("screenId");
+  private static final JsonKey<Long> LID = JsonKey.longInt("id");
+  private static final JsonKey<String> SID = JsonKey.textNNTrim("id");
+  private static final JsonKey<Integer> POSITION = JsonKey.integer("position");
+  private static final JsonKey<String> NAME = JsonKey.textNNTrim("name");
+  private static final JsonKey<String> OPERATION = JsonKey.textNNTrim("opName");
 
   private final ScreenScheme myJIRAScheme;
   private final Collection<ScreenScheme.ScreenInfo> myAllScreens;
@@ -150,7 +150,7 @@ class JiraScreens {
     if (json == null) return null;
     try {
       Object parsed = new JSONParser().parse(json);
-      return parse(JSONKey.ROOT_OBJECT.getNotNull(parsed));
+      return parse(JsonKey.ROOT_OBJECT.getNotNull(parsed));
     } catch (ParseException e) {
       LogHelper.error(e);
       return null;

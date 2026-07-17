@@ -11,7 +11,7 @@ import com.almworks.jira.provider3.sync.download2.rest.JRUser;
 import com.almworks.jira.provider3.sync.download2.rest.JsonEntityParser;
 import com.almworks.jira.provider3.sync.download2.rest.LoadedEntity;
 import com.almworks.jira.provider3.sync.schema.ServerUser;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.collections.Convertor;
 import org.almworks.util.Util;
@@ -76,8 +76,8 @@ public class JsonUserParser implements JsonEntityParser {
       return ServerUser.create(value, ServerUser.PARSER);
     }
   };
-  public static JSONKey<Entity> jsonKey(String key) {
-    return new JSONKey<>(key, CONVERTOR);
+  public static JsonKey<Entity> jsonKey(String key) {
+    return new JsonKey<>(key, CONVERTOR);
   }
 
   public static class LoadedUser implements LoadedEntity {

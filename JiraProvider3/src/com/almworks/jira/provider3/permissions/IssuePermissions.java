@@ -32,7 +32,7 @@ import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.sax.PeekEntryValue;
 import com.almworks.restconnector.json.sax.PeekObjectEntry;
 import com.almworks.util.LogHelper;
@@ -264,11 +264,11 @@ public class IssuePermissions {
     LogHelper.debug("Issue permissions and operations loaded", flags);
   }
 
-  private static final JSONKey<JSONObject> OPERATIONS = JSONKey.object("operations");
+  private static final JsonKey<JSONObject> OPERATIONS = JsonKey.object("operations");
   private static final ArrayKey<JSONObject> LINK_GROUPS = ArrayKey.objectArray("linkGroups");
   private static final ArrayKey<JSONObject> LINKS = ArrayKey.objectArray("links");
   private static final ArrayKey<JSONObject> GROUPS = ArrayKey.objectArray("groups");
-  private static final JSONKey<String> LINK_ID = JSONKey.text("id");
+  private static final JsonKey<String> LINK_ID = JsonKey.text("id");
 
   private Collection<String> loadIssueOperations(RestSession session, int issueId) {
     JSONObject operations;
@@ -381,7 +381,7 @@ public class IssuePermissions {
   }
 
   private static class ParsePermissions implements Procedure2<String, JSONObject> {
-    private static final JSONKey<Boolean> HAVE_PERMISSION  = JSONKey.bool("havePermission");
+    private static final JsonKey<Boolean> HAVE_PERMISSION  = JsonKey.bool("havePermission");
     private final HashSet<String> myPermissions = Collections15.hashSet();
     @Nullable
     private final StringBuilder myDebugInfo;

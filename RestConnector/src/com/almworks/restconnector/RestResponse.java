@@ -9,7 +9,7 @@ import com.almworks.api.connector.http.dump.ResponseDumper;
 import com.almworks.api.http.HttpResponseData;
 import com.almworks.api.http.HttpUtils;
 import com.almworks.jira.connector2.JiraException;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.sax.LocationHandler;
 import com.almworks.util.LogHelper;
 import com.almworks.util.commons.ProcedureE;
@@ -155,7 +155,7 @@ public class RestResponse {
   @NotNull
   public JSONObject getJSONObject() throws ConnectionException, ParseException {
     Object json = getJSON();
-    JSONObject object = JSONKey.ROOT_OBJECT.getValue(json);
+    JSONObject object = JsonKey.ROOT_OBJECT.getValue(json);
     if (object == null) {
       LogHelper.debug("Expected JSON object", json);
       LogHelper.error("Failed to parse JSON object", getDebugTarget());

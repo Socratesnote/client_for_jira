@@ -6,7 +6,7 @@ import com.almworks.api.http.HttpUtils;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
@@ -17,9 +17,9 @@ import java.util.TimeZone;
 public class LoadUserInfo {
   private static final String PATH_USER = "api/3/user/";
   private static final String PATH_MYSELF = "api/3/myself/";
-  private static final JSONKey<TimeZone> USER_TIME_ZONE = JSONKey.timeZoneID("timeZone");
-  private static final JSONKey<String> DISPLAY_NAME = JSONKey.text("displayName");
-  private static final JSONKey<String> ACCOUNT_ID = JSONKey.text("accountId");
+  private static final JsonKey<TimeZone> USER_TIME_ZONE = JsonKey.timeZoneID("timeZone");
+  private static final JsonKey<String> DISPLAY_NAME = JsonKey.text("displayName");
+  private static final JsonKey<String> ACCOUNT_ID = JsonKey.text("accountId");
 
   private final JSONObject myObject;
 
@@ -100,7 +100,7 @@ public class LoadUserInfo {
       return null;
     }
     try {
-      JSONObject userInfo = JSONKey.ROOT_OBJECT.getValue(response.getJSON());
+      JSONObject userInfo = JsonKey.ROOT_OBJECT.getValue(response.getJSON());
       return new LoadUserInfo(userInfo);
     } catch (ParseException e) {
       LogHelper.warning("Failed to load user timeZone");

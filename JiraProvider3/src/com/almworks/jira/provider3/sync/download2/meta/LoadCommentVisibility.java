@@ -1,23 +1,18 @@
 package com.almworks.jira.provider3.sync.download2.meta;
 
 import com.almworks.api.connector.ConnectorException;
-import com.almworks.api.constraint.CompositeConstraint;
 import com.almworks.api.constraint.Constraint;
 import com.almworks.api.constraint.FieldSubsetConstraint;
-import com.almworks.integers.IntIterator;
-import com.almworks.integers.IntList;
 import com.almworks.jira.connector2.JiraInternalException;
 import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.services.JiraPatterns;
-import com.almworks.jira.provider3.sync.download2.meta.core.LoadMetaContext;
 import com.almworks.jira.provider3.sync.download2.rest.JqlSearch;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.jql.JQLCompareConstraint;
 import com.almworks.restconnector.jql.JQLConstraint;
-import com.almworks.restconnector.jql.JqlQuery;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.xml.JDOMUtils;
 import org.almworks.util.Collections15;
@@ -28,13 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.almworks.jira.provider3.sync.download2.meta.LoadRestMeta.PROJECTS;
 
 class LoadCommentVisibility {
-  private static final JSONKey<Integer> ISSUE_ID = JSONKey.integer("id");
-  private static final JSONKey<String> ISSUE_KEY = JSONKey.text("key");
+  private static final JsonKey<Integer> ISSUE_ID = JsonKey.integer("id");
+  private static final JsonKey<String> ISSUE_KEY = JsonKey.text("key");
 
   private static Constraint buildProjectConstraint(List<Long> projectIds) {
     if (projectIds == null || projectIds.isEmpty()) {

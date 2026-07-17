@@ -1,6 +1,6 @@
 package com.almworks.jira.provider3.sync.download2.meta;
 
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.sax.*;
 import com.almworks.util.LogHelper;
 import com.almworks.util.commons.Procedure2;
@@ -20,8 +20,8 @@ abstract class CreateMetaFields {
             LogHelper.error("Expected field object", f);
             return;
           }
-          Integer prjId = JSONKey.INTEGER.convert(projectId.getObject());
-          Integer typeId = JSONKey.INTEGER.convert(issueTypeId.getObject());
+          Integer prjId = JsonKey.INTEGER.convert(projectId.getObject());
+          Integer typeId = JsonKey.INTEGER.convert(issueTypeId.getObject());
           if (prjId == null || typeId == null) {
             LogHelper.error("Missing data", prjId, typeId);
             return;

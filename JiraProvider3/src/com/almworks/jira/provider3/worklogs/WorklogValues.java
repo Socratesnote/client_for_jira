@@ -79,6 +79,8 @@ class WorklogValues extends SlaveValues {
   @SuppressWarnings("unchecked")
   public JSONObject createJson() {
     JSONObject result = new JSONObject();
+    //TODO: AddEditWorklog posts this to api/3, which expects "comment" as an ADF document - a plain string is
+    // rejected by Jira Cloud. Needs text-to-ADF conversion on upload (inverse of AdfText).
     result.put("comment", myComment);
     result.put("visibility", myVisibility != null ? myVisibility.createJson() : null);
     result.put("started", ScalarUploadType.DATE.toJsonValue(myStarted));

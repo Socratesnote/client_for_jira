@@ -4,18 +4,18 @@ import com.almworks.items.entities.api.Entity;
 import com.almworks.items.entities.api.EntityKey;
 import com.almworks.jira.provider3.sync.schema.ServerGroup;
 import com.almworks.jira.provider3.sync.schema.ServerProjectRole;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.collections.Convertor;
 import org.json.simple.JSONObject;
 
 public class JRVisibility {
-  public static final JSONKey<String> TYPE = JSONKey.text("type");
-  public static final JSONKey<String> VALUE = JSONKey.text("value");
+  public static final JsonKey<String> TYPE = JsonKey.text("type");
+  public static final JsonKey<String> VALUE = JsonKey.text("value");
   public static final Convertor<Object, Entity> JSON_CONVERTOR = new Convertor<Object, Entity>() {
     @Override
     public Entity convert(Object json) {
-      JSONObject object = JSONKey.ROOT_OBJECT.getValue(json);
+      JSONObject object = JsonKey.ROOT_OBJECT.getValue(json);
       if (object == null) return null;
       String strType = TYPE.getValue(object);
       String value = VALUE.getValue(object);
@@ -41,7 +41,7 @@ public class JRVisibility {
     }
   };
 
-  public static JSONKey<Entity> jsonKey(String key) {
-    return new JSONKey<Entity>(key, JSON_CONVERTOR);
+  public static JsonKey<Entity> jsonKey(String key) {
+    return new JsonKey<Entity>(key, JSON_CONVERTOR);
   }
 }

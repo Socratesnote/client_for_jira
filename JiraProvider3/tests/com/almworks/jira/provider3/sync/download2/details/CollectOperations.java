@@ -1,6 +1,6 @@
 package com.almworks.jira.provider3.sync.download2.details;
 
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.sax.JSONCollector;
 import com.almworks.restconnector.json.sax.LocationHandler;
 import com.almworks.restconnector.json.sax.PeekObjectEntry;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.HashSet;
 
 public class CollectOperations {
-  private static final JSONKey<String> ID = JSONKey.text("id");
+  private static final JsonKey<String> ID = JsonKey.text("id");
 
   private final LocationHandler myIssueHandler = PeekObjectEntry.objectEntry("operations", PeekObjectEntry.objectEntry("linkGroups", new LocationHandler() {
     @Override

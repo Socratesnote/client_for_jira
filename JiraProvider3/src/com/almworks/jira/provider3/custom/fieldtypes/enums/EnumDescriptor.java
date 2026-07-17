@@ -10,7 +10,7 @@ import com.almworks.jira.provider3.sync.download2.meta.CommonEnumOptions;
 import com.almworks.jira.provider3.sync.download2.rest.EntityParser;
 import com.almworks.jira.provider3.sync.download2.rest.JsonEntityParser;
 import com.almworks.jira.provider3.sync.schema.ServerCustomField;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import org.almworks.util.Collections15;
 import org.almworks.util.TypedKey;
 import org.almworks.util.Util;
@@ -92,8 +92,8 @@ public class EnumDescriptor {
     myCreator = creator;
   }
 
-  private static final JSONKey<String> ENUM_VALUE = JSONKey.textTrim("value");
-  private static final JSONKey<String> ENUM_ID = JSONKey.textTrim("id");
+  private static final JsonKey<String> ENUM_VALUE = JsonKey.textTrim("value");
+  private static final JsonKey<String> ENUM_ID = JsonKey.textTrim("id");
   private static final EntityParser DEFAULT_ENTITY_PARSER = new EntityParser.Builder()
     .map(ENUM_VALUE, ServerCustomField.ENUM_DISPLAY_NAME)
     .map(ENUM_ID, ServerCustomField.ENUM_STRING_ID)

@@ -4,7 +4,7 @@ import com.almworks.items.entities.api.Entity;
 import com.almworks.items.entities.api.EntityKey;
 import com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark;
 import com.almworks.jira.provider3.sync.download2.details.fields.ValueSupplement;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Trio;
 import com.almworks.util.collections.Convertor;
@@ -37,9 +37,9 @@ public interface EntityParser {
   ValueSupplement<Entity> getSupplement();
 
   class Builder {
-    private final Map<JSONKey, EntityKey> myMapping = Collections15.hashMap();
-    private final Map<JSONKey<JSONObject>, Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> myEntityMapping = Collections15.hashMap();
-    private final Set<JSONKey<JSONObject>> mySetNull = Collections15.hashSet();
+    private final Map<JsonKey, EntityKey> myMapping = Collections15.hashMap();
+    private final Map<JsonKey<JSONObject>, Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> myEntityMapping = Collections15.hashMap();
+    private final Set<JsonKey<JSONObject>> mySetNull = Collections15.hashSet();
     private final List<Procedure<Entity>> myConstSetters = Collections15.arrayList();
 
     public Builder() {
@@ -50,10 +50,10 @@ public interface EntityParser {
     }
 
     private Impl priCreate(@Nullable ValueSupplement<Entity> supplement) {
-      JSONKey[] scalarJson = new JSONKey[myMapping.size()];
+      JsonKey[] scalarJson = new JsonKey[myMapping.size()];
       EntityKey[] scalarEntity = new EntityKey[myMapping.size()];
       ArrayUtil.mapToArrays(myMapping, scalarJson, scalarEntity);
-      List<JSONKey<JSONObject>> entityJson = Collections15.arrayList(myEntityMapping.keySet());
+      List<JsonKey<JSONObject>> entityJson = Collections15.arrayList(myEntityMapping.keySet());
       ArrayList<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> entityExtractor = Collections15.arrayList(myEntityMapping.values());
       return new Impl(scalarJson, scalarEntity, entityJson, entityExtractor, supplement, myConstSetters);
     }
@@ -69,7 +69,7 @@ public interface EntityParser {
       };
     }
 
-    public <T> Builder map(JSONKey<T> jsonKey, EntityKey<T> entityKey) {
+    public <T> Builder map(JsonKey<T> jsonKey, EntityKey<T> entityKey) {
       myMapping.put(jsonKey, entityKey);
       return this;
     }
@@ -81,7 +81,7 @@ public interface EntityParser {
      * @param convertor converts JSON object to entity value
      * @param setNull if true sets null value. If false ignores null value - assume no value
      */
-    public Builder mapEntity(JSONKey<JSONObject> jsonKey, EntityKey<Entity> targetKey, Convertor<Object, Entity> convertor, boolean setNull) {
+    public Builder mapEntity(JsonKey<JSONObject> jsonKey, EntityKey<Entity> targetKey, Convertor<Object, Entity> convertor, boolean setNull) {
       myEntityMapping.put(jsonKey, Trio.create(targetKey, convertor, setNull));
       if (setNull) mySetNull.add(jsonKey);
       return this;
@@ -90,7 +90,7 @@ public interface EntityParser {
     /**
      * Defines constant value for a key. It can be used to:<br>
      * 1. provide constants (such as DownloadStage)
-     * 2. predefined value - if the defined value is set if not overridden by {@link #map(com.almworks.restconnector.json.JSONKey, com.almworks.items.entities.api.EntityKey) mapping}
+     * 2. predefined value - if the defined value is set if not overridden by {@link #map(JsonKey, com.almworks.items.entities.api.EntityKey) mapping}
      */
     public <T> Builder set(final EntityKey<T> key, @Nullable final T value) {
       return addConst(new Procedure<Entity>() {
@@ -135,15 +135,15 @@ public interface EntityParser {
   }
 
   class Impl implements EntityParser {
-    private final JSONKey[] myScalarJson;
+    private final JsonKey[] myScalarJson;
     private final EntityKey[] myScalarEntity;
-    private final List<JSONKey<JSONObject>> myEntityJson;
+    private final List<JsonKey<JSONObject>> myEntityJson;
     private final List<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> myEntityExtractors;
     @Nullable private final ValueSupplement<Entity> mySupplement;
     private final List<Procedure<Entity>> myConstSetters;
 
-    public Impl(JSONKey[] scalarJson, EntityKey[] scalarEntity, List<JSONKey<JSONObject>> entityJson, List<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> entityExtractors,
-      @Nullable ValueSupplement<Entity> supplement, List<Procedure<Entity>> constSetters) {
+    public Impl(JsonKey[] scalarJson, EntityKey[] scalarEntity, List<JsonKey<JSONObject>> entityJson, List<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> entityExtractors,
+                @Nullable ValueSupplement<Entity> supplement, List<Procedure<Entity>> constSetters) {
       myScalarJson = scalarJson;
       myScalarEntity = scalarEntity;
       myEntityJson = entityJson;
@@ -166,28 +166,28 @@ public interface EntityParser {
     }
 
     private boolean fillNoFix(Object value, Entity entity) {
-      JSONObject object = JSONKey.ROOT_OBJECT.getValue(value);
+      JSONObject object = JsonKey.ROOT_OBJECT.getValue(value);
       if (object == null) return false;
       for (Procedure<Entity> setter : myConstSetters) setter.invoke(entity);
       for (int j = 0; j < myScalarJson.length; j++) {
-        JSONKey jsonKey = myScalarJson[j];
+        JsonKey jsonKey = myScalarJson[j];
         //noinspection unchecked
         copyScalar(jsonKey, object, myScalarEntity[j], entity);
       }
       for (int i = 0; i < myEntityJson.size(); i++) {
-        JSONKey<JSONObject> jsonKey = myEntityJson.get(i);
+        JsonKey<JSONObject> jsonKey = myEntityJson.get(i);
         Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean> extractor = myEntityExtractors.get(i);
         extractEntity(jsonKey, object, extractor, entity);
       }
       return true;
     }
 
-    private static void extractEntity(JSONKey<JSONObject> jsonKey, JSONObject object, Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean> extractor, Entity target) {
+    private static void extractEntity(JsonKey<JSONObject> jsonKey, JSONObject object, Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean> extractor, Entity target) {
       extractEntity(jsonKey, object, target, extractor.getFirst(), extractor.getSecond(), extractor.getThird());
     }
 
-    public static void extractEntity(JSONKey<JSONObject> jsonKey, JSONObject object, Entity target, EntityKey<Entity> entityKey, Convertor<Object, Entity> convertor,
-      boolean setNull)
+    public static void extractEntity(JsonKey<JSONObject> jsonKey, JSONObject object, Entity target, EntityKey<Entity> entityKey, Convertor<Object, Entity> convertor,
+                                     boolean setNull)
     {
       JSONObject subObject = jsonKey.getValue(object);
       if (subObject == null) {
@@ -199,7 +199,7 @@ public interface EntityParser {
       }
     }
 
-    private static <T> void copyScalar(JSONKey<T> jsonKey, JSONObject object, EntityKey<T> entityKey, Entity entity) {
+    private static <T> void copyScalar(JsonKey<T> jsonKey, JSONObject object, EntityKey<T> entityKey, Entity entity) {
       T value = jsonKey.getValue(object);
       if (value == null && !jsonKey.hasValue(object)) return;
       entity.put(entityKey, value);

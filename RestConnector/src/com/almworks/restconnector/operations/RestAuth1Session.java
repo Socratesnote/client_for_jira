@@ -3,14 +3,14 @@ package com.almworks.restconnector.operations;
 import com.almworks.api.connector.ConnectorException;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestSession;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LocalLog;
 import com.almworks.util.LogHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RestAuth1Session {
-  public static final JSONKey<String> USER_ACCOUNT_ID = JSONKey.textLower("accountId");
+  public static final JsonKey<String> USER_ACCOUNT_ID = JsonKey.textLower("accountId");
   private static final LocalLog log = LocalLog.topLevel("rest.1.auth");
 
   /** No response was received */

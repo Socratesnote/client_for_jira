@@ -2,25 +2,25 @@ package com.almworks.jira.provider3.sync.download2.rest;
 
 import com.almworks.jira.provider3.sync.schema.ServerProject;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.json.SelfIdExtractor;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
 public class JRProject {
   // Available in brief
-  public static final JSONKey<String> NAME = JSONKey.text("name");
-  public static final JSONKey<String> KEY = JSONKey.text("key");
-  public static final JSONKey<Integer> ID = JSONKey.integer("id");
-  public static final JSONKey<String> ICON = JRAvatar.EXT_URL_16;
+  public static final JsonKey<String> NAME = JsonKey.text("name");
+  public static final JsonKey<String> KEY = JsonKey.text("key");
+  public static final JsonKey<Integer> ID = JsonKey.integer("id");
+  public static final JsonKey<String> ICON = JRAvatar.EXT_URL_16;
 
   // Available in full only
-  public static final JSONKey<String> DESCRIPTION = JSONKey.text("description");
-  public static final JSONKey<String> ASSIGNEE_TYPE = JSONKey.text("assigneeType");
+  public static final JsonKey<String> DESCRIPTION = JsonKey.text("description");
+  public static final JsonKey<String> ASSIGNEE_TYPE = JsonKey.text("assigneeType");
   /**
    * @see JRUser
    */
-  public static final JSONKey<JSONObject> LEAD = JSONKey.object("lead");
+  public static final JsonKey<JSONObject> LEAD = JsonKey.object("lead");
   /**
    * @see JRComponent
    */
@@ -36,7 +36,7 @@ public class JRProject {
   /**
    * Map "Role name" -&gt; "Role url" (format [server]/rest/PATH_PROJECT/[prjKey]/role/[roleId])
    */
-  public static final JSONKey<JSONObject> ROLES = JSONKey.object("roles");
+  public static final JsonKey<JSONObject> ROLES = JsonKey.object("roles");
   /**
    * Convertor to convert project role url to role ID
    * @see #ROLES

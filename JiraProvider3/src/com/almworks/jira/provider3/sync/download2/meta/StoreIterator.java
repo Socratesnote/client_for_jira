@@ -5,7 +5,7 @@ import com.almworks.items.entities.api.EntityKey;
 import com.almworks.items.entities.api.collector.transaction.EntityBag2;
 import com.almworks.items.entities.api.collector.transaction.EntityHolder;
 import com.almworks.items.entities.api.collector.transaction.EntityTransaction;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
 import org.jetbrains.annotations.Nullable;
@@ -18,13 +18,13 @@ class StoreIterator {
   private final Iterator<JSONObject> mySourceIt;
   protected final Entity myType;
   protected final EntityKey<Integer> myIdKey;
-  private final JSONKey<Integer> myIdAccessor;
+  private final JsonKey<Integer> myIdAccessor;
   private int myLastId = -1;
   private int myIndex = 0;
   @Nullable
   private EntityBag2 myBag = null;
 
-  public StoreIterator(EntityTransaction transaction, Entity type, EntityKey<Integer> idKey, JSONKey<Integer> idAccessor, Iterable<JSONObject> sourceIt) {
+  public StoreIterator(EntityTransaction transaction, Entity type, EntityKey<Integer> idKey, JsonKey<Integer> idAccessor, Iterable<JSONObject> sourceIt) {
     myType = type;
     myIdKey = idKey;
     myIdAccessor = idAccessor;

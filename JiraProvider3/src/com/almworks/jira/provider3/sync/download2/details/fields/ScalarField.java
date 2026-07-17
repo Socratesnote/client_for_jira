@@ -3,7 +3,7 @@ package com.almworks.jira.provider3.sync.download2.details.fields;
 import com.almworks.items.entities.api.Entity;
 import com.almworks.items.entities.api.EntityKey;
 import com.almworks.jira.provider3.sync.download2.details.JsonIssueField;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.collections.Convertor;
 import org.almworks.util.Collections15;
@@ -45,19 +45,19 @@ public class ScalarField<T> implements JsonIssueField {
 
   public static JsonIssueField text(EntityKey<String> key) {
     // http://snow:10500/browse/JC-123
-    return independent(key, JSONKey.emptyTextToNull(JSONKey.TEXT_TRIM));
+    return independent(key, JsonKey.emptyTextToNull(JsonKey.TEXT_TRIM));
   }
 
   public static ScalarField<Integer> integer(EntityKey<Integer> key) {
-    return independent(key, JSONKey.INTEGER);
+    return independent(key, JsonKey.INTEGER);
   }
 
   public static JsonIssueField bool(EntityKey<Boolean> key) {
-    return independent(key, JSONKey.BOOLEAN);
+    return independent(key, JsonKey.BOOLEAN);
   }
 
   public static JsonIssueField boolNullFalse(EntityKey<Boolean> key) {
-    return independent(key, JSONKey.FALSE_TO_NULL);
+    return independent(key, JsonKey.FALSE_TO_NULL);
   }
 
   public static ScalarField<Entity> entity(EntityKey<Entity> key, Convertor<Object, Entity> convertor) {
@@ -73,7 +73,7 @@ public class ScalarField<T> implements JsonIssueField {
   }
 
   public static JsonIssueField date(EntityKey<Date> key) {
-    return independent(key, JSONKey.DATE);
+    return independent(key, JsonKey.DATE);
   }
 
   private static class Collect<T> extends Convertor<Object, Collection<T>> {

@@ -15,13 +15,13 @@ public class SelfIdExtractor extends Convertor<Object, Integer> {
 
   @Override
   public Integer convert(Object value) {
-    String string = JSONKey.TEXT.convert(value);
+    String string = JsonKey.TEXT.convert(value);
     if (string == null) return null;
     Matcher m = myPattern.matcher(string);
     if (!m.find()) {
       LogHelper.error("Failed to extract ID", string);
       return null;
     }
-    return JSONKey.INTEGER.convert(m.group(1));
+    return JsonKey.INTEGER.convert(m.group(1));
   }
 }

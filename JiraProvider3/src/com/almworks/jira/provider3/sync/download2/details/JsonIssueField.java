@@ -3,7 +3,7 @@ package com.almworks.jira.provider3.sync.download2.details;
 import com.almworks.items.entities.api.EntityKey;
 import com.almworks.items.entities.api.collector.transaction.EntityHolder;
 import com.almworks.jira.provider3.sync.download2.details.fields.SimpleKeyValue;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.collections.Convertor;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,11 +64,11 @@ public interface JsonIssueField {
      * Ignores false values (as if they were not provided by Jira)
      */
     public static JsonIssueField boolTrueOnly(EntityKey<Boolean> key) {
-      return new FilteredValue<>(JSONKey.FALSE_TO_NULL, Boolean.TRUE::equals, key);
+      return new FilteredValue<>(JsonKey.FALSE_TO_NULL, Boolean.TRUE::equals, key);
     }
 
     public static JsonIssueField integerPositive(EntityKey<Integer> key) {
-      return new FilteredValue<>(JSONKey.INTEGER, integer -> integer != null && integer > 0, key);
+      return new FilteredValue<>(JsonKey.INTEGER, integer -> integer != null && integer > 0, key);
     }
 
     @Nullable

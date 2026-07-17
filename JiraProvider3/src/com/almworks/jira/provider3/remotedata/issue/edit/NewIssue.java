@@ -96,6 +96,9 @@ class NewIssue extends CreateIssueUnit {
     submit.put("fields", fields);
     request.addUpdate(submit);
     try {
+      //TODO: Migrate to api/3/issue. In v3 rich-text fields in the request (description, environment, textarea
+      // custom fields) must be sent as ADF documents ({"type":"doc","version":1,"content":[...]}), not plain
+      // strings - requires a plain-text-to-ADF builder (inverse of AdfText).
       response = session.restPostJson("api/2/issue", submit, RequestPolicy.NEEDS_LOGIN);
     } catch (ConnectorException e) {
       exception = e;

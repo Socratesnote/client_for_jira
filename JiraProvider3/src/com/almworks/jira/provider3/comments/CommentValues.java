@@ -92,6 +92,8 @@ class CommentValues extends SlaveValues {
   @SuppressWarnings("unchecked")
   public JSONObject createJson() {
     JSONObject object = new JSONObject();
+    //TODO: AddEditComment posts this to api/3, which expects "body" as an ADF document - a plain string is
+    // rejected by Jira Cloud. Needs text-to-ADF conversion on upload (inverse of AdfText).
     object.put("body", myText);
     object.put("visibility", myVisibility != null ? myVisibility.createJson() : null);
     return object;

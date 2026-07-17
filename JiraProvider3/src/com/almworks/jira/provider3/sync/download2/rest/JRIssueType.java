@@ -1,14 +1,14 @@
 package com.almworks.jira.provider3.sync.download2.rest;
 
 import com.almworks.jira.provider3.sync.schema.ServerIssueType;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 
 public class JRIssueType {
-  public static final JSONKey<Integer> ID = JSONKey.integer("id");
-  public static final JSONKey<String> NAME = JSONKey.text("name");
-  public static final JSONKey<String> DESCRIPTION = JSONKey.text("description");
-  public static final JSONKey<String> ICON = JSONKey.text("iconUrl");
-  public static final JSONKey<Boolean> SUBTASK = JSONKey.bool("subtask");
+  public static final JsonKey<Integer> ID = JsonKey.integer("id");
+  public static final JsonKey<String> NAME = JsonKey.text("name");
+  public static final JsonKey<String> DESCRIPTION = JsonKey.text("description");
+  public static final JsonKey<String> ICON = JsonKey.text("iconUrl");
+  public static final JsonKey<Boolean> SUBTASK = JsonKey.bool("subtask");
 
   public static final EntityParser PARSER =
     new EntityParser.Builder()

@@ -1,7 +1,7 @@
 package com.almworks.jira.provider3.sync.download2.rest;
 
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import org.json.simple.JSONObject;
 
 public class JRField {
@@ -11,29 +11,29 @@ public class JRField {
    * /issue/KEY/editmeta - in root object
    *
    */
-  public static final JSONKey<JSONObject> FIELDS  =JSONKey.object("fields");
+  public static final JsonKey<JSONObject> FIELDS  = JsonKey.object("fields");
   /**
    * /field
    */
-  public static final JSONKey<String> ID = JSONKey.text("id");
+  public static final JsonKey<String> ID = JsonKey.text("id");
   /**
    * /field, /issue/createmeta, /issue/editmeta|fields|_fieldName_
    */
-  public static final JSONKey<String> NAME = JSONKey.text("name");
+  public static final JsonKey<String> NAME = JsonKey.text("name");
   /**
    * /field
    * @deprecated avoid usage of this flag since labels if JIRA system field, but it is "custom" from JC point of view
    */
   @SuppressWarnings("UnusedDeclaration") @Deprecated
-  public static final JSONKey<Boolean> CUSTOM = JSONKey.bool("custom");
-  public static final JSONKey<JSONObject> SCHEMA = JSONKey.object("schema");
-  public static final JSONKey<String> SCHEMA_CUSTOM = JSONKey.text("custom");
+  public static final JsonKey<Boolean> CUSTOM = JsonKey.bool("custom");
+  public static final JsonKey<JSONObject> SCHEMA = JsonKey.object("schema");
+  public static final JsonKey<String> SCHEMA_CUSTOM = JsonKey.text("custom");
   /**
    * @deprecated use String field id instead. Labels has no integer id, however JC treats labels as custom field.
    */
   @SuppressWarnings("UnusedDeclaration") @Deprecated
-  private static final JSONKey<Integer> SCHEMA_CUSTOM_ID = JSONKey.integer("customId");
-  public static final JSONKey<String> SCHEMA_SYSTEM = JSONKey.text("system");
+  private static final JsonKey<Integer> SCHEMA_CUSTOM_ID = JsonKey.integer("customId");
+  public static final JsonKey<String> SCHEMA_SYSTEM = JsonKey.text("system");
   /**
    * /issue/createmeta
    */
@@ -42,7 +42,7 @@ public class JRField {
   /**
    * /issue/editmeta|fields|_fieldName_
    */
-  public static final JSONKey<Boolean> REQUIRED = JSONKey.bool("required");
+  public static final JsonKey<Boolean> REQUIRED = JsonKey.bool("required");
   /**
    * /issue/editmeta|fields|_fieldName_
    */

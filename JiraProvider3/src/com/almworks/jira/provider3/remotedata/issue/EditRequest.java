@@ -10,7 +10,7 @@ import com.almworks.jira.provider3.services.upload.UploadProblem;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.restconnector.operations.RestServerInfo;
 import com.almworks.util.LogHelper;
 import com.almworks.util.i18n.text.LocalizedAccessor;
@@ -117,7 +117,7 @@ public class EditRequest extends EditIssueRequest {
   }
 
   private static final ArrayKey<String> ERROR_MESSAGES = ArrayKey.textArray("errorMessages");
-  private static final JSONKey<JSONObject> ERRORS = JSONKey.object("errors");
+  private static final JsonKey<JSONObject> ERRORS = JsonKey.object("errors");
   public boolean processResponse(CreateIssueUnit create, @Nullable RestResponse response, @Nullable ConnectorException failure, String displayableOperation) {
     boolean success = failure == null && response != null && response.isSuccessful();
     if (failure != null) myProblems.add(UploadProblem.exception(failure));
@@ -125,7 +125,7 @@ public class EditRequest extends EditIssueRequest {
     if (!success && response != null) {
       int statusCode = response.getStatusCode();
       try {
-        JSONObject message = JSONKey.ROOT_OBJECT.getValue(response.getJSON());
+        JSONObject message = JsonKey.ROOT_OBJECT.getValue(response.getJSON());
         if (message != null) {
           ArrayList<String> errors = Collections15.arrayList();
           errors.addAll(ERROR_MESSAGES.list(message));

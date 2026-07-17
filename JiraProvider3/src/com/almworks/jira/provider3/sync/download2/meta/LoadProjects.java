@@ -14,7 +14,7 @@ import com.almworks.jira.provider3.sync.download2.process.util.ProgressInfo;
 import com.almworks.jira.provider3.sync.download2.rest.*;
 import com.almworks.jira.provider3.sync.schema.*;
 import com.almworks.restconnector.RestSession;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
 import com.almworks.util.Trio;
@@ -263,7 +263,7 @@ class LoadProjects {
     private final EntityKey<Entity> myProjectKey;
     private final EntityHolder myProject;
 
-    private SubProjectIterator(Entity type, EntityKey<Entity> projectKey, EntityHolder project, EntityKey<Integer> idKey, JSONKey<Integer> idAccessor,
+    private SubProjectIterator(Entity type, EntityKey<Entity> projectKey, EntityHolder project, EntityKey<Integer> idKey, JsonKey<Integer> idAccessor,
       Iterable<JSONObject> source)
     {
       super(project.getTransaction(), type, idKey, idAccessor, source);

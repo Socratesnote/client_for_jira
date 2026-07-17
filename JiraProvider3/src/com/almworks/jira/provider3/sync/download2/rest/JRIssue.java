@@ -3,7 +3,7 @@ package com.almworks.jira.provider3.sync.download2.rest;
 import com.almworks.items.entities.api.Entity;
 import com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark;
 import com.almworks.jira.provider3.sync.schema.ServerIssue;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.collections.Convertor;
 import org.json.simple.JSONObject;
 
@@ -13,25 +13,25 @@ import java.util.Date;
  * Applicable to issue obtained from /search
  */
 public class JRIssue {
-  public static final JSONKey<Integer> ID = JSONKey.integer("id");
-  public static final JSONKey<String> KEY = JSONKey.text("key");
+  public static final JsonKey<Integer> ID = JsonKey.integer("id");
+  public static final JsonKey<String> KEY = JsonKey.text("key");
 
-  public static final JSONKey<JSONObject> FIELDS = JSONKey.object("fields");
-  private static final JSONKey<Date> F_UPDATED = JSONKey.dateTime("updated");
-  private static final JSONKey<Date> F_CREATED = JSONKey.dateTime("created");
-  private static final JSONKey<String> F_SUMMARY = JSONKey.textNNTrim("summary");
-  private static final JSONKey<JSONObject> F_ISSUE_TYPE = JSONKey.object("issuetype");
-  private static final JSONKey<JSONObject> F_PROJECT = JSONKey.object("project");
-  private static final JSONKey<JSONObject> F_PARENT = JSONKey.object("parent");
-  private static final JSONKey<JSONObject> F_STATUS = JSONKey.object("status");
+  public static final JsonKey<JSONObject> FIELDS = JsonKey.object("fields");
+  private static final JsonKey<Date> F_UPDATED = JsonKey.dateTime("updated");
+  private static final JsonKey<Date> F_CREATED = JsonKey.dateTime("created");
+  private static final JsonKey<String> F_SUMMARY = JsonKey.textNNTrim("summary");
+  private static final JsonKey<JSONObject> F_ISSUE_TYPE = JsonKey.object("issuetype");
+  private static final JsonKey<JSONObject> F_PROJECT = JsonKey.object("project");
+  private static final JsonKey<JSONObject> F_PARENT = JsonKey.object("parent");
+  private static final JsonKey<JSONObject> F_STATUS = JsonKey.object("status");
 
-  public static final JSONKey<Date> UPDATED = JSONKey.composition(FIELDS, F_UPDATED);
-  public static final JSONKey<Date> CREATED = JSONKey.composition(FIELDS, F_CREATED);
-  public static final JSONKey<String> SUMMARY = JSONKey.composition(FIELDS, F_SUMMARY);
-  public static final JSONKey<JSONObject> ISSUE_TYPE = JSONKey.composition(FIELDS, F_ISSUE_TYPE);
-  public static final JSONKey<JSONObject> PROJECT = JSONKey.composition(FIELDS, F_PROJECT);
-  public static final JSONKey<JSONObject> PARENT = JSONKey.composition(FIELDS, F_PARENT);
-  public static final JSONKey<JSONObject> STATUS = JSONKey.composition(FIELDS, F_STATUS);
+  public static final JsonKey<Date> UPDATED = JsonKey.composition(FIELDS, F_UPDATED);
+  public static final JsonKey<Date> CREATED = JsonKey.composition(FIELDS, F_CREATED);
+  public static final JsonKey<String> SUMMARY = JsonKey.composition(FIELDS, F_SUMMARY);
+  public static final JsonKey<JSONObject> ISSUE_TYPE = JsonKey.composition(FIELDS, F_ISSUE_TYPE);
+  public static final JsonKey<JSONObject> PROJECT = JsonKey.composition(FIELDS, F_PROJECT);
+  public static final JsonKey<JSONObject> PARENT = JsonKey.composition(FIELDS, F_PARENT);
+  public static final JsonKey<JSONObject> STATUS = JsonKey.composition(FIELDS, F_STATUS);
   public static final EntityParser PARSER = new EntityParser.Builder()
     .map(ID, ServerIssue.ID)
     .map(KEY, ServerIssue.KEY)

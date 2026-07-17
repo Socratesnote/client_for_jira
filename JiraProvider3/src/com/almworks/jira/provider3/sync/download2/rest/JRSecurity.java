@@ -1,12 +1,12 @@
 package com.almworks.jira.provider3.sync.download2.rest;
 
 import com.almworks.jira.provider3.sync.schema.ServerSecurity;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 
 public class JRSecurity {
-  public static final JSONKey<Integer> ID = JSONKey.integer("id");
-  public static final JSONKey<String> NAME = JSONKey.text("name");
-  public static final JSONKey<String> DESCRIPTION = JSONKey.text("description");
+  public static final JsonKey<Integer> ID = JsonKey.integer("id");
+  public static final JsonKey<String> NAME = JsonKey.text("name");
+  public static final JsonKey<String> DESCRIPTION = JsonKey.text("description");
 
   public static final EntityParser PARSER =
     new EntityParser.Builder()

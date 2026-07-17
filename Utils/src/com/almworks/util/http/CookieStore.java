@@ -1,7 +1,7 @@
 package com.almworks.util.http;
 
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
+import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
@@ -16,11 +16,11 @@ import java.util.*;
 
 public class CookieStore {
   private static final ArrayKey<JSONObject> COOKIE_LIST = ArrayKey.objectArray("cookies");
-  private static final JSONKey<String> DOMAIN = JSONKey.text("domain");
-  private static final JSONKey<String> NAME = JSONKey.text("name");
-  private static final JSONKey<String> VALUE = JSONKey.text("value");
-  private static final JSONKey<String> PATH = JSONKey.text("path");
-  private static final JSONKey<Boolean> SECURE = JSONKey.bool("secure");
+  private static final JsonKey<String> DOMAIN = JsonKey.text("domain");
+  private static final JsonKey<String> NAME = JsonKey.text("name");
+  private static final JsonKey<String> VALUE = JsonKey.text("value");
+  private static final JsonKey<String> PATH = JsonKey.text("path");
+  private static final JsonKey<Boolean> SECURE = JsonKey.bool("secure");
 
   private final HttpState myCookies = new HttpState();
 

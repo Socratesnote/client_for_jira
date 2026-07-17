@@ -20,7 +20,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JSONKey<T> {
+public class JsonKey<T> {
   public static final Convertor<Object, String> TEXT = CastConvertor.create(String.class);
   public static final Convertor<Object, Boolean> BOOLEAN = CastConvertor.create(Boolean.class);
   public static final Convertor<Object, JSONObject> OBJECT = CastConvertor.create(JSONObject.class);
@@ -228,7 +228,7 @@ public class JSONKey<T> {
   private final String myName;
   private final Convertor<Object, T> myConvertor;
 
-  public JSONKey(String name, Convertor<Object, T> convertor) {
+  public JsonKey(String name, Convertor<Object, T> convertor) {
     LogHelper.assertError(convertor != null, name);
     myName = Util.NN(name);
     myConvertor = convertor;
@@ -274,61 +274,61 @@ public class JSONKey<T> {
     return "JSONKey[" + myName + "]";
   }
 
-  public static JSONKey<String> text(String name) {
-    return new JSONKey<String>(name, TEXT);
+  public static JsonKey<String> text(String name) {
+    return new JsonKey<String>(name, TEXT);
   }
 
-  public static JSONKey<String> textNNTrim(String name) {
-    return new JSONKey<String>(name, TEXT_NN_TRIM);
+  public static JsonKey<String> textNNTrim(String name) {
+    return new JsonKey<String>(name, TEXT_NN_TRIM);
   }
 
-  public static JSONKey<String> textTrimLines(String name) {
+  public static JsonKey<String> textTrimLines(String name) {
     // http://snow:10500/browse/JC-123
-    return new JSONKey<String>(name, emptyTextToNull(TEXT_TRIM_LINES));
+    return new JsonKey<String>(name, emptyTextToNull(TEXT_TRIM_LINES));
   }
 
-  public static JSONKey<String> textTrim(String name) {
-    return new JSONKey<String>(name, TEXT_TRIM);
+  public static JsonKey<String> textTrim(String name) {
+    return new JsonKey<String>(name, TEXT_TRIM);
   }
 
-  public static JSONKey<String> textLower(String name) {
-    return new JSONKey<String>(name, TEXT_LOWER);
+  public static JsonKey<String> textLower(String name) {
+    return new JsonKey<String>(name, TEXT_LOWER);
   }
 
-  public static JSONKey<String> textOrInteger(String name) {
-    return new JSONKey<String>(name, TEXT_OR_INTEGER);
+  public static JsonKey<String> textOrInteger(String name) {
+    return new JsonKey<String>(name, TEXT_OR_INTEGER);
   }
 
-  public static JSONKey<Boolean> bool(String name) {
-    return new JSONKey<Boolean>(name, BOOLEAN);
+  public static JsonKey<Boolean> bool(String name) {
+    return new JsonKey<Boolean>(name, BOOLEAN);
   }
 
-  public static JSONKey<JSONObject> object(String name) {
-    return new JSONKey<>(name, OBJECT);
+  public static JsonKey<JSONObject> object(String name) {
+    return new JsonKey<>(name, OBJECT);
   }
 
-  public static JSONKey<Integer> integer(String name) {
-    return new JSONKey<Integer>(name, INTEGER);
+  public static JsonKey<Integer> integer(String name) {
+    return new JsonKey<Integer>(name, INTEGER);
   }
 
-  public static JSONKey<Long> longInt(String name) {
-    return new JSONKey<Long>(name, LONG);
+  public static JsonKey<Long> longInt(String name) {
+    return new JsonKey<Long>(name, LONG);
   }
 
-  public static JSONKey<Date> dateTime(String name) {
-    return new JSONKey<Date>(name, DATE_TIME);
+  public static JsonKey<Date> dateTime(String name) {
+    return new JsonKey<Date>(name, DATE_TIME);
   }
 
-  public static JSONKey<TimeZone> dateTimeZone(String name) {
-    return new JSONKey<TimeZone>(name, TIME_ZONE_FROM_TIME);
+  public static JsonKey<TimeZone> dateTimeZone(String name) {
+    return new JsonKey<TimeZone>(name, TIME_ZONE_FROM_TIME);
   }
 
-  public static JSONKey<TimeZone> timeZoneID(String name) {
-    return new JSONKey<TimeZone>(name, TIME_ZONE_ID);
+  public static JsonKey<TimeZone> timeZoneID(String name) {
+    return new JsonKey<TimeZone>(name, TIME_ZONE_ID);
   }
 
-  public static JSONKey<Date> date(String name) {
-    return new JSONKey<Date>(name, DATE);
+  public static JsonKey<Date> date(String name) {
+    return new JsonKey<Date>(name, DATE);
   }
 
   public static Convertor<Object, String> emptyTextToNull(final Convertor<Object, String> textConvertor) {
@@ -341,8 +341,8 @@ public class JSONKey<T> {
     };
   }
 
-  public static <T> JSONKey<T> composition(final JSONKey<JSONObject> reference, final JSONKey<T> accessor) {
-    return new JSONKey<T>(reference.getName(), new Convertor<Object, T>() {
+  public static <T> JsonKey<T> composition(final JsonKey<JSONObject> reference, final JsonKey<T> accessor) {
+    return new JsonKey<T>(reference.getName(), new Convertor<Object, T>() {
       @Override
       public T convert(Object value) {
         JSONObject extObject = reference.convertValue(value);
@@ -407,7 +407,7 @@ public class JSONKey<T> {
     }
   }
 
-  public static class RootObject extends JSONKey<JSONObject> {
+  public static class RootObject extends JsonKey<JSONObject> {
     public RootObject() {
       super("", OBJECT);
     }
@@ -420,7 +420,7 @@ public class JSONKey<T> {
       } catch (org.json.simple.parser.ParseException e) {
         throw new JSONValueException(e);
       }
-      return JSONKey.ROOT_OBJECT.getNotNull(res);
+      return JsonKey.ROOT_OBJECT.getNotNull(res);
     }
 
     /**
