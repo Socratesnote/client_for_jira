@@ -15,6 +15,7 @@ import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.jql.JQLCompareConstraint;
+import com.almworks.restconnector.jql.JQLConstraint;
 import com.almworks.restconnector.jql.JqlQuery;
 import com.almworks.restconnector.json.JSONKey;
 import com.almworks.util.LogHelper;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.almworks.jira.provider3.sync.download2.meta.LoadRestMeta.PROJECTS;
 
@@ -48,19 +50,12 @@ class LoadCommentVisibility {
    * empty list if only project roles are allowed for comment visibility<br>
    * not empty list of groups if groups are allowed for comment visibility
    */
-  public static List<String> loadCommentVisibilityGroups(RestSession session, LoadMetaContext context) throws ConnectorException {
-    //TODO: Check all JqlQuery.EMPTY: this is no longer allowed. Draw all IDs from the context instead, and format a query for all elements in all projects.
-    // Get project IDs from context.
-    ProjectsAndTypes projectsAndTypes = context.getData(PROJECTS);
-    IntList projectIdsInt = projectsAndTypes.getProjectIds();
-    List<String> projectIdsString = new ArrayList<>(Collections.emptyList());
-    int i;
-    for (i = 0; i < projectIdsInt.size(); i++) {
-      projectIdsString.add(String.valueOf(projectIdsInt.get(i)));
-    }
-    CompositeConstraint query2 = CompositeConstraint.and(JQLCompareConstraint.in("project", projectIdsString, false, "Project"));
-
-    JSONObject issue = new JqlSearch(query2).addFields("key").querySingle(session);
+  public static List<String> loadCommentVisibilityGroups(RestSession session) throws ConnectorException {
+    /*
+    To get visibility groups from all issues, "project is not EMPTY" is Atlassian's recommended harmless restriction and does not exclude any issue.
+     */
+    JQLConstraint allProjects = JQLCompareConstraint.isEmpty("project", true, "All projects");
+    JSONObject issue = new JqlSearch(allProjects).addFields("key").querySingle(session);
     if (issue == null) return null;
     Integer id = ISSUE_ID.getValue(issue);
     String key = ISSUE_KEY.getValue(issue);

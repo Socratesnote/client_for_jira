@@ -30,15 +30,12 @@ public class RestQueryPager {
   private int myMaxResult = -1;
   private String myStart = null;
 
-  // Helpful? https://community.atlassian.com/forums/Jira-articles/How-to-use-the-new-Jira-cloud-issue-search-API/ba-p/3006109
-
   public RestQueryPager(@NotNull JqlQuery jql) {
     myJql = jql;
   }
 
   public static RestQueryPager allFields(@NotNull JqlQuery jql) {
     RestQueryPager pager = new RestQueryPager(jql);
-    //TODO: BUG: This is no longer allowed.
     pager.setFields(new String[]{"*all"});
     return pager;
   }

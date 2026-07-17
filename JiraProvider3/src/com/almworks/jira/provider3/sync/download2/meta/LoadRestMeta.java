@@ -86,7 +86,7 @@ public class LoadRestMeta extends BaseOperation {
       @Override
       public void perform(RestSession session, EntityTransaction transaction, ProgressInfo progress, LoadMetaContext context) throws CancelledException {
         try {
-          loadCommentsVisibility(session, transaction, context, progress);
+          loadCommentsVisibility(session, transaction, progress);
         } catch (CancelledException e) {
           throw e;
         } catch (ConnectorException e) {
@@ -146,8 +146,8 @@ public class LoadRestMeta extends BaseOperation {
     myServerInfo.getSyncManager().writeDownloaded(update).waitForCompletion();
   }
 
-  private void loadCommentsVisibility(RestSession session, EntityTransaction transaction, LoadMetaContext context, ProgressInfo progress) throws ConnectorException {
-    List<String> groups = LoadCommentVisibility.loadCommentVisibilityGroups(session, context);
+  private void loadCommentsVisibility(RestSession session, EntityTransaction transaction, ProgressInfo progress) throws ConnectorException {
+    List<String> groups = LoadCommentVisibility.loadCommentVisibilityGroups(session);
     progress.setDone();
     if (groups == null) return;
     EntityHolder connection = ServerInfo.changeConnection(transaction);

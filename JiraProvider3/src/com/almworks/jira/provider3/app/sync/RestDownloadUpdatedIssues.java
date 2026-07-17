@@ -82,12 +82,17 @@ class RestDownloadUpdatedIssues extends BaseOperation {
 
   private JqlQuery buildJql() {
     Set<Integer> projectIds = mySyncInfo.getProjectFilterIds();
-    JQLConstraint projects = null;
+    JQLConstraint projects;
+    /*
+    No configured project filter means "all projects". "project is not EMPTY" is Atlassian's recommended harmless restriction and does not exclude any issue.
+     */
     if (projectIds != null && !projectIds.isEmpty()) {
       projects = JQLCompareConstraint.in(
               "project",
               projectIds.stream().map(Object::toString).collect(Collectors.toList()),
               false, "Configured projects");
+    } else {
+      projects = JQLCompareConstraint.isEmpty("project", true, "All projects");
     }
 
     Date syncDate = mySyncInfo.getSyncDate();
