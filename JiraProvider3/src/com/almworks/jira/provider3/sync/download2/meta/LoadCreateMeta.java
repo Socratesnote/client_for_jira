@@ -40,7 +40,7 @@ class LoadCreateMeta extends MetaOperation {
   private final FieldCollector myCustomFields;
   private final TLongObjectHashMap<IntArray> myLevelsInProjects = new TLongObjectHashMap<>();
   private final IntArray myLevelOrder = new IntArray();
-  private static final String PATH_ISSUE = "api/2/issue/";
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   public LoadCreateMeta(FieldCollector customFields) {
     super(3);

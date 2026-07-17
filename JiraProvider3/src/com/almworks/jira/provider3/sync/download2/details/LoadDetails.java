@@ -36,7 +36,7 @@ import java.util.Map;
 public class LoadDetails {
   private static final LocalizedAccessor.Value M_LOADING_VOTERS = ConnectorManager.LOCAL.getFactory("progress.message.loadVoters");
   private static final LocalizedAccessor.Value M_LOADING_WATCHERS = ConnectorManager.LOCAL.getFactory("progress.message.loadWatchers");
-  private static final String PATH_ISSUE = "api/2/issue/";
+  private static final String PATH_ISSUE = "api/3/issue/";
   private final EntityTransaction myTransaction;
   private final CustomFieldsSchema.RestLoader mySchemaLoader;
   /**
@@ -152,14 +152,14 @@ public class LoadDetails {
     EntityHolder issue = ServerIssue.create(transaction, issueId, null);
     if (issue == null) return;
     progress.startActivity(M_LOADING_WATCHERS.create());
-    Trio<Boolean, Integer,ServerUser.CollectFromJson> trio = loadUsers(transaction, session, progress.spawn(0.5), thisUser, "api/2/issue/" + issueId + "/watchers", "isWatching", "watchCount", "watchers");
+    Trio<Boolean, Integer,ServerUser.CollectFromJson> trio = loadUsers(transaction, session, progress.spawn(0.5), thisUser, PATH_ISSUE + issueId + "/watchers", "isWatching", "watchCount", "watchers");
     if (trio != null) {
       issue.setReferenceCollection(ServerIssue.WATCHERS, trio.getThird().getUsers());
       issue.setNNValue(ServerIssue.WATCHERS_COUNT, trio.getSecond());
 //      issue.setNNValue(ServerIssue.WATCHING, trio.getFirst());  // set this via general issue download (to avoid different values in the transaction)
     }
     progress.startActivity(M_LOADING_VOTERS.create());
-    trio = loadUsers(transaction, session, progress.spawnAll(), thisUser, "api/2/issue/" + issueId + "/votes", "hasVoted", "votes", "voters");
+    trio = loadUsers(transaction, session, progress.spawnAll(), thisUser, PATH_ISSUE + issueId + "/votes", "hasVoted", "votes", "voters");
     if (trio != null) {
       issue.setReferenceCollection(ServerIssue.VOTERS, trio.getThird().getUsers());
       issue.setNNValue(ServerIssue.VOTES_COUNT, trio.getSecond());

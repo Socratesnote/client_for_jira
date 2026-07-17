@@ -76,7 +76,7 @@ public class DeleteAttachment implements UploadUnit {
     if (id == null || issueId == null) return null;
     boolean success = false;
     try {
-      RestResponse response = session.restDelete("api/2/attachment/" + id, RequestPolicy.NEEDS_LOGIN);
+      RestResponse response = session.restDelete("api/3/attachment/" + id, RequestPolicy.NEEDS_LOGIN);
       if (response.isSuccessful()) success = true;
       else {
         String failureShort = M_FAILURE_SHORT.create();

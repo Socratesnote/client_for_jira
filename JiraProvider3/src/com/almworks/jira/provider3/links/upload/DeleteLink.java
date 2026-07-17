@@ -30,6 +30,7 @@ import java.util.Map;
 class DeleteLink implements UploadUnit {
   private static final LocalizedAccessor.MessageStr P_NOT_ALLOWED = JiraLinks.I18N.messageStr("upload.delete.notAllowed.short");
   private static final LocalizedAccessor.Message2 P_GENERIC = JiraLinks.I18N.message2("upload.delete.generic.short");
+  private static final String PATH_ISSUELINK = "api/3/issueLink/";
   private final LinkInfo myLinkInfo;
   private final IntArray myLinkIds = new IntArray();
   private boolean myDone = false;
@@ -69,7 +70,7 @@ class DeleteLink implements UploadUnit {
     ArrayList<UploadProblem> problems = Collections15.arrayList();
     for (IntIterator cursor : myLinkIds) {
       int linkId = cursor.value();
-      String path = "api/2/issueLink/" + linkId;
+      String path = PATH_ISSUELINK + linkId;
       RestResponse response = session.restDelete(path, RequestPolicy.SAFE_TO_RETRY);
       int code = response.getStatusCode();
       if (code / 100 != 2)

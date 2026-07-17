@@ -43,6 +43,7 @@ import java.util.Collections;
 
 public class PrepareAttachmentsUpload implements UploadUnit.Factory {
   public static final UploadUnit.Factory INSTANCE = new PrepareAttachmentsUpload();
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   @Override
   public void collectRelated(ItemVersion attachment, CollectUploadContext context) throws UploadUnit.CantUploadException {
@@ -98,7 +99,7 @@ public class PrepareAttachmentsUpload implements UploadUnit.Factory {
       final AttachmentValues change)
       throws ConnectorException
     {
-      RestSession.Request request = new RestSession.Request(session.getRestResourcePath("api/2/issue/" + issueId + "/attachments"), "uploadAttachment", null) {
+      RestSession.Request request = new RestSession.Request(session.getRestResourcePath(PATH_ISSUE + issueId + "/attachments"), "uploadAttachment", null) {
         @Override
         protected HttpMethodBase create(String url) throws HttpMethodFactoryException {
           PostMethod post = HttpUtils.createPost(url);

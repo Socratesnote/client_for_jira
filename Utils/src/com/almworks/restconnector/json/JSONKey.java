@@ -366,7 +366,9 @@ public class JSONKey<T> {
     public T convert(Object value) {
       if (value == null) return null;
       T text = Util.castNullable(myClass, value);
-      if (text == null) LogHelper.error("Expected", myClass, value);
+      if (text == null){
+        LogHelper.error("Expected", myClass, ", got:", value);
+      }
       return text;
     }
   }

@@ -31,6 +31,7 @@ class AssignIssueUnit implements UploadUnit {
   private static final LocalizedAccessor.MessageIntStr M_FAILURE_NO_PERMISSION = PrepareIssueUpload.I18N.messageIntStr("upload.problem.assign.failure.401_403");
   private static final LocalizedAccessor.MessageStr M_FAILURE_404 = PrepareIssueUpload.I18N.messageStr("upload.problem.assign.failure.404");
   private static final LocalizedAccessor.MessageIntStr M_FAILURE_GENERIC = PrepareIssueUpload.I18N.messageIntStr("upload.problem.assign.failure.generic");
+  private static final String PATH_ISSUE = "api/3/issue/";
   private final EditIssue myIssue;
 
   public AssignIssueUnit(EditIssue issue) {
@@ -77,7 +78,7 @@ class AssignIssueUnit implements UploadUnit {
       LogHelper.error("Wrong REST presentation", userObj);
       throw UploadProblem.internalError().toException();
     }
-    RestResponse response = session.restPut("api/2/issue/" + issueId + "/assignee", user, RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = session.restPut(PATH_ISSUE + issueId + "/assignee", user, RequestPolicy.SAFE_TO_RETRY);
     if (!response.isSuccessful()) {
       LogHelper.warning("Failed to assign issue", myIssue.getCreate(), user);
       String shortText = M_FAILURE_SHORT.create();

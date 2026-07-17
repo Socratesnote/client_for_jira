@@ -30,8 +30,8 @@ class LoadCustomFields extends MetaOperation {
   private static final ArrayKey<JSONObject> JQL_FIELDS = ArrayKey.objectArray("visibleFieldNames");
   private static final JSONKey<String> JQL_FIELD_CFID = JSONKey.text("cfid");
   private static final ArrayKey<String> JQL_FIELD_OPERATORS = ArrayKey.textArray("operators");
-  private static final String PATH_JQL = "api/2/jql/";
-  private static final String PATH_FIELD = "api/2/field/";
+  private static final String PATH_JQL = "api/3/jql/";
+  private static final String PATH_FIELD = "api/3/field/";
 
   private final CustomFieldsComponent myFieldsComponent;
 

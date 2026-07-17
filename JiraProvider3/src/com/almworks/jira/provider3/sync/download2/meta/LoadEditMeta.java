@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 class LoadEditMeta extends MetaOperation {
-  private static final String PATH_ISSUE = "api/2/issue/";
+  private static final String PATH_ISSUE = "api/3/issue/";
   private final FieldCollector myFieldCollector;
 
   protected LoadEditMeta(FieldCollector fieldCollector) {

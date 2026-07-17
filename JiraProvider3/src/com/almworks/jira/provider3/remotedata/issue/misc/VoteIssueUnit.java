@@ -32,6 +32,7 @@ public class VoteIssueUnit implements UploadUnit {
   private static final LocalizedAccessor.Value M_VOTE_FAILED_FULL = PrepareIssueUpload.I18N.getFactory("upload.problem.vote.failed.add.full");
   private static final LocalizedAccessor.Value M_REMOVE_VOTE_FAILED_SHORT = PrepareIssueUpload.I18N.getFactory("upload.problem.vote.failed.remove.short");
   private static final LocalizedAccessor.Value M_REMOVE_VOTE_FAILED_FULL = PrepareIssueUpload.I18N.getFactory("upload.problem.vote.failed.remove.full");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final boolean myVote;
   private final EditIssue myIssue;
@@ -74,7 +75,7 @@ public class VoteIssueUnit implements UploadUnit {
   public Collection<? extends UploadProblem> perform(RestSession session, UploadContext context) throws ConnectorException, UploadProblem.Thrown {
     Integer issueId = getCreateIssue().getIssueId();
     if (issueId == null) throw  UploadProblem.notNow("Issue not submitted yet").toException();
-    String path = "api/2/issue/" + issueId + "/votes";
+    String path = PATH_ISSUE + issueId + "/votes";
     RestResponse response;
     if (myVote) response = session.restPostJson(path, null, RequestPolicy.SAFE_TO_RETRY);
     else response = session.restDelete(path, RequestPolicy.SAFE_TO_RETRY);

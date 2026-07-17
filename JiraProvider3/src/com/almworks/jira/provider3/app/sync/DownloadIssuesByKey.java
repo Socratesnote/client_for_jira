@@ -37,7 +37,7 @@ class DownloadIssuesByKey extends BaseOperation implements DBConnectorOperation 
   private final AtomicReference<Boolean> mySuccessfullyDone = new AtomicReference<Boolean>(null);
   private long myLastIcn = 0;
   private ConnectorException myError;
-  private static final String PATH_ISSUE = "api/2/issue/";
+  private static final String PATH_ISSUE = "api/3/issue/";
   private static final LocalizedAccessor.Message2 PROGRESS_LOAD_NEXT = ConnectorManager.LOCAL.message2("downloadIssuesByKey.progress.load.next");
 
   public DownloadIssuesByKey(List<String> keys, ScalarModel<Boolean> cancelFlag, ServerInfo serverInfo, Progress progress,

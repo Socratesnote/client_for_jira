@@ -33,6 +33,7 @@ public class WorklogsField implements JsonIssueField {
 
   private static final ArrayKey<JSONObject> WORKLOGS = ArrayKey.objectArray("worklogs");
   private static final HintValue<Boolean> NOT_FULL = HintValue.flag("worklog.load.notFull");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final SimpleDependent mySlaveLoader = new SimpleDependent(ServerWorklog.TYPE, ServerWorklog.ISSUE, JRWorklog.PARTIAL_JSON_CONVERTOR, null);
 
@@ -75,7 +76,7 @@ public class WorklogsField implements JsonIssueField {
       LogHelper.error("Missing issue ID", issue);
       return;
     }
-    RestResponse response = session.restGet("api/2/issue/" + issueId + "/worklog", RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = session.restGet(PATH_ISSUE + issueId + "/worklog", RequestPolicy.SAFE_TO_RETRY);
     if (!response.isSuccessful()) {
       LogHelper.error("Failed to load all worklogs", response.getStatusCode());
       return;

@@ -15,8 +15,8 @@ import org.json.simple.parser.ParseException;
 import java.util.TimeZone;
 
 public class LoadUserInfo {
-  private static final String PATH_USER = "api/2/user/";
-  private static final String PATH_MYSELF = "api/2/myself/";
+  private static final String PATH_USER = "api/3/user/";
+  private static final String PATH_MYSELF = "api/3/myself/";
   private static final JSONKey<TimeZone> USER_TIME_ZONE = JSONKey.timeZoneID("timeZone");
   private static final JSONKey<String> DISPLAY_NAME = JSONKey.text("displayName");
   private static final JSONKey<String> ACCOUNT_ID = JSONKey.text("accountId");
@@ -68,10 +68,8 @@ public class LoadUserInfo {
       }
     }
     if (ex != null) throw ex;
-    assert response != null;
     String contentType = response.getHttpResponse().getContentType();
     int statusCode = response.getStatusCode();
-    //TODO: BUG: If you provide the URL with "/jira" at the end, this fails because the response will be (valid) HTML.
     if ("text/html".equals(contentType)) {
       if (statusCode == 200) {
         LogHelper.error("Wrong response format from", contentType, statusCode, session.getBaseUrl(), ". Please provide the URL without /jira.");

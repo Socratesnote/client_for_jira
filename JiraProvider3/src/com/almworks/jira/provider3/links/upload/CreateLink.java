@@ -27,7 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class CreateLink implements UploadUnit {
-  private static final Pattern LOCATION = Pattern.compile("/rest/api/2/issueLink/(\\d+)$");
+  private static final String PATH_ISSUELINK = "api/3/issueLink/";
+  private static final Pattern LOCATION = Pattern.compile("/rest/" + PATH_ISSUELINK + "(\\d+)$");
   private static final LocalizedAccessor.Value P_NOT_CONFIRMED_SHORT = JiraLinks.I18N.getFactory("upload.create.notConfirmed.short");
   private final LinkInfo myLinkInfo;
   private Integer myLinkId;
@@ -65,7 +66,7 @@ class CreateLink implements UploadUnit {
   @Override
   public Collection<? extends UploadProblem> perform(RestSession session, UploadContext context) throws ConnectorException, UploadProblem.Thrown {
     JSONObject createLink = myLinkInfo.createLink(context);
-    RestResponse response = session.restPostJson("api/2/issueLink", createLink, RequestPolicy.NEEDS_LOGIN);
+    RestResponse response = session.restPostJson(CreateLink.PATH_ISSUELINK, createLink, RequestPolicy.NEEDS_LOGIN);
     if (!response.isSuccessful()) throw getFailure(response);
     String location = response.getResponseHeader("Location");
     if (location == null) {

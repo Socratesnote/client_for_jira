@@ -26,6 +26,7 @@ class AddEditWorklog extends AddEditSlaveUnit<WorklogValues> {
   private static final LocalizedAccessor.Message2 M_NOT_FOUND_FULL = PrepareWorklogsUpload.I18N.message2("upload.conflict.notFound.full");
   private static final LocalizedAccessor.Value M_SERVER_ERROR_SHORT = PrepareWorklogsUpload.I18N.getFactory("upload.failure.errorCode.short");
   private static final LocalizedAccessor.MessageInt M_SERVER_ERROR_FULL = PrepareWorklogsUpload.I18N.messageInt("upload.failure.errorCode.full");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final WorklogSet mySet;
   @Nullable
@@ -63,12 +64,12 @@ class AddEditWorklog extends AddEditSlaveUnit<WorklogValues> {
   }
 
   private RestResponse editWorklog(RestSession session, int issueId, WorklogValues change, int worklogId) throws ConnectorException {
-    return session.restPut("api/2/issue/" + issueId + "/worklog/" + worklogId + "?" + mySet.getUpdateEstimate(), change.createJson(), RequestPolicy.NEEDS_LOGIN);
+    return session.restPut(PATH_ISSUE + issueId + "/worklog/" + worklogId + "?" + mySet.getUpdateEstimate(), change.createJson(), RequestPolicy.NEEDS_LOGIN);
   }
 
   private static final Pattern NEW_WORKLOG_LOCATION = Pattern.compile("worklog/(\\d+)$");
   private RestResponse submitWorklog(RestSession session, int issueId, WorklogValues change) throws ConnectorException {
-    RestResponse response = session.restPostJson("api/2/issue/" + issueId + "/worklog?" + mySet.getUpdateEstimate(), change.createJson(), RequestPolicy.NEEDS_LOGIN);
+    RestResponse response = session.restPostJson(PATH_ISSUE + issueId + "/worklog?" + mySet.getUpdateEstimate(), change.createJson(), RequestPolicy.NEEDS_LOGIN);
     if (response.isSuccessful()) processLocation(response, change);
     return response;
   }

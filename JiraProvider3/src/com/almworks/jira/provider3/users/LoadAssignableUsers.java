@@ -36,6 +36,7 @@ public class LoadAssignableUsers extends MetaOperation {
   private static final LocalizedAccessor.Value M_LOAD_PROGRESS = I18N.getFactory("progress.user.load.assignableUsers");
   private static final EntityKey<Collection<Entity>> ASSIGNABLE_USERS = EntityKey.entityCollection("user.assignableUsers", null);
   public static final DBAttribute<Set<Long>> A_ASSIGNABLE_USERS = ServerJira.toLinkSetAttribute(ASSIGNABLE_USERS);
+  private static final String PATH_USER = "api/3/user/";
 
   public LoadAssignableUsers() {
     super(5);
@@ -68,7 +69,7 @@ public class LoadAssignableUsers extends MetaOperation {
   @Nullable
   private ArrayList<EntityHolder> loadAssignableUsers(RestSession session, @NotNull String projectKey, EntityTransaction transaction) {
     try {
-      RestResponse response = session.restGet("api/2/user/assignable/search?project=" + projectKey, RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.restGet(PATH_USER + "assignable/search?project=" + projectKey, RequestPolicy.SAFE_TO_RETRY);
       int code = response.getStatusCode();
       if (code / 100 == 4) {
         if (code == 401) LogHelper.debug("Assignable users are not allowed");

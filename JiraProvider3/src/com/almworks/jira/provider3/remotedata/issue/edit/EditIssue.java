@@ -53,6 +53,7 @@ public class EditIssue implements UploadUnit {
   private static final LocalizedAccessor.Value M_OPERATION_NAME = PrepareIssueUpload.I18N.getFactory("upload.operation.editIssue");
   private static final LocalizedAccessor.Value M_NOT_DONE_SHORT = PrepareIssueUpload.I18N.getFactory("upload.problem.notDone.short");
   private static final LocalizedAccessor.MessageIntStr M_NOT_DONE_FULL = PrepareIssueUpload.I18N.messageIntStr("upload.problem.notDone.full");
+  private static final String PATH_ISSUE = "api/3/issue/";
   private final CreateIssueUnit myCreate;
   private final List<IssueFieldValue> myValues;
   @Nullable private final UploadUnit myLastHistory;
@@ -148,7 +149,7 @@ public class EditIssue implements UploadUnit {
     RestResponse response = null;
     ConnectorException failure = null;
     try {
-      response = session.restPut("api/2/issue/" + issueId, edit, RequestPolicy.NEEDS_LOGIN);
+      response = session.restPut(PATH_ISSUE + issueId, edit, RequestPolicy.NEEDS_LOGIN);
     } catch (@NotNull ConnectorException e) {
       failure = e;
     }

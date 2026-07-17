@@ -84,6 +84,8 @@ public class IssuePermissions {
 
   private static final Map<String, Integer> GLOBAL_PERMISSIONS;
   private static final Map<String, Integer> KNOW_PERMISSIONS;
+  private static final String PATH_ISSUE = "api/3/issue/";
+
   static {
     // Permissions were renamed in JIRA 6.4-OD-05-008 (build number 64003 on 10 Sep 2014)
     HashMap<String, Integer> map = Collections15.hashMap();
@@ -271,7 +273,7 @@ public class IssuePermissions {
   private Collection<String> loadIssueOperations(RestSession session, int issueId) {
     JSONObject operations;
     try {
-      RestResponse response = session.restGet("api/2/issue/" + issueId + "?fields=id&expand=operations", RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.restGet(PATH_ISSUE + issueId + "?fields=id&expand=operations", RequestPolicy.SAFE_TO_RETRY);
       response.ensureSuccessful();
       try {
         operations = OPERATIONS.getValue(response.getJSONObject());

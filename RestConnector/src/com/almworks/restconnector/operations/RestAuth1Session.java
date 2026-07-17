@@ -82,7 +82,7 @@ public class RestAuth1Session {
       return error(e, R_NO_RESPONSE);
     }
     if (userInfo.getDisplayName() == null || userInfo.getAccountId() == null) {
-      LogHelper.error("myself resource misses accountId or displayName:", userInfo);
+      LogHelper.error("Myself resource misses accountId or displayName:", userInfo);
       return error(null, R_WRONG);
     }
     return new RestAuth1Session(null, R_OK, userInfo);

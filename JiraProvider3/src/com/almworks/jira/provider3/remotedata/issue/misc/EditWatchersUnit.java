@@ -33,6 +33,7 @@ public class EditWatchersUnit implements UploadUnit {
   private static final LocalizedAccessor.Value M_EDIT_FAILED_SHORT = PrepareIssueUpload.I18N.getFactory("upload.problem.watch.failed.edit.short");
   private static final LocalizedAccessor.MessageIntStr M_EDIT_FAILED_ADD_FULL = PrepareIssueUpload.I18N.messageIntStr("upload.problem.watch.failed.edit.add.full");
   private static final LocalizedAccessor.MessageIntStr M_EDIT_FAILED_REMOVE_FULL = PrepareIssueUpload.I18N.messageIntStr("upload.problem.watch.failed.edit.remove.full");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final EditIssue myIssue;
   private final List<JsonUserParser.LoadedUser> myAddWatchers;
@@ -85,7 +86,7 @@ public class EditWatchersUnit implements UploadUnit {
     List<JsonUserParser.LoadedUser> failedAdd = Collections15.arrayList();
     for (JsonUserParser.LoadedUser user : myAddWatchers) {
       String userId = user.getAccountId();
-      RestResponse response = session.postString("api/2/issue/" + issueId + "/watchers", JSONValue.toJSONString(userId), RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.postString(PATH_ISSUE + issueId + "/watchers", JSONValue.toJSONString(userId), RequestPolicy.SAFE_TO_RETRY);
       if (!response.isSuccessful()) failedAdd.add(user);
     }
     List<JsonUserParser.LoadedUser> failedRemove = Collections15.arrayList();
@@ -98,7 +99,7 @@ public class EditWatchersUnit implements UploadUnit {
         failedRemove.add(user);
         continue;
       }
-      String url = String.format("api/2/issue/%s/watchers?%s=%s", issueId, paramName, HttpUtils.encode(userId));
+      String url = String.format(PATH_ISSUE + "%s/watchers?%s=%s", issueId, paramName, HttpUtils.encode(userId));
       RestResponse response = session.restDelete(url, RequestPolicy.SAFE_TO_RETRY);
       if (!response.isSuccessful()) failedRemove.add(user);
     }

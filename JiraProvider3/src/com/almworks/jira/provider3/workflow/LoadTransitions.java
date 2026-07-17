@@ -28,6 +28,7 @@ import java.util.List;
 
 public class LoadTransitions {
   private static final LocalizedAccessor.Value M_PROGRESS = UploadWorkflowUnit.I18N.getFactory("load.transitions.progress");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final RestSession mySession;
   private final EntityHolder myIssue;
@@ -81,7 +82,7 @@ public class LoadTransitions {
     Integer issueId = myIssue.getScalarValue(ServerIssue.ID);
     if (issueId == null)
       return null;
-    RestResponse response = mySession.restGet("api/2/issue/" + issueId + "/transitions?expand=transitions.fields", RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = mySession.restGet(PATH_ISSUE + issueId + "/transitions?expand=transitions.fields", RequestPolicy.SAFE_TO_RETRY);
     if (!response.isSuccessful()) {
       progress.addHttpStatusError(response.getLastUrl(), response.getStatusCode(), response.getStatusText());
       return null;

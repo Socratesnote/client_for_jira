@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class RestOperations {
-  private static final String PATH_PROJECT = "api/2/project";
+  private static final String PATH_PROJECT = "api/3/project";
   public static List<JSONObject> projectsBrief(RestSession session) throws ConnectorException {
     try {
       return loadList(session, PATH_PROJECT, RequestPolicy.SAFE_TO_RETRY);
@@ -50,17 +50,17 @@ public class RestOperations {
     }
   }
 
-  private static final String PATH_PRIORITY = "api/2/priority";
+  private static final String PATH_PRIORITY = "api/3/priority";
   public static List<JSONObject> priorities(RestSession session) throws ConnectorException, ParseException {
     return loadList(session, PATH_PRIORITY, RequestPolicy.SAFE_TO_RETRY);
   }
 
-  private static final String PATH_STATUS = "api/2/status";
+  private static final String PATH_STATUS = "api/3/status";
   public static List<JSONObject> statuses(RestSession session) throws ConnectorException, ParseException {
     return loadList(session, PATH_STATUS, RequestPolicy.SAFE_TO_RETRY);
   }
 
-  private static final String PATH_RESOLUTION = "api/2/resolution";
+  private static final String PATH_RESOLUTION = "api/3/resolution";
   public static List<JSONObject> resolutions(RestSession session) throws ConnectorException, ParseException {
     return loadList(session, PATH_RESOLUTION, RequestPolicy.SAFE_TO_RETRY);
   }

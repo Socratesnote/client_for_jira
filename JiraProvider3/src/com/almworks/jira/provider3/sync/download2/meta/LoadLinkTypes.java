@@ -29,7 +29,7 @@ class LoadLinkTypes {
   private static final JSONKey<String> NAME = JSONKey.text("name");
   private static final JSONKey<String> INWARD = JSONKey.text("inward");
   private static final JSONKey<String> OUTWARD = JSONKey.text("outward");
-  private static final String PATH_ISSUELINKTYPE = "api/2/issueLinkType/";
+  private static final String PATH_ISSUELINKTYPE = "api/3/issueLinkType/";
 
   public static void perform(RestSession session, EntityTransaction transaction) {
     List<JSONObject> typesList = loadLinkTypes(session);

@@ -32,6 +32,7 @@ class MoveParentType extends BaseMoveUnit {
   private static final LocalizedAccessor.Value M_NO_OPTION_TYPE = MoveLoader.I18N.getFactory("upload.problem.move.changeParent.noOption.type");
   private static final LocalizedAccessor.Message2 M_NO_OPTION_FULL = MoveLoader.I18N.message2("upload.problem.move.changeParent.noOption.full");
   private static final LocalizedAccessor.Value M_OPERATION = MoveLoader.I18N.getFactory("upload.move.operation");
+  private static final String PATH_ISSUE = "api/3/issue/";
   private final CreateIssueUnit myNewParent;
   private final int myNewTypeId;
   private final ArrayList<IssueFieldValue> myValues;
@@ -110,7 +111,7 @@ class MoveParentType extends BaseMoveUnit {
   }
 
   private Pair<Boolean, Boolean> checkCurrentState(RestSession session, int issueId) throws ConnectorException, ParseException {
-    RestResponse response = session.restGet("api/2/issue/" + issueId + "?fields=parent%2Cissuetype", RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = session.restGet(PATH_ISSUE + issueId + "?fields=parent%2Cissuetype", RequestPolicy.SAFE_TO_RETRY);
     response.ensureSuccessful();
     boolean changeParent = false;
     boolean changeType = false;

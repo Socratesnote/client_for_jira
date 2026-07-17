@@ -25,6 +25,7 @@ class DeleteComment implements UploadUnit {
   private static final LocalizedAccessor.MessageIntStr M_FAILED_SHORT = PrepareCommentUpload.I18N.messageIntStr("comment.upload.delete.failure.short");
   private static final LocalizedAccessor.MessageIntStr M_FAILED_ERROR_CODE_FULL = PrepareCommentUpload.I18N.messageIntStr("comment.upload.delete.failure.errorCode");
   private static final LocalizedAccessor.Value M_FAILED_UNKNOWN_FULL = PrepareCommentUpload.I18N.getFactory("comment.upload.delete.failure.unknown");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final long myCommentItem;
   private final CreateIssueUnit myIssue;
@@ -71,7 +72,7 @@ class DeleteComment implements UploadUnit {
     if (id == null || issueId == null) return null;
     boolean success = false;
     try {
-      RestResponse response = session.restDelete("api/2/issue/" + issueId + "/comment/" + id, RequestPolicy.NEEDS_LOGIN);
+      RestResponse response = session.restDelete(PATH_ISSUE + issueId + "/comment/" + id, RequestPolicy.NEEDS_LOGIN);
       if (!response.isSuccessful()) {
         myFailure = UploadProblem.fatal(M_FAILED_SHORT.formatMessage(id, myComment.getAuthorName()), M_FAILED_ERROR_CODE_FULL.formatMessage(response.getStatusCode(), response.getStatusText()));;
         success = true;

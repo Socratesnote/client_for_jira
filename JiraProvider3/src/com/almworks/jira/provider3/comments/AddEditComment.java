@@ -32,6 +32,7 @@ class AddEditComment extends AddEditSlaveUnit<CommentValues> {
   private static final LocalizedAccessor.MessageInt M_GENERIC_FAILURE = PrepareCommentUpload.I18N.messageInt("upload.genericFailure.short");
   private static final LocalizedAccessor.MessageStr M_GENERIC_FAILURE_DETAILED = PrepareCommentUpload.I18N.messageStr("upload.genericFailure.detailed");
   private static final LocalizedAccessor.Value M_COMMENT_UPLOAD = PrepareCommentUpload.I18N.getFactory("comment.upload.short");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   AddEditComment(long item, CreateIssueUnit issue, CommentValues base, CommentValues change, SlaveIds knownComments) {
     super(item, issue, base, change, knownComments);
@@ -73,11 +74,11 @@ class AddEditComment extends AddEditSlaveUnit<CommentValues> {
   private RestResponse editComment(RestSession session, int issueId, CommentValues change) throws ConnectorException {
     Integer id = change.getId();
     if (id == null) return null;
-    return session.restPut("api/2/issue/" + issueId + "/comment/" + id, change.createJson(), RequestPolicy.NEEDS_LOGIN);
+    return session.restPut(PATH_ISSUE + issueId + "/comment/" + id, change.createJson(), RequestPolicy.NEEDS_LOGIN);
   }
 
   private RestResponse submitComment(RestSession session, int issueId, CommentValues change) throws ConnectorException {
-    return session.restPostJson("api/2/issue/" + issueId + "/comment", change.createJson(), RequestPolicy.NEEDS_LOGIN);
+    return session.restPostJson(PATH_ISSUE + issueId + "/comment", change.createJson(), RequestPolicy.NEEDS_LOGIN);
   }
 
   @Override

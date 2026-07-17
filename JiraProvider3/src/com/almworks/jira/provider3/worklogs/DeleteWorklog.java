@@ -25,6 +25,7 @@ import java.util.Map;
 class DeleteWorklog implements UploadUnit {
   private static final LocalizedAccessor.Value M_FAILED_SHORT = PrepareWorklogsUpload.I18N.getFactory("upload.failure.delete.short");
   private static final LocalizedAccessor.Message3 M_FAILED_FULL = PrepareWorklogsUpload.I18N.message3("upload.failure.delete.full");
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final long myItem;
   private final CreateIssueUnit myIssue;
@@ -76,7 +77,7 @@ class DeleteWorklog implements UploadUnit {
     EditIssue edit = myIssue.getEdit();
     if (issueId == null || (edit != null && edit.hasNotDone(context))) return UploadProblem.notNow("Issue not submitted yet").toCollection();
     myDone = false;
-    RestResponse response = session.restDelete("api/2/issue/" + issueId + "/worklog/" + myBase.getId() + "?" + mySet.getUpdateEstimate(), RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = session.restDelete(PATH_ISSUE + issueId + "/worklog/" + myBase.getId() + "?" + mySet.getUpdateEstimate(), RequestPolicy.SAFE_TO_RETRY);
     if (!response.isSuccessful()) return UploadProblem.fatal(M_FAILED_SHORT.create(), myBase.messageAbout3(M_FAILED_FULL, String.valueOf(response.getStatusCode()))).toCollection();
     mySet.markDone(this, true);
     myDone = true;

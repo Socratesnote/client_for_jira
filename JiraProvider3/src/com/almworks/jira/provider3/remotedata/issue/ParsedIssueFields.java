@@ -34,6 +34,7 @@ import java.util.function.BiConsumer;
 
 public class ParsedIssueFields {
   private static final TypedKey<Map<Pair<Integer, Integer>, ParsedIssueFields>> CREATE_META = TypedKey.create("createMeta");
+  private static final String PATH_ISSUE = "api/3/issue/";
   private final Map<String, Info> myInfos = Collections15.hashMap();
   private final List<BiConsumer<String, JSONObject>> myAdditionalFieldProcessors = new ArrayList<>();
 
@@ -62,11 +63,10 @@ public class ParsedIssueFields {
   }
 
   public static ParsedIssueFields loadTransitionMeta(RestSession session, int issueId, final int actionId) throws ConnectorException {
-    StringBuilder request = new StringBuilder();
-    request.append("api/2/issue/").append(issueId).append("/transitions?");
-    request.append("transitionId=").append(actionId).append("&");
-    request.append("expand=transitions.fields");
-    RestResponse response = session.restGet(request.toString(), RequestPolicy.SAFE_TO_RETRY);
+      String request = PATH_ISSUE + issueId + "/transitions?" +
+              "transitionId=" + actionId + "&" +
+              "expand=transitions.fields";
+    RestResponse response = session.restGet(request, RequestPolicy.SAFE_TO_RETRY);
     response.ensureSuccessful();
     ParsedIssueFields issueFields = new ParsedIssueFields();
     LocationHandler parser = issueFields.createFieldsHandler();

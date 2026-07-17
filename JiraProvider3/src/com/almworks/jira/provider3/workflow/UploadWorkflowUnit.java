@@ -64,6 +64,7 @@ public class UploadWorkflowUnit extends BaseHistoryUnit {
       return new UploadWorkflowUnit(prevStep, create, stepIndex, id, values, name, status);
     }
   };
+  private static final String PATH_ISSUE = "api/3/issue/";
 
   private final int myActionId;
   private final List<IssueFieldValue> myValues;
@@ -148,7 +149,7 @@ public class UploadWorkflowUnit extends BaseHistoryUnit {
     RestResponse response = null;
     ConnectorException failure;
     try {
-      response = session.restPostJson("api/2/issue/" + issueId + "/transitions", object, RequestPolicy.NEEDS_LOGIN);
+      response = session.restPostJson(PATH_ISSUE + issueId + "/transitions", object, RequestPolicy.NEEDS_LOGIN);
       failure = null;
     } catch (ConnectorException e) {
       failure = e;
@@ -177,7 +178,7 @@ public class UploadWorkflowUnit extends BaseHistoryUnit {
 
   @NotNull
   private Pair<JSONObject, Date> loadIssue(RestSession session, int issueId) throws ConnectorException, UploadProblem.Thrown {
-    RestResponse response = session.restGet("api/2/issue/" + issueId + "?fields=status,updated", RequestPolicy.SAFE_TO_RETRY);
+    RestResponse response = session.restGet(PATH_ISSUE + issueId + "?fields=status,updated", RequestPolicy.SAFE_TO_RETRY);
     response.ensureSuccessful();
     JSONObject issue;
     try {
