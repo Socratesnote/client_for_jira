@@ -8,6 +8,7 @@ import com.almworks.items.entities.api.collector.transaction.EntityHolder;
 import com.almworks.items.entities.api.collector.transaction.EntityTransaction;
 import com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark;
 import com.almworks.jira.provider3.custom.impl.RemoteMetaConfig;
+import com.almworks.jira.provider3.sync.ConnectorManager;
 import com.almworks.jira.provider3.sync.ServerInfo;
 import com.almworks.jira.provider3.sync.download2.details.CustomFieldsSchema;
 import com.almworks.jira.provider3.sync.download2.details.RestIssueProcessor;
@@ -19,6 +20,7 @@ import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.util.LogHelper;
 import com.almworks.util.commons.Procedure;
+import com.almworks.util.i18n.text.LocalizedAccessor;
 import com.almworks.util.model.ScalarModel;
 import com.almworks.util.progress.Progress;
 
@@ -36,6 +38,7 @@ class DownloadIssuesByKey extends BaseOperation implements DBConnectorOperation 
   private long myLastIcn = 0;
   private ConnectorException myError;
   private static final String PATH_ISSUE = "api/2/issue/";
+  private static final LocalizedAccessor.Message2 PROGRESS_LOAD_NEXT = ConnectorManager.LOCAL.message2("downloadIssuesByKey.progress.load.next");
 
   public DownloadIssuesByKey(List<String> keys, ScalarModel<Boolean> cancelFlag, ServerInfo serverInfo, Progress progress,
     RemoteMetaConfig metaConfig) {
@@ -100,7 +103,7 @@ class DownloadIssuesByKey extends BaseOperation implements DBConnectorOperation 
       ProgressInfo[] progressInfos = wholeProgress.spawn(0.9).split(keys.size());
       for (int i = 0, keysSize = keys.size(); i < keysSize; i++) {
         ProgressInfo progress = progressInfos[i];
-        progress.startActivity(RestIssueProcessor.PROGRESS_LOAD_NEXT.formatMessage(String.valueOf(i), String.valueOf(keysSize)));
+        progress.startActivity(PROGRESS_LOAD_NEXT.formatMessage(String.valueOf(i), String.valueOf(keysSize)));
         String key = keys.get(i);
         String path = PATH_ISSUE + key;
         RestResponse response = session.restGet(path, RequestPolicy.SAFE_TO_RETRY);

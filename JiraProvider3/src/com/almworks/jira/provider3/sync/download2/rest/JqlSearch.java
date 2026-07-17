@@ -10,7 +10,6 @@ import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
 import com.almworks.restconnector.jql.JqlQuery;
 import com.almworks.restconnector.json.ArrayKey;
-import com.almworks.restconnector.json.JSONKey;
 import com.almworks.util.Env;
 import com.almworks.util.LogHelper;
 import org.almworks.util.Collections15;
@@ -25,9 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JqlSearch {
-  public static final JSONKey<Integer> TOTAL = JSONKey.integer("total");
   public static final ArrayKey<JSONObject> ISSUES = ArrayKey.objectArray("issues");
-  public static final JSONKey<Integer> MAX_RESULTS = JSONKey.integer("maxResults");
 
   private static final String JQL_MAX_RESULT = "jiraclient.jql.maxresult";
 
@@ -36,7 +33,6 @@ public class JqlSearch {
   private static final String PATH_SEARCH = "api/3/search/jql";
 
   private final JqlQuery myJql;
-  //TODO: startAt has been removed and replaced by nextPageToken in the response body.
   private String myStart = null;
   private int myMaxResult = -1;
   private final List<String> myFields = Collections15.arrayList();

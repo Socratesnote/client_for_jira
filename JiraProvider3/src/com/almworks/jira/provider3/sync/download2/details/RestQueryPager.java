@@ -2,7 +2,6 @@ package com.almworks.jira.provider3.sync.download2.details;
 
 import com.almworks.api.connector.ConnectorException;
 import com.almworks.integers.IntArray;
-import com.almworks.jira.connector2.JiraInternalException;
 import com.almworks.jira.provider3.sync.ServerFields;
 import com.almworks.jira.provider3.sync.download2.process.util.ProgressInfo;
 import com.almworks.jira.provider3.sync.download2.rest.JqlSearch;
@@ -17,6 +16,9 @@ import com.almworks.util.LogHelper;
 import com.almworks.util.i18n.text.LocalizedAccessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 
 public class RestQueryPager {
   @NotNull
@@ -26,7 +28,6 @@ public class RestQueryPager {
    */
   private final IntArray myNoResultCodes = new IntArray();
   private String[] myFields = null;
-  private int myTotal = -1;
   private int myMaxResult = -1;
   private String myStart = null;
 
@@ -60,13 +61,6 @@ public class RestQueryPager {
   }
 
   /**
-   * @return total number of issues stratified the query or -1 if no total is loaded yet.
-   */
-  public int getTotal() {
-    return myTotal;
-  }
-
-  /**
    * @see #myNoResultCodes
    */
   public void addNoResultCode(int httpCode) {
@@ -89,8 +83,7 @@ public class RestQueryPager {
 
   /**
    * @param issueHandler handler that consumes issues (elements of "issues" array)
-   * @return page size. This can be equal to number of loaded issues or can be greater if last page is loaded.<br>
-   * May return 0 if nothing is actually loaded and so page size is not known
+   * @return number of issues actually loaded on this page. May be 0 if nothing is loaded (see {@link #myNoResultCodes})
    */
   public int loadNext(RestSession session, LocationHandler issueHandler) throws ConnectorException {
     JqlSearch search = createSearch();
@@ -101,7 +94,7 @@ public class RestQueryPager {
     if (!response.isSuccessful()) {
       int statusCode = response.getStatusCode();
       if (myNoResultCodes.contains(statusCode)) {
-        myTotal = myStart == null ? 0 : Integer.parseInt(myStart) ; // Set query ended state
+        myStart = null; // Set query ended state
         return 0;
       }
       RestResponse.ErrorResponse errorResponse = response.createErrorResponse();
@@ -112,59 +105,68 @@ public class RestQueryPager {
       LogHelper.warning("Query failed", statusCode, response.getLastUrl(), search);
       throw errorResponse.toException();
     }
-    JSONCollector getTotal = new JSONCollector(null);
-    JSONCollector getMaxResults = new JSONCollector(null);
-    JSONCollector getStartAt = new JSONCollector(null);
+    JSONCollector getNextPageToken = new JSONCollector(null);
+    CountingHandler counter = new CountingHandler(issueHandler);
     response.parseJSON(new CompositeHandler(
-      getStartAt.peekObjectEntry("startAt"),
-      getMaxResults.peekObjectEntry("maxResults"),
-      getTotal.peekObjectEntry("total"),
-      PeekArrayElement.entryArray("issues", issueHandler)
+      getNextPageToken.peekObjectEntry("nextPageToken"),
+      PeekArrayElement.entryArray("issues", counter)
     ));
-    Integer maxResults = getMaxResults.getInteger();
-    Integer total = getTotal.getInteger();
-    Integer startAt = getStartAt.getInteger();
-    if (maxResults == null || total == null || startAt == null) {
-      LogHelper.error("Missing result data", maxResults, total, startAt);
-      throw new JiraInternalException("Failed to load query. Cannot understand server reply.");
-    }
-    myTotal = total;
-    Integer myStartInt = myStart == null ? 0 : Integer.parseInt(myStart);
-    LogHelper.assertError(startAt.equals(myStartInt), "Wrong start", myStart, myStartInt, startAt);
-    return maxResults;
+    myStart = getNextPageToken.getString(); // null means this was the last page
+    return counter.getCount();
   }
 
   /**
    * Loads whole query from current start up to end or up to {@link #myMaxResult} if positive value is specified<br>
    * When optional progress is provided informs it about progress. If an optional activity template is provided - shows current loading state.
    * @param issueHandler issues consumer same as in {@link #loadNext(com.almworks.restconnector.RestSession, com.almworks.restconnector.json.sax.LocationHandler)}
-   * @param firstActivity progress activity message when total query size is not known (happens before first page is loaded)
-   * @param nextActivity progress activity pattern when total number of issues is known. arg1 - current start, arg2 - {@link #getTotal() total count} (always not negative)
+   * @param firstActivity progress activity message shown before the first page is loaded
+   * @param nextActivity progress activity pattern shown after each page. arg - number of issues loaded so far
    * @see #loadNext(com.almworks.restconnector.RestSession, com.almworks.restconnector.json.sax.LocationHandler)
    */
-  public void loadAll(RestSession session, LocationHandler issueHandler, @Nullable ProgressInfo progress, @Nullable LocalizedAccessor.Value firstActivity, @Nullable LocalizedAccessor.Message2 nextActivity) throws ConnectorException {
-    while (true) {
-      if (progress != null) {
-        String message;
-        if (myTotal >= 0 && nextActivity != null) message = nextActivity.formatMessage(String.valueOf(myStart), String.valueOf(myTotal));
-        else if (myTotal < 0 && firstActivity != null) message = firstActivity.create();
-        else message = null;
-        if (message != null) progress.startActivity(message);
-        else progress.checkCancelled();
+  public void loadAll(RestSession session, LocationHandler issueHandler, @Nullable ProgressInfo progress, @Nullable LocalizedAccessor.Value firstActivity, @Nullable LocalizedAccessor.MessageInt nextActivity) throws ConnectorException {
+    int loadedCount = 0;
+    try {
+      while (true) {
+        if (progress != null) {
+          String message = loadedCount == 0
+            ? (firstActivity != null ? firstActivity.create() : null)
+            : (nextActivity != null ? nextActivity.formatMessage(loadedCount) : null);
+          if (message != null) progress.startActivity(message);
+          else progress.checkCancelled();
+        }
+        int pageCount = loadNext(session, issueHandler);
+        loadedCount += pageCount;
+        if (myStart == null) break; // no more pages
+        if (myMaxResult > 0 && pageCount >= myMaxResult) break; // hard cap reached
+        if (pageCount <= 0) {
+          LogHelper.error("No issues loaded", myStart, myMaxResult, pageCount);
+          break;
+        }
       }
-      int maxResults = loadNext(session, issueHandler);
-      int myStartInt = myStart == null ? 0 : Integer.parseInt(myStart);
-      if (progress != null) {
-        int left = myTotal - myStartInt;
-        (left == 0 ? progress : progress.spawn(Math.min(1.0, ((double) maxResults)/ left))).setDone();
-      }
-      myStartInt += maxResults;
-      if (myStartInt >= myTotal) break;
-      if (myMaxResult > 0 && maxResults >= myMaxResult) break;
-      if (maxResults <= 0) {
-        LogHelper.error("No issues loaded", myStart, myStartInt, myMaxResult, myTotal, maxResults);
-        break;
-      }
+    } finally {
+      if (progress != null) progress.setDone();
+    }
+  }
+
+  /**
+   * Counts array elements passed through to the wrapped handler, without altering the events it receives.
+   */
+  private static class CountingHandler implements LocationHandler {
+    private final LocationHandler myTarget;
+    private int myCount = 0;
+
+    private CountingHandler(LocationHandler target) {
+      myTarget = target;
+    }
+
+    @Override
+    public void visit(Location what, boolean start, @Nullable String key, @Nullable Object value) throws ParseException, IOException {
+      if (what == Location.TOP && start) myCount++;
+      myTarget.visit(what, start, key, value);
+    }
+
+    private int getCount() {
+      return myCount;
     }
   }
 }
