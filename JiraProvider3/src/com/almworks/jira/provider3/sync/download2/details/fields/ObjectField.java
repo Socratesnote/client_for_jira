@@ -34,7 +34,7 @@ public class ObjectField implements JsonIssueField {
   public Collection<? extends ParsedValue> loadValue(@Nullable Object jsonValue) {
     JSONObject object = Util.castNullable(JSONObject.class, jsonValue);
     if (object == null) {
-      LogHelper.error("Expected object", myFieldMap.keySet());
+      LogHelper.error("Expected object but got", LogHelper.describe(jsonValue), "for fields", myFieldMap.keySet());
       return null;
     }
     Set<String> missingKeys = mySendNulls ? Collections15.hashSet(myFieldMap.keySet()) : null;
@@ -46,7 +46,7 @@ public class ObjectField implements JsonIssueField {
       Object value = entry.getValue();
       JsonIssueField field = getField(key);
       if (field == null) continue;
-      Collection<? extends JsonIssueField.ParsedValue> values = field.loadValue(value);
+      Collection<? extends JsonIssueField.ParsedValue> values = LogHelper.withHint("FieldId=" + key, () -> field.loadValue(value));
       if (values != null) result.addAll(values);
     }
     if (missingKeys != null) {

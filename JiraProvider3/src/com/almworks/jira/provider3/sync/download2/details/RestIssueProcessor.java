@@ -53,7 +53,7 @@ public class RestIssueProcessor implements Procedure<JSONObject> {
     }
     holder.setValue(ServerIssue.KEY, key);
     DownloadStageMark.QUICK.setTo(holder);
-    JiraIssueJsonFields.loadIssue(holder, JRIssue.FIELDS.getValue(issue), myCustomSchema);
+    LogHelper.withHint("Issue=" + key, () -> JiraIssueJsonFields.loadIssue(holder, JRIssue.FIELDS.getValue(issue), myCustomSchema));
     myIssueCount++;
     if (myIssueCount >= MAX_ISSUES)
       try {

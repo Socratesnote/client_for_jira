@@ -53,9 +53,11 @@ public interface EntityParser {
       JsonKey[] scalarJson = new JsonKey[myMapping.size()];
       EntityKey[] scalarEntity = new EntityKey[myMapping.size()];
       ArrayUtil.mapToArrays(myMapping, scalarJson, scalarEntity);
+      String[] scalarHints = new String[scalarJson.length];
+      for (int i = 0; i < scalarJson.length; i++) scalarHints[i] = "JsonKey=" + scalarJson[i].getName() + " EntityKey=" + scalarEntity[i];
       List<JsonKey<JSONObject>> entityJson = Collections15.arrayList(myEntityMapping.keySet());
       ArrayList<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> entityExtractor = Collections15.arrayList(myEntityMapping.values());
-      return new Impl(scalarJson, scalarEntity, entityJson, entityExtractor, supplement, myConstSetters);
+      return new Impl(scalarJson, scalarEntity, scalarHints, entityJson, entityExtractor, supplement, myConstSetters);
     }
 
     public Convertor<Object, Entity> createPartialConvertor(final Entity type) {
@@ -137,15 +139,18 @@ public interface EntityParser {
   class Impl implements EntityParser {
     private final JsonKey[] myScalarJson;
     private final EntityKey[] myScalarEntity;
+    private final String[] myScalarHints;
     private final List<JsonKey<JSONObject>> myEntityJson;
     private final List<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> myEntityExtractors;
     @Nullable private final ValueSupplement<Entity> mySupplement;
     private final List<Procedure<Entity>> myConstSetters;
 
-    public Impl(JsonKey[] scalarJson, EntityKey[] scalarEntity, List<JsonKey<JSONObject>> entityJson, List<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> entityExtractors,
+    public Impl(JsonKey[] scalarJson, EntityKey[] scalarEntity, String[] scalarHints, List<JsonKey<JSONObject>> entityJson,
+                List<Trio<EntityKey<Entity>, Convertor<Object, Entity>, Boolean>> entityExtractors,
                 @Nullable ValueSupplement<Entity> supplement, List<Procedure<Entity>> constSetters) {
       myScalarJson = scalarJson;
       myScalarEntity = scalarEntity;
+      myScalarHints = scalarHints;
       myEntityJson = entityJson;
       myEntityExtractors = entityExtractors;
       mySupplement = supplement;
@@ -172,7 +177,7 @@ public interface EntityParser {
       for (int j = 0; j < myScalarJson.length; j++) {
         JsonKey jsonKey = myScalarJson[j];
         //noinspection unchecked
-        copyScalar(jsonKey, object, myScalarEntity[j], entity);
+        copyScalar(jsonKey, object, myScalarEntity[j], myScalarHints[j], entity);
       }
       for (int i = 0; i < myEntityJson.size(); i++) {
         JsonKey<JSONObject> jsonKey = myEntityJson.get(i);
@@ -199,8 +204,11 @@ public interface EntityParser {
       }
     }
 
-    private static <T> void copyScalar(JsonKey<T> jsonKey, JSONObject object, EntityKey<T> entityKey, Entity entity) {
-      T value = jsonKey.getValue(object);
+    private static <T> void copyScalar(JsonKey<T> jsonKey, JSONObject object, EntityKey<T> entityKey, String hint, Entity entity) {
+      // A convertor failure and an absent value both yield null from getValue() below, so copyScalar itself
+      // doesn't need to (and can't cheaply) tell them apart - if the convertor fails, its own error already
+      // fires inside this wrap and picks up the hint.
+      T value = LogHelper.withHint(hint, () -> jsonKey.getValue(object));
       if (value == null && !jsonKey.hasValue(object)) return;
       entity.put(entityKey, value);
     }

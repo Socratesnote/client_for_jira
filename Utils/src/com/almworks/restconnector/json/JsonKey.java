@@ -271,7 +271,7 @@ public class JsonKey<T> {
 
   @Override
   public String toString() {
-    return "JSONKey[" + myName + "]";
+    return "JsonKey[" + myName + "]";
   }
 
   public static JsonKey<String> text(String name) {
@@ -367,7 +367,7 @@ public class JsonKey<T> {
       if (value == null) return null;
       T text = Util.castNullable(myClass, value);
       if (text == null){
-        LogHelper.error("Expected", myClass, ", got:", value);
+        LogHelper.error("Expected", myClass.getName(), "but got", LogHelper.describe(value));
       }
       return text;
     }

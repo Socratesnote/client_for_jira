@@ -13,7 +13,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 public class LogHelper {
-  private static final ThreadLocal<List<Throwable>> invocationContext = new ThreadLocal<List<Throwable>>();
+  private static final int MAX_VALUE_CHARS = 200;
   private static final ThreadLocal<List<String>> contextHints = new ThreadLocal<>();
 
   /** @return true so that this method can be used only when assertions are on */
@@ -65,7 +65,9 @@ public class LogHelper {
     appendHint(builder);
     Throwable t = buildMessage(builder, message);
     String textMessage = builder.toString();
-    if (t == null && level.intValue() > Level.WARNING.intValue()) t = getMark(textMessage);
+    if (t == null && level.intValue() > Level.WARNING.intValue()) {
+      t = getMark();
+    }
     LogRecord record = new LogRecord(level, textMessage);
     record.setThrown(t);
     record.setSourceClassName("");
@@ -102,32 +104,12 @@ public class LogHelper {
     else builder.append(o);
   }
 
-  public static void pushContext(Throwable mark) {
-    List<Throwable> context = invocationContext.get();
-    if (context == null) {
-      context = Collections15.arrayList();
-      invocationContext.set(context);
-    }
-    context.add(mark);
-  }
-
-  public static void popContext(Throwable mark) {
-    List<Throwable> context = invocationContext.get();
-    if (context == null) return;
-    int index = context.lastIndexOf(mark);
-    if (index < 0) return;
-    while (context.size() > index) context.remove(context.size() - 1);
-    if (context.isEmpty()) invocationContext.set(null);
-  }
-
   public static Throwable getMark() {
-    return getMark("");
+    return getMark(null);
   }
 
   public static Throwable getMark(String message) {
-    final List<Throwable> context = invocationContext.get();
-    final Throwable prev = context != null && !context.isEmpty() ? context.get(context.size() - 1) : null;
-    final Throwable mark = new Throwable(message, prev);
+    final Throwable mark = new Throwable(message);
 
     final String logHelper = LogHelper.class.getName();
     final StackTraceElement[] trace = mark.getStackTrace();
@@ -163,5 +145,26 @@ public class LogHelper {
     } finally {
       while (hints.size() > initialSize) hints.remove(hints.size() - 1);
     }
+  }
+
+  /**
+   * Same as {@link #withHint(String, Supplier)} for operations with no result.
+   */
+  public static void withHint(String hint, Runnable operation) {
+    withHint(hint, () -> {
+      operation.run();
+      return null;
+    });
+  }
+
+  /**
+   * Renders a value for a log message: its class plus a bounded excerpt of its toString(), so a large JSON
+   * object doesn't dump its entire content into the log.
+   */
+  public static String describe(@Nullable Object value) {
+    if (value == null) return "<null>";
+    String text = String.valueOf(value);
+    if (text.length() > MAX_VALUE_CHARS) text = text.substring(0, MAX_VALUE_CHARS) + "…(" + text.length() + " chars)";
+    return value.getClass().getName() + ": " + text;
   }
 }
