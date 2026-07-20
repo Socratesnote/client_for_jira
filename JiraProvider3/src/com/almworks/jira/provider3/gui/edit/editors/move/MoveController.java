@@ -42,10 +42,13 @@ public class MoveController {
   private IssueTypeEditor myTypeEditor;
   private ParentEditor myParentEditor;
   private int myDefaultMode;
+  /** True if every edited issue is generic (by its issue type's subtask flag). Drives the project editor. */
+  private final boolean myAllGeneric;
 
-  private MoveController(ParentSupport parentSupport, int defaultMode) {
+  private MoveController(ParentSupport parentSupport, int defaultMode, boolean allGeneric) {
     myParentSupport = parentSupport;
     myDefaultMode = defaultMode;
+    myAllGeneric = allGeneric;
   }
 
   @NotNull
@@ -54,14 +57,19 @@ public class MoveController {
     if (controller == null) {
       ParentSupport parentSupport = ParentSupport.ensureLoaded(source, model);
       int defaultMode;
+      boolean allGeneric;
       if (!model.isNewItem()) {
-        if (parentSupport.isGenericOnly()) defaultMode = MODE_GENERIC;
-        else if (parentSupport.isSubtaskOnly()) defaultMode = MODE_SUBTASK;
-        else defaultMode = MODE_DISABLED;
+        // Classify by the issue type's own subtask flag, not by parent presence: on Jira Cloud a standard
+        // issue can have a parent (an Epic), so parent-presence no longer implies subtask.
+        Boolean allSubtasks = classifyBySubtaskFlag(source, model);
+        if (allSubtasks == null) defaultMode = MODE_DISABLED; // mixed selection, or issue-type meta not loaded yet
+        else defaultMode = allSubtasks ? MODE_SUBTASK : MODE_GENERIC;
+        allGeneric = Boolean.FALSE.equals(allSubtasks);
       } else {
-        defaultMode = parentSupport.isGenericOnly() ? MODE_GENERIC : MODE_SUBTASK;
+        allGeneric = parentSupport.isGenericOnly();
+        defaultMode = allGeneric ? MODE_GENERIC : MODE_SUBTASK;
       }
-      controller = new MoveController(parentSupport, defaultMode);
+      controller = new MoveController(parentSupport, defaultMode, allGeneric);
       model.putHint(KEY, controller);
     }
     return controller;
@@ -70,6 +78,29 @@ public class MoveController {
   @Nullable("If not installed")
   public static MoveController getInstance(EditModelState model) {
     return model.getValue(KEY);
+  }
+
+  /**
+   * Classifies the edited issues by their issue type's {@link IssueType#SUBTASK subtask} flag.
+   * @return {@code true} if every edited issue's type is a subtask, {@code false} if every one is generic,
+   *   {@code null} if the selection mixes both or the flag is not loaded (issue-type meta not synced yet).
+   */
+  @Nullable
+  public static Boolean classifyBySubtaskFlag(VersionSource source, EditModelState model) {
+    List<ItemVersion> issues = source.readItems(model.getEditingItems());
+    Boolean hasSubtasks = null;
+    Boolean hasGeneric = null;
+    for (ItemVersion issue : issues) {
+      Boolean subtask = IssueType.getSubtask(issue.getReader(), issue.getValue(Issue.ISSUE_TYPE));
+      if (subtask == null) continue;
+      boolean isGeneric = !subtask;
+      hasSubtasks = changeFlag(hasSubtasks, subtask, isGeneric);
+      hasGeneric = changeFlag(hasGeneric, isGeneric, subtask);
+    }
+    if (hasSubtasks == null) return hasGeneric != null ? !hasGeneric : null;
+    if (hasGeneric == null) return hasSubtasks;
+    if (hasSubtasks) return hasGeneric ? null : true;
+    return hasGeneric ? false : null;
   }
 
   public static void setNewSubtaskParent(EditModelState model, long parent) {
@@ -94,7 +125,7 @@ public class MoveController {
   }
 
   public boolean isGenericOnly() {
-    return myParentSupport.isGenericOnly();
+    return myAllGeneric;
   }
 
   void setProjectEditor(ProjectEditor projectEditor) {
@@ -153,23 +184,16 @@ public class MoveController {
     if (type == null) throw new CancelCommitException();
     if (commitEditors.contains(myParentEditor)) { // Parent has been changed
       long parent = myParentEditor.getSingleParent(model, context.getReader(), issue);
-      if (!IssueType.isSubtask(type, parent > 0)) throw new CancelCommitException();
+      // Allowed combinations: generic+no-parent, subtask+parent, generic+parent (Epic). Only a subtask with no
+      // parent is invalid.
+      if (Boolean.TRUE.equals(type.getValue(IssueType.SUBTASK)) && parent <= 0) throw new CancelCommitException();
       if (parent > 0) context.getCreator().setValue(Issue.PARENT, parent);
       else context.getCreator().setValue(Issue.PARENT, (Long) null);
       context.getCreator().setValue(Issue.ISSUE_TYPE, type.getItem());
-    } else { // Parent has not been changed
-      Long parent = issue.getValue(Issue.PARENT);
-      Boolean subtask = type.getValue(IssueType.SUBTASK);
-      if (subtask == null) {
-        LogHelper.warning("Missing subtask flag", type.getValue(IssueType.NAME), type);
-        subtask = false;
-      }
-      if (!subtask) parent = null;
-      else if (parent == null) {
-        LogHelper.warning("Parent not specified");
-        throw new CancelCommitException();
-      }
-      context.getCreator().setValue(Issue.PARENT, parent);
+    } else { // Parent editor not in commit set => user did NOT change the parent
+      // Never touch Issue.PARENT here. It may hold a legitimate Epic parent (Jira Cloud sets fields.parent for
+      // any hierarchy parent, not just subtasks), and this branch runs on every ordinary edit - nulling it would
+      // silently drop the Epic link. Only the (possibly changed) type is written.
       context.getCreator().setValue(Issue.ISSUE_TYPE, type.getItem());
     }
     if (project != null) context.getCreator().setValue(Issue.PROJECT, project.getItem());
@@ -201,12 +225,13 @@ public class MoveController {
     if (type == null) throw new CancelCommitException();
     long parent = myParentEditor.getSingleParent(model, context.getReader(), null);
     if (parent > 0) {
+      // A parent is allowed for a subtask or for a generic issue under an Epic; both inherit the parent's project.
       project = context.readTrunk(parent).readValue(Issue.PROJECT);
-      if (project == null || !IssueType.isSubtask(type, true)) throw new CancelCommitException();
+      if (project == null) throw new CancelCommitException();
       context.getCreator().setValue(Issue.PARENT, parent);
     } else {
       if (project == null) throw new CancelCommitException();
-      if (!IssueType.isSubtask(type, false)) throw new CancelCommitException();
+      if (Boolean.TRUE.equals(type.getValue(IssueType.SUBTASK))) throw new CancelCommitException(); // a subtask needs a parent
     }
     context.getCreator().setValue(Issue.ISSUE_TYPE, type.getItem());
     context.getCreator().setValue(Issue.PROJECT, project.getItem());

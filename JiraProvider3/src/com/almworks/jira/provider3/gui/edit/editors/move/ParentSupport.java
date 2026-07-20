@@ -31,13 +31,14 @@ public class ParentSupport {
 
   public static long getParentIssue(EditModelState model) {
     LogHelper.assertError(model.isNewItem());
-    return Util.NN(model.getValue(PARENT_ISSUE), 0l);
+    return Util.NN(model.getValue(PARENT_ISSUE), 0L);
   }
 
   public static void copyParent(EditItemModel source, EditItemModel target) {
     target.putHint(PARENT_ISSUE, source.getValue(PARENT_ISSUE));
   }
 
+  //TODO: Support "Move item" to assign new parents.
   @NotNull
   public static ParentSupport ensureLoaded(VersionSource source, EditModelState model) {
     ParentSupport parentSupport = model.getValue(KEY);

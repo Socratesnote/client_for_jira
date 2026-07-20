@@ -68,7 +68,7 @@ class IssueTypeEditor extends SingleEnumDelegatingEditor<DropdownEnumEditor> {
     controller.setTypeEditor(this);
     super.prepareWrapper(source, wrapper, editPrepare);
     if (myParentEditor == null) return;
-    Boolean allSubtasks = areAllSubtasks(source, unwrappedModel);
+    Boolean allSubtasks = MoveController.classifyBySubtaskFlag(source, unwrappedModel);
     boolean editParent;
     if (allSubtasks == null) editParent = true;
     else if (!allSubtasks) {
@@ -107,23 +107,6 @@ class IssueTypeEditor extends SingleEnumDelegatingEditor<DropdownEnumEditor> {
     List<ItemVersion> issues = source.readItems(model.getEditingItems());
     for (ItemVersion issue : issues) if (!Issue.getSubtasks(issue).isEmpty()) return true;
     return false;
-  }
-
-  private static Boolean areAllSubtasks(VersionSource source, EditItemModel model) {
-    List<ItemVersion> issues = source.readItems(model.getEditingItems());
-    Boolean hasSubtasks = null;
-    Boolean hasGeneric = null;
-    for (ItemVersion issue : issues) {
-      Boolean subtask = IssueType.getSubtask(issue.getReader(), issue.getValue(Issue.ISSUE_TYPE));
-      if (subtask == null) continue;
-      boolean isGeneric = !subtask;
-      hasSubtasks = MoveController.changeFlag(hasSubtasks, subtask, isGeneric);
-      hasGeneric = MoveController.changeFlag(hasGeneric, isGeneric, subtask);
-    }
-    if (hasSubtasks == null) return hasGeneric != null ? !hasGeneric : null;
-    if (hasGeneric == null) return hasSubtasks;
-    if (hasSubtasks) return hasGeneric ? null : true;
-    return hasGeneric ? false : null;
   }
 
   @NotNull
