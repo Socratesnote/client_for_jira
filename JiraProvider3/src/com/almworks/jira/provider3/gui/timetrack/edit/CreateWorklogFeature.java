@@ -90,7 +90,7 @@ public class CreateWorklogFeature extends TopEditor {
     descriptor.addCommonActions(EditDescriptor.COMMON_ACTIONS);
     descriptor.setContextKey(JiraEditUtils.getContextKey(this, context));
     descriptor.setDescriptionStrings(
-      "Log Work",
+      "New Work Log",
       "New work log was saved in the local database.",
       "Save work log in the local database without uploading to server",
       "Save work log and upload it to server");

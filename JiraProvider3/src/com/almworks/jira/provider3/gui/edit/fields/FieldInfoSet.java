@@ -66,7 +66,9 @@ public class FieldInfoSet {
 
   @Nullable
   public Pair<NameMnemonic, Boolean> getInfo(String fieldId) {
-    for (Map.Entry<ResolvedField, Pair<NameMnemonic, Boolean>> entry : myFields.entrySet()) if (entry.getKey().getJiraId().equals(fieldId)) return entry.getValue();
+    for (Map.Entry<ResolvedField, Pair<NameMnemonic, Boolean>> entry : myFields.entrySet())
+      if (entry.getKey().getJiraId().equals(fieldId))
+        return entry.getValue();
     return null;
   }
 

@@ -369,7 +369,7 @@ public abstract class DateUnit {
 
   public static class AbsoluteDate extends DateValue {
     private final Date myDate;
-    public static final DateFormat USER_FORMAT = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+    public static final DateFormat USER_FORMAT = DateUtil.LOCAL_DATE;
 
     public AbsoluteDate(Date date) {
       myDate = date;

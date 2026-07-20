@@ -144,8 +144,9 @@ public abstract class BaseSingleEnumEditor extends BaseFieldEditor implements Si
       if (item <= 0) return;
     }
     List<ItemKey> invalids = myDecoratedItems.selectInvalid(model, Collections.singleton(value));
-    if (invalids.isEmpty()) return;
-    verifyContext.addError(this, invalids.get(0).getDisplayName() + " is not allowed");
+    if (!invalids.isEmpty()) {
+      verifyContext.addError(this, invalids.get(0).getDisplayName() + " is not allowed");
+    }
   }
 
   protected ItemKey getInitialItem(EditModelState editModel, AListModel<? extends ItemKey> listModel) {

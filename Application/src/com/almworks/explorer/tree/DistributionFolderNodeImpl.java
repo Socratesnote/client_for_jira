@@ -777,7 +777,6 @@ public class DistributionFolderNodeImpl extends GenericNodeImpl implements Distr
     }
 
     private boolean resolveAttribute() {
-      // todo resolve grouping
       ConstraintDescriptor descriptor = myDescriptor;
       NameResolver resolver = myNode.getResolver();
       boolean resolved = false;

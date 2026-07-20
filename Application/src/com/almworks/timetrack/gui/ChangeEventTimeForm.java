@@ -20,15 +20,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
 public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
-    private static final DateFormat FULL_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-
     private JSlider mySlider;
     private JPanel myWholePanel;
     private DesignPlaceHolder myTimePlace;

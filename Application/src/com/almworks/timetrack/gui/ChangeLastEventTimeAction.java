@@ -23,14 +23,10 @@ import org.almworks.util.Util;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.text.DateFormat;
 import java.util.List;
 import java.util.*;
 
 class ChangeLastEventTimeAction extends SimpleAction {
-  private static final DateFormat TIME_FORMAT = DateFormat.getTimeInstance(DateFormat.SHORT);
-  private static final DateFormat DATE_FORMAT = DateFormat.getDateInstance(DateFormat.SHORT);
-
   ChangeLastEventTimeAction() {
     super("Work stopped");
     watchRole(TimeTracker.TIME_TRACKER);
@@ -80,7 +76,7 @@ class ChangeLastEventTimeAction extends SimpleAction {
     if (time != 0) {
       name.append(" at ");
       final Date d = new Date(time);
-      name.append(TIME_FORMAT.format(d));
+      name.append(DateUtil.LOCAL_TIME.format(d));
 
       final TimeZone tz = TimeZone.getDefault();
       final long nowDay = DateUtil.toDayStart(System.currentTimeMillis(), tz);
@@ -90,7 +86,7 @@ class ChangeLastEventTimeAction extends SimpleAction {
         if (nowDay - thenDay == Const.DAY) {
           name.append(" yesterday");
         } else {
-          name.append(' ').append(DATE_FORMAT.format(d));
+          name.append(' ').append(DateUtil.LOCAL_DATE.format(d));
         }
       }
     }

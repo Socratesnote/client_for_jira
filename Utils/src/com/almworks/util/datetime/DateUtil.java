@@ -24,8 +24,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DateUtil {
-  public static final CustomDateFormat _LOCAL_TIME = new CustomDateFormat(DateFormat.getTimeInstance(DateFormat.SHORT), "alm.format.time");
-  public static final CustomDateFormat _LOCAL_DATE = new CustomDateFormat(DateFormat.getDateInstance(DateFormat.SHORT), "alm.format.date");
+  /** System property overriding {@link #LOCAL_DATE}'s pattern (see {@link CustomDateFormat}). */
+  public static final String PROP_DATE_FORMAT = "alm.format.date";
+  /** System property overriding {@link #LOCAL_TIME}'s pattern (see {@link CustomDateFormat}). */
+  public static final String PROP_TIME_FORMAT = "alm.format.time";
+
+  public static final CustomDateFormat _LOCAL_TIME = new CustomDateFormat(DateFormat.getTimeInstance(DateFormat.SHORT), PROP_TIME_FORMAT);
+  public static final CustomDateFormat _LOCAL_DATE = new CustomDateFormat(DateFormat.getDateInstance(DateFormat.SHORT), PROP_DATE_FORMAT);
   // specifically locale-dependent formats
   public static final DateFormat LOCAL_TIME = _LOCAL_TIME;
   public static final DateFormat LOCAL_DATE = _LOCAL_DATE;

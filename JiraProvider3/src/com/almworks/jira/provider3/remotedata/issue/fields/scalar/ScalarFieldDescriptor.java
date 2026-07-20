@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 
-@SuppressWarnings("TypeParameterExplicitlyExtendsObject")
 public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
   private static final Convertor<BigDecimal, String> DISPLAY_DECIMAL = new Convertor<BigDecimal, String>() {
     private final DecimalFormat myFormat;

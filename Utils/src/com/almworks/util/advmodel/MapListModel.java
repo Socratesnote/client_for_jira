@@ -81,7 +81,11 @@ public class MapListModel<T, I> extends AbstractAListModel<T> {
           I key = myConvertor.convert(element);
           if (key != null) {
             T expunged = myMapping.put(key, element);
-            if (expunged != null) Log.warn("LMMC: " + key + " " + element + " " + expunged);
+            if (expunged != null) {
+              if (!expunged.equals(element)) {
+              Log.warn("LMMC: put " + element + " at " + key + " replacing " + expunged);
+              }
+            }
           }
         }
       }

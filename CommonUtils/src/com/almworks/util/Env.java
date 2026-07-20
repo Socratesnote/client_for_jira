@@ -72,14 +72,14 @@ public class Env {
     if (myOS == 0) {
       String osname = Util.NN(getString("os.name"));
       String upper = Util.upper(osname);
-      if (upper.indexOf("WINDOWS") >= 0) {
+      if (upper.contains("WINDOWS")) {
         myOS = OS_WINDOWS;
-      } else if (upper.indexOf("MAC OS X") >= 0) {
+      } else if (upper.contains("MAC OS X")) {
         myOS = OS_MAC;
-      } else if (upper.indexOf("MAC") >= 0) {
+      } else if (upper.contains("MAC")) {
         Log.warn("is it Mac OS, not Mac OS X?");
         myOS = OS_MAC;
-      } else if (upper.indexOf("LINUX") >= 0) {
+      } else if (upper.contains("LINUX")) {
         myOS = OS_LINUX;
       } else {
         Log.warn("probably unsupported operating system: " + osname);
@@ -149,7 +149,7 @@ public class Env {
 
   /**
    * Is needed to work around some bugs, i.e. bad behaviour of JFileChooser with A:
-   * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4089199
+   * <a href="https://bugs.java.com/bugdatabase/JDK-4089199">...</a>
    */
   public static boolean isWindows2000orEarlier() {
     if (!isWindows())
