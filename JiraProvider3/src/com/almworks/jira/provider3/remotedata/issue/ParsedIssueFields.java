@@ -59,7 +59,7 @@ public class ParsedIssueFields {
   }
 
   public static RestResponse restGetEditMeta(RestSession session, int issueId) throws ConnectorException {
-    return session.restGet(String.format("api/2/issue/%s/editmeta", issueId), RequestPolicy.SAFE_TO_RETRY);
+    return session.restGet(String.format(ParsedIssueFields.PATH_ISSUE + "%s/editmeta", issueId), RequestPolicy.SAFE_TO_RETRY);
   }
 
   public static ParsedIssueFields loadTransitionMeta(RestSession session, int issueId, final int actionId) throws ConnectorException {
@@ -94,7 +94,7 @@ public class ParsedIssueFields {
     }
     ParsedIssueFields fields = cache.get(loadedKey);
     if (fields == null) {
-      RestResponse response = session.restGet("api/2/issue/createmeta?projectIds=" + projectId + "&issuetypeIds=" + typeId + "&expand=projects.issuetypes.fields.", RequestPolicy.SAFE_TO_RETRY);
+      RestResponse response = session.restGet(ParsedIssueFields.PATH_ISSUE + "createmeta?projectIds=" + projectId + "&issuetypeIds=" + typeId + "&expand=projects.issuetypes.fields.", RequestPolicy.SAFE_TO_RETRY);
       response.ensureSuccessful();
       fields = new ParsedIssueFields();
       response.parseJSON(new PeekObjectEntry("fields", 8, PeekEntryValue.objectValue(new ParseFields(fields))).getUpLink());

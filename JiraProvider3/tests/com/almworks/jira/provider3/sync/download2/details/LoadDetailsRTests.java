@@ -33,7 +33,6 @@ public class LoadDetailsRTests extends BaseTestCase {
     }
   }
 
-  // https://pdyoma.atlassian.net/rest/api/2/issue/TP-1?expand=operations%2Ctransitions%2Cschema
   public void testNewCloudUsers() throws IOException, ParseException {
     runTest("newCloudUsers.json", "newCloudUsers.json.txt");
   }

@@ -85,6 +85,7 @@ public class IssuePermissions {
   private static final Map<String, Integer> GLOBAL_PERMISSIONS;
   private static final Map<String, Integer> KNOW_PERMISSIONS;
   private static final String PATH_ISSUE = "api/3/issue/";
+  private static final String PATH_MYPERMISSIONS = "api/3/mypermissions";
 
   static {
     // Permissions were renamed in JIRA 6.4-OD-05-008 (build number 64003 on 10 Sep 2014)
@@ -199,7 +200,7 @@ public class IssuePermissions {
 
   @Nullable("When error occurred")
   private Collection<String> loadPermissions(RestSession session, String args, Collection<String> queryPermissions) {
-    StringBuilder path = new StringBuilder("api/2/mypermissions?");
+    StringBuilder path = new StringBuilder(PATH_MYPERMISSIONS + "?");
     if (args != null && args.length() > 0)
       path.append(args).append("&");
     path
