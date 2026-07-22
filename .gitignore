@@ -2,3 +2,5 @@ build/
 build.idea/
 ant/generated.xml
 TestArea/*
+CLAUDE.md
+AGENTS.md

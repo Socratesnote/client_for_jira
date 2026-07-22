@@ -236,8 +236,13 @@ class DistributionQueryNodeImpl extends AbstractQueryNode implements Distributio
     Object resolved = getItems();
     if (resolved != null) {
       String displayName = null;
-      if (resolved instanceof ItemKey) {
+      if (resolved instanceof ResolvedItem) {
         displayName = ((ItemKey) resolved).getDisplayName();
+      } else if (resolved instanceof ItemKey) {
+        // Unresolved fallback: getItems() returned the bare ItemKeyStub because the enum model has not loaded
+        // this value yet, so its display name is only the raw id (e.g. "-1"). Do not overwrite or cache the
+        // good name with the raw id - updateName runs again once the value resolves.
+        return;
       } else if (resolved instanceof List) {
         Set<String> allNames = null;
         for (ItemKey artifact : (List<ItemKey>) resolved) {
