@@ -42,7 +42,6 @@ public class JqlQuery {
   @NotNull
   public String getJqlText() {
     // Initialize with last text.
-    //TODO: But doesn't this effectively lock the JQL text once a change has been made? And isn't it limited to only the SimpleConstant version?
     String jqlText = myText;
     if (jqlText == null || jqlText.isEmpty()) {
       jqlText = myJqlConstraint == null ? null : createJqlText(myJqlConstraint);

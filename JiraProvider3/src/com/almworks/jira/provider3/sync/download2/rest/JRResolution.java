@@ -4,17 +4,12 @@ import com.almworks.items.entities.api.Entity;
 import com.almworks.jira.provider3.sync.download2.details.fields.ValueSupplement;
 import com.almworks.jira.provider3.sync.schema.ServerResolution;
 import com.almworks.restconnector.json.JsonKey;
-import com.almworks.restconnector.json.SelfIdExtractor;
-import com.almworks.util.collections.Convertor;
 import org.almworks.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 public class JRResolution {
-  // Jira Cloud returns the resolution "self" URL against api/2 even under v3, so match the id version-agnostically.
-  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/resolution/");
-
-  public static final JsonKey<Integer> ID = new JsonKey<Integer>("self", ID_EXTRACTOR);
+  public static final JsonKey<Integer> ID = JsonKey.integer("id");
   public static final JsonKey<String> NAME = JsonKey.text("name");
   public static final JsonKey<String> ICON = JsonKey.text("iconUrl");
   public static final JsonKey<String> DESCRIPTION = JsonKey.text("description");

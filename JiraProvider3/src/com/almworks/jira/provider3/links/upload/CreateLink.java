@@ -28,7 +28,8 @@ import java.util.regex.Pattern;
 
 class CreateLink implements UploadUnit {
   private static final String PATH_ISSUELINK = "api/3/issueLink/";
-  private static final Pattern LOCATION = Pattern.compile("/rest/" + PATH_ISSUELINK + "(\\d+)$");
+  // Match the id version-agnostically: Jira Cloud may return the Location against api/2 even when posting to api/3.
+  private static final Pattern LOCATION = Pattern.compile("/issueLink/(\\d+)$");
   private static final LocalizedAccessor.Value P_NOT_CONFIRMED_SHORT = JiraLinks.I18N.getFactory("upload.create.notConfirmed.short");
   private final LinkInfo myLinkInfo;
   private Integer myLinkId;
