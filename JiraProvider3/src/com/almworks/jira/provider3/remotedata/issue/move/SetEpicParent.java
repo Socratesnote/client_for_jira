@@ -47,19 +47,23 @@ class SetEpicParent extends BaseHistoryUnit {
     throws ConnectorException, UploadProblem.Thrown {
     Integer parentId = myNewParent.getIssueId();
     if (parentId == null) return UploadProblem.notNow("Parent not submitted yet " + myNewParent).toCollection();
-    JSONObject fields = new JSONObject();
-    //noinspection unchecked
-    fields.put(ServerFields.PARENT.getJiraId(), UploadJsonUtil.object("id", parentId.toString()));
-    JSONObject edit = new JSONObject();
-    //noinspection unchecked
-    edit.put("fields", fields);
-    RestResponse response = session.restPut(PATH_ISSUE + issueId, edit, RequestPolicy.NEEDS_LOGIN);
+    RestResponse response = session.restPut(PATH_ISSUE + issueId, createRequest(parentId), RequestPolicy.NEEDS_LOGIN);
     if (response.isSuccessful()) {
       markSuccess();
       return null;
     }
     LogHelper.warning("Set Epic parent failed", issueId, parentId, response.getStatusCode());
     return UploadProblem.fatal(M_FAILED_SHORT.create(), M_FAILED_FULL.create()).toCollection();
+  }
+
+  /** Builds the field-update request body: {@code {"fields":{"parent":{"id":"<parentId>"}}}}. Package-visible for tests. */
+  @SuppressWarnings("unchecked")
+  static JSONObject createRequest(int parentId) {
+    JSONObject fields = new JSONObject();
+    fields.put(ServerFields.PARENT.getJiraId(), UploadJsonUtil.object("id", Integer.toString(parentId)));
+    JSONObject edit = new JSONObject();
+    edit.put("fields", fields);
+    return edit;
   }
 
   @Override

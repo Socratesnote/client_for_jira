@@ -12,6 +12,7 @@ import com.almworks.items.sync.util.ItemValues;
 import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.util.text.NameMnemonic;
 import com.almworks.util.text.TextUtil;
+import com.almworks.util.ui.InlineLayout;
 import gnu.trove.TLongObjectHashMap;
 import org.almworks.util.Collections15;
 import org.almworks.util.TypedKey;
@@ -40,30 +41,39 @@ class ReadonlyParentEditor implements ParentEditor {
   @Override
   @NotNull
   public NameMnemonic getLabelText(EditModelState model) {
-    List<ParentInfo> parents = model.getValue(PARENTS);
-    if (parents == null || parents.isEmpty()) return NameMnemonic.rawText("Parent");
-    if (parents.size() == 1) return NameMnemonic.rawText("Parent " + parents.get(0).getKey());
-    return NameMnemonic.rawText("Parents");
+    return NameMnemonic.rawText("Parent");
   }
 
   @NotNull
   @Override
   public List<? extends ComponentControl> createComponents(Lifespan life, EditItemModel model) {
+    // Always show the Parent row (blank when the issue has no parent), with the key and the summary as two
+    // separate read-only fields on one line: "Parent: <KEY> <Summary>".
     List<ParentInfo> parents = model.getValue(PARENTS);
-    if (parents == null || parents.isEmpty()) return Collections.emptyList();
-    JTextField field = new JTextField();
-    if (parents.size() == 1) field.setText(Util.NN(parents.get(0).getSummary()));
-    else {
-      Set<String> keySet = Collections15.hashSet();
-      for (ParentInfo parent : parents) keySet.add(parent.getKey());
-      ArrayList<String> keys = Collections15.arrayList(keySet);
-      Collections.sort(keys);
-      field.setText(TextUtil.separate(keys, " "));
+    JTextField keyField = new JTextField(10);
+    JTextField summaryField = new JTextField();
+    if (parents != null && !parents.isEmpty()) {
+      if (parents.size() == 1) {
+        keyField.setText(parents.get(0).getKey());
+        summaryField.setText(Util.NN(parents.get(0).getSummary()));
+      } else {
+        Set<String> keySet = Collections15.hashSet();
+        for (ParentInfo parent : parents) keySet.add(parent.getKey());
+        ArrayList<String> keys = Collections15.arrayList(keySet);
+        Collections.sort(keys);
+        keyField.setText(TextUtil.separate(keys, " "));
+      }
     }
-    field.setEditable(false);
-    field.setTransferHandler(PrimaryItemKeyTransferHandler.getInstance(true));
-    FieldEditorUtil.registerComponent(model, this, field);
-    return SimpleComponentControl.singleLine(field, this, model, ComponentControl.Enabled.NOT_APPLICABLE).singleton();
+    keyField.setEditable(false);
+    summaryField.setEditable(false);
+    keyField.setTransferHandler(PrimaryItemKeyTransferHandler.getInstance(true));
+    InlineLayout layout = InlineLayout.horizontal(5);
+    layout.setLastTakesAllSpace(true);
+    JPanel panel = new JPanel(layout);
+    panel.add(keyField);
+    panel.add(summaryField);
+    FieldEditorUtil.registerComponent(model, this, keyField);
+    return SimpleComponentControl.singleLine(panel, this, model, ComponentControl.Enabled.NOT_APPLICABLE).singleton();
   }
 
   @Override

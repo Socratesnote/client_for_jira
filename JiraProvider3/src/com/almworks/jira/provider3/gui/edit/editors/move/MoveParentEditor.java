@@ -50,6 +50,9 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
 
   @Override
   public void prepareModel(VersionSource source, EditItemModel model, EditPrepare editPrepare) {
+    // Register with the controller so this standalone field participates in commit (the Issue Type editor no
+    // longer embeds the parent).
+    MoveController.ensureLoaded(source, model).setParentEditor(this);
     ParentSupport parents = ParentSupport.ensureLoaded(source, model);
     boolean hasNew = false;
     List<String> keys = Collections15.arrayList();
@@ -100,6 +103,9 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
 
   @Nullable
   public ComponentControl createComponent(Lifespan life, EditItemModel model) {
+    //TODO: Offer completion of valid issue keys/summaries in the field's common project as the user types,
+    // driven by a local DB query (Issue.KEY prefix within the model's connection+project, like resolveParent),
+    // so the user doesn't have to type a parent key blind. No server round-trip needed for synced issues.
     JTextField field = new JTextField(15);
     return attachComponent(life, model, field);
   }

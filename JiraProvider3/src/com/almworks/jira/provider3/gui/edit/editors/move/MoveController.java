@@ -14,6 +14,7 @@ import com.almworks.util.LogHelper;
 import com.almworks.util.collections.LongSet;
 import com.almworks.util.commons.Condition;
 import com.almworks.util.commons.Procedure;
+import com.almworks.util.text.NameMnemonic;
 import org.almworks.util.TypedKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +29,8 @@ public class MoveController {
   public static final FieldEditor COMMON_ISSUE_TYPE = new IssueTypeEditor(false);
   public static final FieldEditor MOVE_ISSUE_TYPE = new IssueTypeEditor(true);
   public static final FieldEditor PARENT = new ReadonlyParentEditor();
+  /** Editable Parent field for the Move/Convert dialog (always visible, non-mandatory). */
+  public static final FieldEditor MOVE_PARENT = new MoveParentEditor(NameMnemonic.rawText("Parent"));
 
   public static final int MODE_ALL = 0;
   public static final int MODE_SUBTASK = 1;

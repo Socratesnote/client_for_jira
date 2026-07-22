@@ -36,10 +36,12 @@ public class MoveIssueFeature extends BaseEditIssueFeature {
     EditorsScheme scheme = new EditorsScheme(BaseEditIssueFeature.SCHEME)
       .addEditor(ServerFields.STATUS, EditMetaSchema.STATUS)
       .addEditor(ServerFields.ISSUE_TYPE, MoveController.MOVE_ISSUE_TYPE)
+      .addEditor(ServerFields.PARENT, MoveController.MOVE_PARENT)
       .fix();
     ScreenBuilder builder = new ScreenBuilder(scheme);
     builder.addField(ServerFields.PROJECT);
     builder.addField(ServerFields.ISSUE_TYPE);
+    builder.addField(ServerFields.PARENT);
     builder.addMockEditor(ComponentHolder.createVerticalSpacer(0));
     builder.addMockEditor(hintMessage);
     builder.addMockEditor(ComponentHolder.createVerticalSpacer(0));

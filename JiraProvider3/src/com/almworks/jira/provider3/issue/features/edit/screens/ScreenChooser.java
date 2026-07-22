@@ -86,7 +86,7 @@ public class ScreenChooser implements ScreenSet {
     return chooser.attach(life, controller, config, myCreate);
   }
 
-  private static final List<ServerFields.Field> TOP_FIELDS = Collections15.unmodifiableListCopy(ServerFields.PARENT, ServerFields.PROJECT, ServerFields.ISSUE_TYPE);
+  private static final List<ServerFields.Field> TOP_FIELDS = Collections15.unmodifiableListCopy(ServerFields.PROJECT, ServerFields.ISSUE_TYPE);
   private static final List<ServerFields.Field> BOTTOM_FIELDS = Collections15.unmodifiableListCopy(ServerFields.LINKS, ServerFields.ATTACHMENT);
   private void setupController(ScreenController controller) {
     controller.setTopFields(TOP_FIELDS);

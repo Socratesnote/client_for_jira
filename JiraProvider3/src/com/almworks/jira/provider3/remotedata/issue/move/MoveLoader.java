@@ -83,9 +83,11 @@ public class MoveLoader implements StepLoader {
     if (typeChanged || projectChanged) // combined type/project + Epic-parent change: do them as separate edits
       throw UploadUnit.CantUploadException.create("Cannot change the type/project and the Epic parent in one step");
     if (newParent == null) {
-      //TODO: Support clearing an Epic parent. Needs a Cloud-verified remove payload ("parent":null is not reliably
-      // honored; an {"update":{"parent":[{"remove":...}]}} form may be required). Revisit.
-      throw UploadUnit.CantUploadException.create("Removing an Epic parent is not supported yet");
+      //TODO: Support clearing a parent. Needs a Cloud-verified remove payload ("parent":null is not reliably
+      // honored; an {"update":{"parent":[{"remove":...}]}} form may be required). This also covers emptying the
+      // Parent field in the Move/Convert dialog to detach an issue. Revisit.
+      LogHelper.warning("Clearing a parent is not supported yet", trunk, prevParentItem);
+      throw UploadUnit.CantUploadException.create("Removing a parent is not supported yet");
     }
     return new SetEpicParent(create, prevStep, stepIndex, newParent);
   }

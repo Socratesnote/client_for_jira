@@ -130,14 +130,37 @@ public class ScreenController {
     MultiTabLayout layout = new MultiTabLayout();
     for (ServerFields.Field field : myTopFields) layout.addTop(field.getJiraId());
     for (ServerFields.Field field : myBottomFields) layout.addBottom(field.getJiraId());
-    for (IssueScreen.Tab tab : myFilter.filter(getCurrentTabs())) {
+    List<IssueScreen.Tab> tabs = myFilter.filter(getCurrentTabs());
+    String parentId = ServerFields.PARENT.getJiraId();
+    String summaryId = ServerFields.SUMMARY.getJiraId();
+    // Render Parent right after Summary (as the 4th field: Project, Type, Summary, Parent) when it has an editor
+    // and is not already placed by the screen itself or as a top field.
+    boolean placeParentAfterSummary = myEditors.getEditor(parentId) != null
+      && !containsField(myTopFields, parentId) && !tabsContainField(tabs, parentId);
+    for (IssueScreen.Tab tab : tabs) {
       ArrayList<String> fieldIds = Collections15.arrayList();
       for (String fieldId : tab.getFieldIds()) {
         if (myEditors.getEditor(fieldId) != null) fieldIds.add(fieldId);
+        if (placeParentAfterSummary && summaryId.equals(fieldId)) {
+          fieldIds.add(parentId);
+          placeParentAfterSummary = false;
+        }
       }
       layout.addTab(tab.getName(), fieldIds);
     }
+    // Fallback: if Summary wasn't on the screen, keep Parent visible by placing it at the top.
+    if (placeParentAfterSummary) layout.addTop(parentId);
     return layout;
+  }
+
+  private static boolean containsField(List<ServerFields.Field> fields, String id) {
+    for (ServerFields.Field field : fields) if (id.equals(field.getJiraId())) return true;
+    return false;
+  }
+
+  private static boolean tabsContainField(List<IssueScreen.Tab> tabs, String id) {
+    for (IssueScreen.Tab tab : tabs) if (tab.getFieldIds().contains(id)) return true;
+    return false;
   }
 
   public List<IssueScreen.Tab> getCurrentTabs() {
