@@ -96,7 +96,7 @@ class MouseEventDataImpl implements MouseEventData {
     case MouseEvent.MOUSE_WHEEL: name = "Wheel"; break;
     default: name = "Unk" + id;
     }
-    return "Mouse" + id + "@" + myX + "x" + myY + (button.length() > 0 ? "(" + myButton + ")" : "");
+    return "Mouse" + id + "@" + myX + "x" + myY + (!button.isEmpty() ? "(" + myButton + ")" : "");
   }
 
   void setX(int x) {

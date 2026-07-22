@@ -43,9 +43,9 @@ class LoadCommentVisibility {
    * not empty list of groups if groups are allowed for comment visibility
    */
   public static List<String> loadCommentVisibilityGroups(RestSession session) throws ConnectorException {
-    /*
-    To get visibility groups from all issues, "project is not EMPTY" is Atlassian's recommended harmless restriction and does not exclude any issue.
-     */
+
+    // To get visibility groups from all issues, "project is not EMPTY" is Atlassian's recommended harmless restriction and does not exclude any issue.
+
     JQLConstraint allProjects = JQLCompareConstraint.isEmpty("project", true, "All projects");
     JSONObject issue = new JqlSearch(allProjects).addFields("key").querySingle(session);
     if (issue == null) return null;
@@ -60,7 +60,7 @@ class LoadCommentVisibility {
   }
 
   public static Document loadAddCommentPage(String issueId, String issueKey, RestSession session) throws ConnectorException {
-    // this call is for the warnings
+    // This call is for the warnings (?).
     JiraPatterns.canBeAnIssueKey(issueKey);
 
     String addCommentUrl = "secure/AddComment!default.jspa?id=" + issueId + "&decorator=none";

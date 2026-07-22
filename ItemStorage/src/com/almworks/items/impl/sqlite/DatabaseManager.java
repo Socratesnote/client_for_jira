@@ -195,6 +195,7 @@ public class DatabaseManager {
     DatabaseJob job = new DatabaseJob() {
       protected void dbrun(TransactionContext context) throws Exception {
         if (tempDir != null) setTempDirectory(context.getConnection(), tempDir);
+        else useMemoryTempStore(context.getConnection());
         din[0] = Schema.validate(context);
       }
 
@@ -208,6 +209,18 @@ public class DatabaseManager {
       throw new SQLiteException(SQLiteConstants.WRAPPER_USER_ERROR, "cannot initialize database", job.getError());
     }
     return din[0];
+  }
+
+  // Memory databases have no temp directory, so keep SQLite temp data in memory.
+  // This avoids depending on the process-global temp_store_directory, which a prior
+  // file-database connection may have left pointing at a stale/deleted path (breaks
+  // intarray virtual-table creation with SQLITE_CANTOPEN).
+  private static void useMemoryTempStore(SQLiteConnection db) {
+    try {
+      db.exec("PRAGMA temp_store = MEMORY");
+    } catch (SQLiteException e) {
+      Log.warn("error setting in-memory temp store", e);
+    }
   }
 
   private static void setTempDirectory(SQLiteConnection db, File tempDir) {

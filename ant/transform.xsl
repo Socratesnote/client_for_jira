@@ -430,7 +430,7 @@
           </xsl:attribute>
 
           <mkdir dir="${{dir.test.results}}"/>
-          <echo message="Testing with: ${{jdk}}/bin/java"/>
+          <echo message="Testing with JDK: ${{jdk}}/bin/java"/>
           <junit fork="true" forkmode="once" printsummary="true" haltonfailure="true">
             <jvmarg value="-Djava.awt.headless=true"/>
             <formatter type="xml"/>
