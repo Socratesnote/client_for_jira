@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 public class JRResolution {
-  private static final String PATH_RESOLUTION = "api/3/resolution/";
-  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/rest/" + PATH_RESOLUTION);
+  // Jira Cloud returns the resolution "self" URL against api/2 even under v3, so match the id version-agnostically.
+  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/resolution/");
 
   public static final JsonKey<Integer> ID = new JsonKey<Integer>("self", ID_EXTRACTOR);
   public static final JsonKey<String> NAME = JsonKey.text("name");

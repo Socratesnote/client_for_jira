@@ -13,7 +13,6 @@ External parameters:
 
   <target name="init">
     <mkdir dir="${dir.build}"/>
-    <mkdir dir="${dir.build}/.testtemp"/> <!-- Addition to ensure SQLite libary access during tests. Currently doesn't help. -->
     <mkdir dir="${dir.class.prodcode}"/>
     <mkdir dir="${dir.deliver.tmp}"/>
     <mkdir dir="${dir.deliver.out}"/>

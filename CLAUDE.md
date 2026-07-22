@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Client for Jira — a Java 8 Swing desktop client for Jira. This checkout is the **cloud** branch (Jira Cloud REST API only; a separate `server` branch exists for Server/Data Center). Migration from Jira REST v2 to v3 is in progress, so both `api/2/...` and `api/3/...` endpoints coexist in the code.
+Client for Jira — a Java 8 Swing desktop client for Jira. Migration from Jira REST v2 to v3 is in progress, so both `api/2/...` and `api/3/...` endpoints coexist in the code. Several remotes exist (`bitbucket_almworks`, `github_soc`, `github_tempo_io`, `github_lexasub`); this branch tracks `github_soc`. Check `git branch`/`git remote -v` before pushing — do not assume the default remote.
 
 ## Agent instructions
 

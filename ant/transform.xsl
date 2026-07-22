@@ -431,13 +431,8 @@
 
           <mkdir dir="${{dir.test.results}}"/>
           <echo message="Testing with JDK: ${{jdk}}/bin/java"/>
-		  <echo message="Testing with temporary dir: ${{dir.build}}/.testtemp"/> <!-- Addition to debug failed database access during tests. Currently doesn't help. -->
-          <!-- <junit fork="true" forkmode="once" printsummary="true" haltonfailure="true"> -->
-          <junit fork="true" forkmode="once" printsummary="true" haltonfailure="false">
+          <junit fork="true" forkmode="once" printsummary="true" haltonfailure="true">
             <jvmarg value="-Djava.awt.headless=true"/>
-			<jvmarg value="-Djava.library.path=${{dir.project}}/lib/sqlite4java"/> <!-- Addition to debug failed database access during tests. Currently doesn't help. -->
-			<jvmarg value="-Djava.io.tmpdir=${{dir.build}}/.testtemp"/> <!-- Addition to debug failed database access during tests. Currently doesn't help. -->
-			<jvmarg value="-Dtest.tmpdir.debug=true"/> <!-- Addition to debug failed database access during tests. Currently doesn't help. -->
             <formatter type="xml"/>
             <classpath refid="classpath.tests.{$MODULE_NAME}"/>
             <batchtest todir="${{dir.test.results}}">

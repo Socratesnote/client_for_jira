@@ -1,14 +1,4 @@
----
-# This repository has been moved to GitHub
-# https://github.com/tempo-io/jiraclient
-
----
-
-
-
-This branch contains the version compatible **only with Jira Cloud**.
-If you need to build the application compatible with Jira Server or Data Center, please switch to the [server](https://bitbucket.org/almworks/jiraclient/branch/server) branch.
-See the Branches section below for details.
+This build is intended for use with Jira Cloud, not Jira Server.
 
 ## How to Build
 
@@ -33,7 +23,7 @@ In order to build the project you need [Apache Ant](https://ant.apache.org/) and
     
       * any version of OpenJDK.   
 
-### Build Steps
+### Build Steps - ANT
 
 1. Have Apache Ant and Oracle JDK 8 installed on your system.
 
@@ -41,7 +31,7 @@ In order to build the project you need [Apache Ant](https://ant.apache.org/) and
 
      See the Branches section below in this file to choose the right one.
      
-     Do NOT build the `master` branch.
+     Do NOT build the main branch.
 
 3. Open the [build.sh](ant/build.sh) with a plain text editor.
 
@@ -53,15 +43,29 @@ In order to build the project you need [Apache Ant](https://ant.apache.org/) and
 
 7. Run the [build.sh](ant/build.sh) shell script (`bash ./build.sh`)
 
-Note: disable the "breakonfail" for now, because compile tests don't pass.
-Make sure you have the "Swing GUI Designer" plugin installed in IDEA otherwise the program will not run.
-
 8. When the build successfully completes, find built application in the [build/.dist/jiraclient](/build/.dist/jiraclient)
 directory.
 
      Find ZIPed application in the [build/.dist/jiraclient-NNNN.zip](/build/.dist/jiraclient-9876.zip) file.
 
 For more details see the [build documentation](ant/BUILD.md)   
+
+### Build Steps - Jetbrains IDEA
+1. Install JetBrains IDEA - tested on 2026.2.
+
+2. Install the "Swing GUI Designer" plugin - Tested on 262.8665.176.
+
+3. Open the repository as a project.
+
+4. Create a Run configuration for an Application.
+4.1. Set JDK to JAVA 8 as installed above.
+4.2. Set module classpath to "Idea.JiraClient".
+4.3. Set VM arguments to: "-Xmx512m -Di.a=true -Djiraclient.debug=true -Djira.dump=all -Djiraclient.home=. -Ddebug.components=com/almworks/rc/DebugComponents-JIRAClient3.xml -Ddebug.context=true -Ddebug.allows.kleval=true -Dis.debugging=true -Djiraclient.debug.level=fine". Configure debug arguments as needed.
+4.4. Set main method to "com.almworks.launcher.Launcher".
+4.5. Set CLI arguments to the path where you want to store the database, e.g. "C:/Repositories/ClientForJira/TestArea/Cloud-temp1".
+4.6. Set a working directory, e.g. "C:/Repositories/ClientForJira/TestArea/".
+
+5. Run the application.
 
 ## How to Run
 
@@ -76,9 +80,7 @@ The script is in the:
  
 You can pass [workspace](https://wiki.almworks.com/display/jc16/Workspace) location as command-line parameter.
 
-Client for Jira requires Oracle Java8 updates 8u112 to 8u202 (versions 8u192 or 8u202 are recommended).
-Java either must be available on the PATH environment variable 
-or JAVA_HOME variable must be defined and point to the corresponding JRE or JDK.
+Java either must be available on the PATH environment variable or the JAVA_HOME environment variable must be defined and point to the corresponding JRE or JDK.
 
 ## Branches
 

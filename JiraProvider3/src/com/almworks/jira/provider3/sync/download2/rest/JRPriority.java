@@ -6,8 +6,8 @@ import com.almworks.restconnector.json.SelfIdExtractor;
 import com.almworks.util.collections.Convertor;
 
 public class JRPriority {
-  private static final String PATH_PRIORITY = "api/3/priority/";
-  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/rest/" + PATH_PRIORITY);
+  // Jira Cloud returns the priority "self" URL against api/2 even under v3, so match the id version-agnostically.
+  private static final Convertor<Object, Integer> ID_EXTRACTOR = new SelfIdExtractor("/priority/");
   public static final JsonKey<Integer> ID = new JsonKey<Integer>("self", ID_EXTRACTOR);
   public static final JsonKey<String> NAME = JsonKey.text("name");
   public static final JsonKey<String> COLOR = JsonKey.text("statusColor");

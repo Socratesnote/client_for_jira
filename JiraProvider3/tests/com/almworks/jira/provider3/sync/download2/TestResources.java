@@ -52,7 +52,14 @@ public class TestResources {
   }
 
   public void assertTextEquals(String expectedPath, String actual) throws IOException {
-    Assert.assertEquals(loadText(expectedPath), actual);
+    Assert.assertEquals(normalizeLineEndings(loadText(expectedPath)), normalizeLineEndings(actual));
+  }
+
+  // Normalizes CRLF/CR to LF so golden-text comparisons are line-ending agnostic.
+  // Resource files may be checked out with CRLF on Windows (see .gitattributes),
+  // while generated text uses LF.
+  private static String normalizeLineEndings(String s) {
+    return s.replace("\r\n", "\n").replace('\r', '\n');
   }
 
   public Object loadJson(String path) throws IOException, ParseException {
