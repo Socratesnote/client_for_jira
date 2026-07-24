@@ -206,6 +206,11 @@ public class ContentTab {
     myManager.selectTab(this);
   }
 
+  /** Moves this tab to the given position among the shown tabs (used by tab-header drag-to-reorder). */
+  void moveTo(int shownIndex) {
+    myManager.moveTab(this, shownIndex);
+  }
+
   public void resetTabMenu() {
     myMenuBuilder.clearMenu();
     myMenuBuilder.addAction(TabActions.CLOSE_TAB);

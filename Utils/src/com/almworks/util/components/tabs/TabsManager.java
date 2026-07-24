@@ -319,6 +319,39 @@ public class TabsManager implements UIComponentWrapper2 {
     tabbedPane.setToolTipTextAt(index, tab.getTooltip());
   }
 
+  // Moves a shown tab to another position (0-based index among shown tabs), keeping myTabs and the JTabbedPane in
+  // the same order. Used by tab-header drag-to-reorder. The selection change it fires lets listeners persist the order.
+  public void moveTab(ContentTab tab, int toShownIndex) {
+    if (tab == null || !tab.isShowing())
+      return;
+    JTabbedPane tabbedPane = getTabbedPane();
+    if (tabbedPane == null)
+      return; // a single tab is shown directly, nothing to reorder
+    int from = getIndex(tab);
+    int count = tabbedPane.getTabCount();
+    if (toShownIndex < 0) toShownIndex = 0;
+    else if (toShownIndex >= count) toShownIndex = count - 1;
+    if (from < 0 || from == toShownIndex)
+      return;
+    // Re-position tab in myTabs so it becomes the toShownIndex-th shown tab.
+    myTabs.remove(tab);
+    int shown = 0;
+    int insertAt = myTabs.size();
+    for (int i = 0; i < myTabs.size(); i++) {
+      if (myTabs.get(i).isShowing()) {
+        if (shown == toShownIndex) {
+          insertAt = i;
+          break;
+        }
+        shown++;
+      }
+    }
+    myTabs.add(insertAt, tab);
+    // Reflect the new order in the tabbed pane (re-insert rebuilds the header; the tab component itself is reused).
+    tabbedPane.removeTabAt(from);
+    insertTab(tabbedPane, tab, toShownIndex);
+  }
+
   public Detach addSelectionListener(ChangeListener1<ContentTab> listener, ThreadGate gate) {
     return myListeners.addListener(gate, listener);
   }

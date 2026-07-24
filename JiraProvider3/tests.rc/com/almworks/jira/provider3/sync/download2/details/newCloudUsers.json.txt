@@ -36,7 +36,6 @@ EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10107:String]=<null>
 EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10108:String]=<null>
 EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10122:String]=<null>
 EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10123:String]=<null>
-EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10128:String]=0|hzzzzz:
 EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10212:String]=<null>
 EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10214:String]=<null>
 EntityKey[issue.affectedVersions:Entity COLLECTION]={}

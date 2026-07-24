@@ -34,7 +34,7 @@ public interface FieldEditor {
   /**
    * Detect if the model data is changed by the editor.<br>
    * Unlike {@link #hasDataToCommit(EditItemModel)} the result of the method depends on user action. It answers the question
-   * "Has the user changed anything? Or if user close and reopen the editor she see the same values?"
+   * "Has the user changed anything? Or if user close and re-open the editor she see the same values?"
    * @param model model to be checked
    * @return true if the editor has made modifications
    * @see #hasDataToCommit(EditItemModel)

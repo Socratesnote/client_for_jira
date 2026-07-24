@@ -22,10 +22,14 @@ public class TabComponent extends JComponent implements MouseMotionListener, Mou
   private static final Icon INACTIVE_UNSEL = createIcon(false, ICON_SIZE, false);
   private static int ICON_TEXT_GAP = 7;
 
+  private static final int DRAG_THRESHOLD = 5;
+
   private final ContentTab myTab;
   private final Rectangle myIconRect = new Rectangle();
   private final Point myLastMouse = new Point();
   private boolean myFullTextPainted = false;
+  private int myPressX = -1;
+  private boolean myDragging = false;
 
   public TabComponent(ContentTab tab) {
     myTab = tab;
@@ -120,7 +124,16 @@ public class TabComponent extends JComponent implements MouseMotionListener, Mou
 
   private void onMouseButton(MouseEvent e) {
     onMouseMove(e);
-    if (e.getID() == MouseEvent.MOUSE_PRESSED) myTab.select(); // All tab actions are obtain SELECTED TAB, not the tab where mouse is pressed. So the tab should be selected first.
+    if (e.getID() == MouseEvent.MOUSE_PRESSED) {
+      myPressX = e.getX();
+      myDragging = false;
+      myTab.select(); // All tab actions obtain the SELECTED TAB, not the tab where the mouse is pressed. So select first.
+    }
+    if (e.getID() == MouseEvent.MOUSE_RELEASED && myDragging) {
+      myDragging = false;
+      dropReorder(e);
+      return; // this was a drag-to-reorder, so don't also close/expand the tab
+    }
     if (e.isPopupTrigger())  {
       myTab.showPopup(e);
     } else if (isCloseTabEvent(e)) {
@@ -128,6 +141,16 @@ public class TabComponent extends JComponent implements MouseMotionListener, Mou
     } else if (UIUtil.isPrimaryDoubleClick(e)) {
       myTab.toggleExpand(this);
     }
+  }
+
+  // Drops the dragged tab at the position under the cursor. The tab component keeps the mouse capture for the whole
+  // drag, so the release point can be anywhere along the tab strip; translate it to the tabbed pane to find the target.
+  private void dropReorder(MouseEvent e) {
+    JTabbedPane pane = (JTabbedPane) SwingUtilities.getAncestorOfClass(JTabbedPane.class, this);
+    if (pane == null) return;
+    Point inPane = SwingUtilities.convertPoint(this, e.getPoint(), pane);
+    int target = pane.indexAtLocation(inPane.x, inPane.y);
+    if (target >= 0) myTab.moveTo(target);
   }
 
   private boolean isCloseTabEvent(MouseEvent e) {
@@ -158,6 +181,7 @@ public class TabComponent extends JComponent implements MouseMotionListener, Mou
 
   public void mouseDragged(MouseEvent e) {
     onMouseMove(e);
+    if (!myDragging && myPressX >= 0 && Math.abs(e.getX() - myPressX) > DRAG_THRESHOLD) myDragging = true;
   }
 
   public void mouseMoved(MouseEvent e) {

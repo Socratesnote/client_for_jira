@@ -184,7 +184,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
         restoreOpenTabs();
         // Persist tab state as tabs change so the openTabs config is current before ConfigComponent flushes it to
         // disk on exit. Registered after restore so a partial set isn't saved mid-re-open.
-        myExplorer.addTabChangeListener(Lifespan.FOREVER, new ChangeListener() {
+        myExplorer.addTabChangeListener(new ChangeListener() {
           public void onChange() {
             saveOpenTabs();
           }

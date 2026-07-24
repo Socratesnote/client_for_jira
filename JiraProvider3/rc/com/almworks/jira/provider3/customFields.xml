@@ -176,9 +176,11 @@ revision - custom fields configuration revision (positive integer). Should be in
     <!-- GreenHopper -->
     <field type="decimal" key="com.pyxis.greenhopper.jira:greenhopper-ranking" showZero="false" noRemoteSearch="true"/>
     <field type="decimal" key="com.pyxis.greenhopper.jira:gh-global-rank" showZero="false" hasReorder="false" hasViewerField="false" noRemoteSearch="true"/>
+    <!-- LexoRank: an opaque ordering token, not user-meaningful; no mapping currently exists so it is ignored. -->
+    <field type="unsupported" key="com.pyxis.greenhopper.jira:gh-lexo-rank"/>
     <field type="unsupported" key="com.pyxis.greenhopper.jira:gh-epic-color"/>
     <field type="multiEnum" key="com.pyxis.greenhopper.jira:gh-sprint" jsonParser="ghSprint" loadFullSet="jira.sprint.removeClosed"/>
-    <!-- Epic Name does not support remote search due to JIRA does not provide "~" operator - not possible to search by substring -->
+    <!-- Epic Name does not support remote search due to JIRA does not providing a "~" operator - not possible to search by substring. -->
     <field type="text" key="com.pyxis.greenhopper.jira:gh-epic-label" kind="shortText" hasReorder="false" noRemoteSearch="true">
         <editable/>
     </field>

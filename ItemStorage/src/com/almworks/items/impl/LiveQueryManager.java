@@ -68,7 +68,7 @@ public class LiveQueryManager implements QueryProcessor.Client {
   }
 
   private void update(DBReader reader) {
-// todo avoid unnecessary jobs
+// todo avoid unnecessary jobs //TODO: OK, but how?
     cycleResolutionSubscription();
     long icn = reader.getTransactionIcn() - 1;
     if (myIcn == 0) {

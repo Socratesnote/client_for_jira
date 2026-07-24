@@ -163,7 +163,9 @@ class LoadedItemServicesImpl implements LoadedItemServices {
     }
     assert engine != null : itemVersion.getItem();
     Connection connection = engine.getConnectionManager().findByItem(ca);
-    if (connection == null) Log.warn("Unknown connection " + ca, new Throwable());
+    if (connection == null) {
+      Log.warn("Unknown connection " + ca, new Throwable());
+    }
     return connection;
   }
 
