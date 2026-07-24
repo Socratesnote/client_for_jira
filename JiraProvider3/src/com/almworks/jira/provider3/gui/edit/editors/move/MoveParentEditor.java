@@ -1,5 +1,9 @@
 package com.almworks.jira.provider3.gui.edit.editors.move;
 
+import com.almworks.actions.console.CompletionFieldController;
+import com.almworks.actions.console.CompletionTextField;
+import com.almworks.actions.console.VariantModelController;
+import com.almworks.api.application.ItemKey;
 import com.almworks.explorer.PrimaryItemKeyTransferHandler;
 import com.almworks.integers.LongArray;
 import com.almworks.items.api.DBOperationCancelledException;
@@ -19,29 +23,38 @@ import com.almworks.items.sync.util.TransactionCacheKey;
 import com.almworks.items.util.SyncAttributes;
 import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.schema.IssueKeyComparator;
+import com.almworks.jira.provider3.schema.IssueType;
 import com.almworks.jira.provider3.schema.Project;
 import com.almworks.jira.provider3.services.JiraPatterns;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
 import com.almworks.util.bool.BoolExpr;
+import com.almworks.util.commons.Function;
 import com.almworks.util.text.NameMnemonic;
 import com.almworks.util.text.TextUtil;
+import com.almworks.util.ui.widgets.util.CanvasWidget;
+import com.almworks.util.ui.widgets.util.list.ColumnListWidget;
+import com.almworks.util.ui.widgets.util.list.ListSelectionProcessor;
 import gnu.trove.TLongObjectHashMap;
 import org.almworks.util.Collections15;
 import org.almworks.util.TypedKey;
+import org.almworks.util.Util;
 import org.almworks.util.detach.Lifespan;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
   private final TypedKey<ComponentControl.Enabled> EDITABLE = TypedKey.create("parent/editable");
   private final ScalarValueKey.Text KEYS = new ScalarValueKey.Text("parent/keys", true);
   private final TypedKey<Pair<Long, String>> COMMON_PRJ = TypedKey.create("parent/commonPrj");
+  private final TypedKey<List<ParentSuggestion>> SUGGESTIONS = TypedKey.create("parent/suggestions");
   private final TransactionCacheKey<Long> PARENT = TransactionCacheKey.create("parent/resolved");
 
   public MoveParentEditor(NameMnemonic labelText) {
@@ -69,6 +82,11 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
     allIssues.addAll(allParents);
     allIssues.addAll(source.readItems(model.getEditingItems()));
     Pair<Long, String> commonProject = chooseCommonProject(allIssues);
+    if (commonProject == null && model.isNewItem()) {
+      // A fresh new issue with no pre-set parent has no existing item to read a project from - fall back to
+      // whatever project the Project field currently holds (e.g. the create dialog's default/chosen project).
+      commonProject = chooseNewItemProject(source, model);
+    }
     ComponentControl.Enabled enabled;
     if (commonProject == null || commonProject.getSecond() == null) enabled = ComponentControl.Enabled.DISABLED;
     else if (hasNew || keys.size() > 1) enabled = ComponentControl.Enabled.DISABLED;
@@ -76,7 +94,42 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
     else enabled = ComponentControl.Enabled.NOT_APPLICABLE;
     model.putHint(EDITABLE, enabled);
     model.putHint(COMMON_PRJ, commonProject);
+    model.putHint(SUGGESTIONS, loadSuggestions(source, model, commonProject));
     model.registerEditor(this);
+  }
+
+  @Nullable
+  private static Pair<Long, String> chooseNewItemProject(VersionSource source, EditItemModel model) {
+    Long project = model.getSingleEnumValue(Issue.PROJECT);
+    if (project == null || project <= 0) return null;
+    String key = source.forItem(project).getValue(Project.KEY);
+    return key == null ? null : Pair.create(project, key);
+  }
+
+  private static final int MAX_SUGGESTIONS = 500;
+
+  /** All issues in the field's common project (same connection), for client-side prefix filtering as the user types. */
+  @NotNull
+  private static List<ParentSuggestion> loadSuggestions(VersionSource source, EditItemModel model, @Nullable Pair<Long, String> commonProject) {
+    if (commonProject == null) return Collections.emptyList();
+    Long connection = model.getSingleEnumValue(SyncAttributes.CONNECTION);
+    if (connection == null || connection <= 0) return Collections.emptyList();
+    BoolExpr<DP> query = DPEquals.create(Issue.PROJECT, commonProject.getFirst()).and(DPEquals.create(SyncAttributes.CONNECTION, connection));
+    LongArray items = source.getReader().query(query).copyItemsSorted();
+    List<ParentSuggestion> result = Collections15.arrayList();
+    for (ItemVersion issue : source.readItems(items)) {
+      String key = issue.getValue(Issue.KEY);
+      if (key == null) continue; // not yet uploaded: no key to type/match against
+      result.add(new ParentSuggestion(issue.getItem(), key, issue.getValue(Issue.SUMMARY)));
+      if (result.size() >= MAX_SUGGESTIONS) break;
+    }
+    Collections.sort(result, new Comparator<ParentSuggestion>() {
+      @Override
+      public int compare(ParentSuggestion a, ParentSuggestion b) {
+        return IssueKeyComparator.INSTANCE.compare(a.getKey(), b.getKey());
+      }
+    });
+    return result;
   }
 
   private Pair<Long, String> chooseCommonProject(List<ItemVersion> issues) {
@@ -103,10 +156,36 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
 
   @Nullable
   public ComponentControl createComponent(Lifespan life, EditItemModel model) {
-    //TODO: Offer completion of valid issue keys/summaries in the field's common project as the user types,
-    // driven by a local DB query (Issue.KEY prefix within the model's connection+project, like resolveParent),
-    // so the user doesn't have to type a parent key blind. No server round-trip needed for synced issues.
-    JTextField field = new JTextField(15);
+    final CompletionTextField<ParentSuggestion> field = new CompletionTextField<ParentSuggestion>();
+    field.setColumns(15);
+    final List<ParentSuggestion> suggestions = Util.NN(model.getValue(SUGGESTIONS), Collections.<ParentSuggestion>emptyList());
+    final CompletionFieldController<ParentSuggestion> controller = field.getController();
+    controller.setModelFactory(new Function<Lifespan, VariantModelController<ParentSuggestion>>() {
+      @Override
+      public VariantModelController<ParentSuggestion> invoke(Lifespan life) {
+        return new ParentSuggestionModel(suggestions);
+      }
+    });
+    // The controller only holds the data model; without an actual widget attached to its list, rows render blank.
+    CanvasWidget<ParentSuggestion> widget = new CanvasWidget<ParentSuggestion>();
+    ColumnListWidget<ParentSuggestion> listWidget = controller.getListWidget();
+    widget.setStateFactory(new ListSelectionProcessor.StateFactory(listWidget));
+    listWidget.addWidget(widget);
+    listWidget.setColumnPolicy(widget, 1, 0, 10);
+    // Show the drop-down only once something has been typed (no blank single-row popup on focus), keep each row
+    // at least as tall as the field, and let a double-click pick a row (same as Enter).
+    controller.setHideWhenNoVariants(true);
+    controller.setMinRowHeight(field.getPreferredSize().height);
+    controller.setDoubleClickActivates(true);
+    field.setAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ParentSuggestion selected = controller.getSelected();
+        if (selected == null) return;
+        field.setText(selected.getKey());
+        controller.getPopup().hide();
+      }
+    });
     return attachComponent(life, model, field);
   }
 
@@ -151,29 +230,30 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
   public void verifyData(DataVerification verifyContext) {
     EditItemModel model = verifyContext.getModel();
     boolean changed = KEYS.isChanged(model);
-    if (!changed) return;
-    String text = KEYS.getText(model);
+    String text = Util.NN(KEYS.getText(model));
     List<String> keys = Issue.extractIssueKeys(text);
+    if (changed) {
+      if (keys.isEmpty()) {
+        String trimmed = text.trim();
+        if (!trimmed.isEmpty()) verifyContext.addError(this, "'" + trimmed + "' is not a valid parent key");
+      } else if (keys.size() != 1) {
+        verifyContext.addError(this, "Expected single parent key");
+      } else {
+        String prj = JiraPatterns.extractProjectKeyNoLog(keys.get(0));
+        Pair<Long, String> project = model.getValue(COMMON_PRJ);
+        if (project == null || project.getSecond() == null) LogHelper.error("No common project", project, text);
+        else if (prj == null) LogHelper.error("Cannot extract project key", keys, text);
+        else if (!prj.equalsIgnoreCase(project.getSecond())) verifyContext.addError(this, "Cannot move subtask to another project");
+      }
+    }
+    // Surface "a sub-task must have a parent" here rather than a silent CancelCommitException at commit,
+    // regardless of whether the (possibly still blank) parent field itself was touched - e.g. picking a
+    // sub-task Issue Type in the New Issue dialog and leaving Parent empty.
     if (keys.isEmpty()) {
-      text = text.trim();
-      if (!text.isEmpty()) verifyContext.addError(this, "'" + text + "' is not a valid parent key");
-      return;
+      MoveController controller = MoveController.getInstance(model);
+      ItemKey type = controller == null ? null : controller.getTypeValue(model);
+      if (IssueType.isSubtask(type, true)) verifyContext.addError(this, "A sub-task must have a parent");
     }
-    if (keys.size() != 1) {
-      verifyContext.addError(this, "Expected single parent key");
-      return;
-    }
-    String prj = JiraPatterns.extractProjectKeyNoLog(keys.get(0));
-    Pair<Long, String> project = model.getValue(COMMON_PRJ);
-    if (project == null || project.getSecond() == null) {
-      LogHelper.error("No common project", project, text);
-      return;
-    }
-    if (prj == null) {
-      LogHelper.error("Cannot extract project key", keys, text);
-      return;
-    }
-    if (!prj.equalsIgnoreCase(project.getSecond())) verifyContext.addError(this, "Cannot move subtask to another project");
   }
 
   @Override

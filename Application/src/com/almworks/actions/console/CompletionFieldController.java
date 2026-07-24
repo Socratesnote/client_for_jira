@@ -39,6 +39,9 @@ public class CompletionFieldController<T> {
   private VariantModelController<T> myModel = null;
   private int myRowCount = 10;
   private boolean myConsumeEsc = true;
+  private boolean myHideWhenNoVariants = false;
+  private boolean myDoubleClickActivates = false;
+  private int myMinRowHeight = 0;
 
   public CompletionFieldController(JTextComponent textComponent) {
     myTextComponent = textComponent;
@@ -48,11 +51,20 @@ public class CompletionFieldController<T> {
       @Override
       public void focusGained(FocusEvent e) {
         if (!myWorkingCycle.isCycleStarted()) return;
+        if (myHideWhenNoVariants && !hasVariants()) return;
         if (!myPopup.isShowing()) showDropDown();
       }
 
       @Override
       public void focusLost(FocusEvent e) {
+      }
+    });
+    myList.getComponent().addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (myDoubleClickActivates && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+          activateSelected();
+        }
       }
     });
     myTextComponent.addKeyListener(new KeyAdapter() {
@@ -113,13 +125,50 @@ public class CompletionFieldController<T> {
       @Override
       public void onInsert(int index, int length) {
         updatePopupLocation();
+        updateVisibilityForVariants();
       }
 
       @Override
       public void onRemove(int index, int length, AListModel.RemovedEvent<T> event) {
         updatePopupLocation();
+        updateVisibilityForVariants();
       }
     }));
+  }
+
+  private boolean hasVariants() {
+    return myModel != null && myModel.getVariants() != null && myModel.getVariants().getSize() > 0;
+  }
+
+  // With setHideWhenNoVariants(true): keep the drop-down shown exactly while there are variants, so it appears
+  // as the user types matching text and disappears when nothing matches (or the field is emptied).
+  private void updateVisibilityForVariants() {
+    if (!myHideWhenNoVariants) return;
+    if (hasVariants()) {
+      if (!myPopup.isShowing() && myTextComponent.isFocusOwner() && myWorkingCycle.isCycleStarted()) showDropDown();
+    } else if (myPopup.isShowing()) {
+      myPopup.hide();
+    }
+  }
+
+  private void activateSelected() {
+    if (getSelected() == null) return;
+    if (myTextComponent instanceof JTextField) ((JTextField) myTextComponent).postActionEvent();
+  }
+
+  /** When true, the drop-down is shown only while at least one variant matches - an empty/no-match field shows nothing. */
+  public void setHideWhenNoVariants(boolean hide) {
+    myHideWhenNoVariants = hide;
+  }
+
+  /** When true, double-clicking a selectable variant fires the text field's action, the same as pressing Enter. */
+  public void setDoubleClickActivates(boolean activate) {
+    myDoubleClickActivates = activate;
+  }
+
+  /** Ensures each drop-down row is at least this tall (e.g. to match the text field's own height). */
+  public void setMinRowHeight(int height) {
+    myMinRowHeight = height;
   }
 
   public ColumnListWidget<T> getListWidget() {
@@ -215,7 +264,7 @@ public class CompletionFieldController<T> {
     Dimension textSize = myTextComponent.getSize();
     location.y += textSize.height;
     int rowCount = Math.min(myRowCount, Math.max(1, variants.getSize()));
-    int listHeight = myList.getRowHeight() * rowCount;
+    int listHeight = Math.max(myList.getRowHeight(), myMinRowHeight) * rowCount;
     Insets insets = AwtUtil.uniteInsetsFromTo(myList.getComponent(), null);
     listHeight += AwtUtil.getInsetHeight(insets);
     Dimension size = new Dimension(textSize.width, listHeight);
@@ -223,7 +272,7 @@ public class CompletionFieldController<T> {
   }
 
   public int getMaxListHeight() {
-    int listHeight = myList.getRowHeight() * myRowCount;
+    int listHeight = Math.max(myList.getRowHeight(), myMinRowHeight) * myRowCount;
     Insets insets = AwtUtil.uniteInsetsFromTo(myList.getComponent(), null);
     return listHeight + AwtUtil.getInsetHeight(insets);
   }

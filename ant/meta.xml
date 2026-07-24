@@ -42,6 +42,7 @@
     <depends module="ItemWrite"/>
     <depends module="RestConnector"/>
     <depends module="ConnectorSupport"/>
+    <depends module="widgets"/>
     <uselib lib="annotations"/>
     <uselib lib="picocontainer"/>
     <uselib lib="jdom"/>

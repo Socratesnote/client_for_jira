@@ -46,6 +46,7 @@
     <orderEntry type="library" name="JDOM" level="project" />
     <orderEntry type="module" module-name="FXUtils" />
     <orderEntry type="module" module-name="Services" />
+    <orderEntry type="module" module-name="widgets" />
     <orderEntry type="library" name="fontawesomefx-8.9" level="project" />
     <orderEntry type="library" name="controlsfx" level="project" />
   </component>
