@@ -86,7 +86,7 @@ public class EditIssue implements UploadUnit {
   }
 
   /**
-   * This method is required for history units. Such units are "before" edit and cannot depend on edit success, but this units may be interested in detected conflict.
+   * This method is required for history units. Such units are "before" edit and cannot depend on edit success, but this unit may be interested in detected conflict.
    * @return true if edit is failed due to conflict detected on initial state check
    */
   public boolean isConflictDetected() {

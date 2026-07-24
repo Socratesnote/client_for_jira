@@ -28,6 +28,40 @@ public class MoveLoader implements StepLoader {
   private MoveLoader() {
   }
 
+  /**
+   * Which upload unit kind a move step should become, given the target/source subtask flags and what changed.
+   * Pure decision table, extracted from {@link #loadStep} so it can be unit-tested without building real
+   * ItemVersion/CreateIssueUnit machinery.
+   */
+  enum RouteKind {
+    MOVE_TO_SUBTASK, MOVE_PARENT_TYPE, MOVE_FROM_SUBTASK, GENERIC_MOVE, SET_EPIC_PARENT,
+    LEGACY_MOVE_TO_SUBTASK, LEGACY_MOVE_PARENT_TYPE, LEGACY_MOVE_FROM_SUBTASK, LEGACY_GENERIC_MOVE,
+    ERROR_SUBTASK_NEEDS_PARENT, ERROR_CONVERT_WITH_EPIC_PARENT, ERROR_COMBINED_TYPE_OR_PROJECT_CHANGE, ERROR_CLEAR_PARENT_UNSUPPORTED
+  }
+
+  static RouteKind route(@Nullable Boolean newSub, @Nullable Boolean oldSub, boolean newParentPresent,
+    boolean prevParentPresent, boolean parentChanged, boolean typeChanged, boolean projectChanged)
+  {
+    if (newSub == null) { // issue-type meta not loaded yet - fall back to the legacy parent-presence routing
+      if (prevParentPresent) return newParentPresent ? RouteKind.LEGACY_MOVE_PARENT_TYPE : RouteKind.LEGACY_MOVE_FROM_SUBTASK;
+      return newParentPresent ? RouteKind.LEGACY_MOVE_TO_SUBTASK : RouteKind.LEGACY_GENERIC_MOVE;
+    }
+    if (newSub) { // target is a subtask - it must have a parent
+      if (!newParentPresent) return RouteKind.ERROR_SUBTASK_NEEDS_PARENT;
+      return prevParentPresent ? RouteKind.MOVE_PARENT_TYPE : RouteKind.MOVE_TO_SUBTASK;
+    }
+    // Target is a standard (generic) issue.
+    if (Boolean.TRUE.equals(oldSub)) { // subtask -> generic conversion
+      if (newParentPresent) return RouteKind.ERROR_CONVERT_WITH_EPIC_PARENT; // converting AND placing under an Epic in one step: unsupported (see plan B-5)
+      return RouteKind.MOVE_FROM_SUBTASK;
+    }
+    if (!parentChanged) return RouteKind.GENERIC_MOVE; // e.g. retype of an Epic-childed issue
+    // Generic issue whose Epic parent changed.
+    if (typeChanged || projectChanged) return RouteKind.ERROR_COMBINED_TYPE_OR_PROJECT_CHANGE; // do them as separate edits
+    if (!newParentPresent) return RouteKind.ERROR_CLEAR_PARENT_UNSUPPORTED;
+    return RouteKind.SET_EPIC_PARENT;
+  }
+
   @Override
   public UploadUnit loadStep(ItemVersion trunk, HistoryRecord record, CreateIssueUnit create, LoadUploadContext context, @Nullable UploadUnit prevStep, int stepIndex)
     throws UploadUnit.CantUploadException {
@@ -57,51 +91,38 @@ public class MoveLoader implements StepLoader {
     Boolean newSub = IssueType.getSubtask(reader, newTypeItem);
     Boolean oldSub = IssueType.getSubtask(reader, oldTypeItem);
     boolean parentChanged = newParentItem != prevParentItem;
-
-    if (newSub == null) { // issue-type meta not loaded yet - fall back to the legacy parent-presence routing
-      LogHelper.warning("Subtask flag not loaded; routing move by parent presence", trunk, newTypeItem);
-      return legacyRoute(create, prevStep, stepIndex, newParent, prevParentId, expectedType, values);
-    }
-    if (newSub) { // target is a subtask - it must have a parent
-      if (newParent == null) throw UploadUnit.CantUploadException.create("A subtask must have a parent");
-      return prevParentId != null
-        ? new MoveParentType(create, prevStep, stepIndex, newParent, expectedType, values)
-        : new MoveToSubtask(create, prevStep, stepIndex, newParent, values);
-    }
-    // Target is a standard (generic) issue.
-    if (Boolean.TRUE.equals(oldSub)) { // subtask -> generic conversion
-      if (newParent != null) { // converting AND placing under an Epic in one step: unsupported (see plan B-5)
-        LogHelper.warning("Converting a subtask to a standard issue under an Epic parent is not supported", trunk, newParentItem);
-        throw UploadUnit.CantUploadException.create("Cannot convert a subtask to a standard issue and set an Epic parent at once");
-      }
-      return new MoveFromSubtask(create, prevStep, stepIndex, values);
-    }
-    if (!parentChanged) return new GenericMove(create, prevStep, stepIndex, values); // e.g. retype of an Epic-childed issue
-    // Generic issue whose Epic parent changed.
     boolean typeChanged = !Util.equals(newTypeItem, oldTypeItem);
     boolean projectChanged = !Util.equals(postState.get(Issue.PROJECT), server.getValue(Issue.PROJECT));
-    if (typeChanged || projectChanged) // combined type/project + Epic-parent change: do them as separate edits
-      throw UploadUnit.CantUploadException.create("Cannot change the type/project and the Epic parent in one step");
-    if (newParent == null) {
-      //TODO: Support clearing a parent. Needs a Cloud-verified remove payload ("parent":null is not reliably
-      // honored; an {"update":{"parent":[{"remove":...}]}} form may be required). This also covers emptying the
-      // Parent field in the Move/Convert dialog to detach an issue. Revisit.
-      LogHelper.warning("Clearing a parent is not supported yet", trunk, prevParentItem);
-      throw UploadUnit.CantUploadException.create("Removing a parent is not supported yet");
-    }
-    return new SetEpicParent(create, prevStep, stepIndex, newParent);
-  }
 
-  /** Legacy parent-presence routing, used only when the target issue type's subtask flag is not loaded. */
-  private static UploadUnit legacyRoute(CreateIssueUnit create, @Nullable UploadUnit prevStep, int stepIndex,
-    @Nullable CreateIssueUnit newParent, @Nullable Integer prevParentId, int expectedType, ArrayList<IssueFieldValue> values) {
-    if (prevParentId != null) {
-      return newParent != null
-        ? new MoveParentType(create, prevStep, stepIndex, newParent, expectedType, values)
-        : new MoveFromSubtask(create, prevStep, stepIndex, values);
+    if (newSub == null) LogHelper.warning("Subtask flag not loaded; routing move by parent presence", trunk, newTypeItem);
+
+    RouteKind kind = route(newSub, oldSub, newParent != null, prevParentId != null, parentChanged, typeChanged, projectChanged);
+    switch (kind) {
+      case MOVE_TO_SUBTASK: case LEGACY_MOVE_TO_SUBTASK:
+        return new MoveToSubtask(create, prevStep, stepIndex, newParent, values);
+      case MOVE_PARENT_TYPE: case LEGACY_MOVE_PARENT_TYPE:
+        return new MoveParentType(create, prevStep, stepIndex, newParent, expectedType, values);
+      case MOVE_FROM_SUBTASK: case LEGACY_MOVE_FROM_SUBTASK:
+        return new MoveFromSubtask(create, prevStep, stepIndex, values);
+      case GENERIC_MOVE: case LEGACY_GENERIC_MOVE:
+        return new GenericMove(create, prevStep, stepIndex, values);
+      case SET_EPIC_PARENT:
+        return new SetEpicParent(create, prevStep, stepIndex, newParent);
+      case ERROR_SUBTASK_NEEDS_PARENT:
+        throw UploadUnit.CantUploadException.create("A subtask must have a parent");
+      case ERROR_CONVERT_WITH_EPIC_PARENT:
+        LogHelper.warning("Converting a subtask to a standard issue under an Epic parent is not supported", trunk, newParentItem);
+        throw UploadUnit.CantUploadException.create("Cannot convert a subtask to a standard issue and set an Epic parent at once");
+      case ERROR_COMBINED_TYPE_OR_PROJECT_CHANGE:
+        throw UploadUnit.CantUploadException.create("Cannot change the type/project and the Epic parent in one step");
+      case ERROR_CLEAR_PARENT_UNSUPPORTED:
+        //TODO: Support clearing a parent. Needs a Cloud-verified remove payload ("parent":null is not reliably
+        // honored; an {"update":{"parent":[{"remove":...}]}} form may be required). This also covers emptying the
+        // Parent field in the Move/Convert dialog to detach an issue. Revisit.
+        LogHelper.warning("Clearing a parent is not supported yet", trunk, prevParentItem);
+        throw UploadUnit.CantUploadException.create("Removing a parent is not supported yet");
+      default:
+        throw UploadUnit.CantUploadException.internalError();
     }
-    return newParent != null
-      ? new MoveToSubtask(create, prevStep, stepIndex, newParent, values)
-      : new GenericMove(create, prevStep, stepIndex, values);
   }
 }

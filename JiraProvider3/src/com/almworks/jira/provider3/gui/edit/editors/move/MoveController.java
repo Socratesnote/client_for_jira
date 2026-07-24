@@ -143,6 +143,12 @@ public class MoveController {
     myParentEditor = parentEditor;
   }
 
+  /** The issue type currently selected in this model's Issue Type field, or {@code null} if not available. */
+  @Nullable
+  ItemKey getTypeValue(EditModelState model) {
+    return myTypeEditor == null ? null : myTypeEditor.getValue(model);
+  }
+
   int getCurrentMode(EditModelState model) {
     Integer mode = model.getValue(CURRENT_MODE);
     if (mode != null && checkMode(mode)) return mode;

@@ -23,6 +23,7 @@ import com.almworks.items.util.SyncAttributes;
 import com.almworks.jira.provider3.app.connection.JiraConnection3;
 import com.almworks.jira.provider3.gui.MetaSchema;
 import com.almworks.jira.provider3.gui.actions.JiraActions;
+import com.almworks.jira.provider3.gui.edit.EditorsScheme;
 import com.almworks.jira.provider3.gui.edit.editors.JiraEditUtils;
 import com.almworks.jira.provider3.gui.edit.editors.move.MoveController;
 import com.almworks.jira.provider3.issue.editor.ScreenIssueEditor;
@@ -31,6 +32,7 @@ import com.almworks.jira.provider3.issue.features.edit.screens.ScreenChooser;
 import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.schema.IssueType;
 import com.almworks.jira.provider3.schema.Project;
+import com.almworks.jira.provider3.sync.ServerFields;
 import com.almworks.util.Env;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
@@ -58,7 +60,13 @@ class CreateIssueFeature extends BaseEditIssueFeature {
   };
   private static final Condition<DBAttribute<?>> SUBTASK_DEFAULTS = Condition.inCollection(Issue.ISSUE_TYPE);
   static final Condition<DBAttribute<?>> GENERIC_DEFAULTS = Condition.inCollection(Issue.PROJECT, Issue.ISSUE_TYPE);
-  static final ScreenIssueEditor EDITOR = new ScreenIssueEditor(false, new ScreenChooser(BaseEditIssueFeature.SCHEME, true));
+  // All-types Issue Type + an editable Parent field, so a sub-task can be created directly from the New Issue
+  // dialog (picking a sub-task type and typing a parent key) instead of only via "New Sub-Task here".
+  private static final EditorsScheme SCHEME = new EditorsScheme(BaseEditIssueFeature.SCHEME)
+    .addEditor(ServerFields.ISSUE_TYPE, MoveController.MOVE_ISSUE_TYPE)
+    .addEditor(ServerFields.PARENT, MoveController.MOVE_PARENT)
+    .fix();
+  static final ScreenIssueEditor EDITOR = new ScreenIssueEditor(false, new ScreenChooser(SCHEME, true));
 
   private final boolean mySubtask;
 
