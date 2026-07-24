@@ -18,6 +18,7 @@ import com.almworks.items.api.DBIdentifiedObject;
 import com.almworks.timetrack.api.TimeTracker;
 import com.almworks.util.Getter;
 import com.almworks.util.Terms;
+import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.components.ATree;
 import com.almworks.util.components.ATreeNode;
 import com.almworks.util.components.HighlighterTreeElement;
@@ -27,6 +28,7 @@ import com.almworks.util.components.tabs.TabsManager;
 import com.almworks.util.config.Configuration;
 import com.almworks.util.events.EventSource;
 import com.almworks.util.exec.ThreadGate;
+import com.almworks.util.model.ModelUtils;
 import com.almworks.util.model.ScalarModel;
 import com.almworks.util.model.ScalarModelEvent;
 import com.almworks.util.model.ValueModel;
@@ -47,6 +49,7 @@ import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -108,7 +111,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
     } else {
 //      assert false : item;
       Log.warn(
-              "not a loaded item: " + item + " " + String.valueOf(item.getClass()));
+              "Not a loaded item: " + item + " " + String.valueOf(item.getClass()));
     }
   }
 
@@ -123,7 +126,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
       } else {
         assert false : item;
         Log.warn(
-          "not a loaded item: " + item + " " + (item == null ? "" : String.valueOf(item.getClass())));
+          "Not a loaded item: " + item + " " + (item == null ? "" : String.valueOf(item.getClass())));
       }
     } else {
       WindowController windowController = frameBuilder.getWindowContainer().requireActor(WindowController.ROLE);
@@ -138,7 +141,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
     return myController;
   }
 
-  public void showComponent(UIComponentWrapper component, String name) {
+  public void showComponent(@NotNull UIComponentWrapper component, @NotNull String name) {
     myExplorer.showComponent(component, name);
   }
 
@@ -175,6 +178,45 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
     myWindowManager.setContentComponent(component);
     myWindowManager.showWindow(true);
     myExplorer.setupWelcome();
+    ModelUtils.whenTrue(myTree.isReady(), ThreadGate.AWT, new Runnable() {
+      public void run() {
+        if (myExplorer == null) return;
+        restoreOpenTabs();
+        // Persist tab state as tabs change so the openTabs config is current before ConfigComponent flushes it to
+        // disk on exit. Registered after restore so a partial set isn't saved mid-re-open.
+        myExplorer.addTabChangeListener(Lifespan.FOREVER, new ChangeListener() {
+          public void onChange() {
+            saveOpenTabs();
+          }
+        });
+      }
+    });
+  }
+
+  private static final String OPEN_TABS_CONFIG = "openTabs";
+  private static final String OPEN_TAB_NODE = "tab";
+  private static final String SELECTED_TAB_NODE = "selected";
+
+  /** Attempt to re-open node-backed tabs left open at the end of the previous session. */
+  @ThreadAWT
+  private void restoreOpenTabs() {
+    if (myExplorer == null) return;
+    RootNode root = getRootNode();
+    if (root == null) return;
+    Configuration config = myConfiguration.getOrCreateSubset(OPEN_TABS_CONFIG);
+    List<String> nodeIds = config.getAllSettings(OPEN_TAB_NODE);
+    if (nodeIds.isEmpty()) return;
+    String selected = config.getSetting(SELECTED_TAB_NODE, "");
+    myExplorer.restoreNodeTabs(root, this, nodeIds, selected.isEmpty() ? null : selected);
+  }
+
+  /** Persists which node-backed tabs are open, to re-open them on the next launch. */
+  private void saveOpenTabs() {
+    if (myExplorer == null) return;
+    Configuration config = myConfiguration.getOrCreateSubset(OPEN_TABS_CONFIG);
+    config.setSettings(OPEN_TAB_NODE, myExplorer.collectOpenNodeIds());
+    String selected = myExplorer.getSelectedNodeId();
+    config.setSetting(SELECTED_TAB_NODE, selected == null ? "" : selected);
   }
 
   public ATree<ATreeNode<GenericNode>> getNavigationTree() {
@@ -185,7 +227,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
   private void registerActions() {
     myActionRegistry.registerAction(MainMenu.File.NEW_CONNECTION, new SimpleAction() {
       {
-        setDefaultText(PresentationKey.NAME, "&New " + Terms.ref_ConnectionType + " Connection\u2026");
+        setDefaultText(PresentationKey.NAME, "&New " + Terms.ref_ConnectionType + " Connection…");
         setDefaultText(PresentationKey.SHORT_DESCRIPTION, "Create a new connection");
       }
 
@@ -240,7 +282,7 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
   public void setHighlightedNodes(TypedKey highlightKey, Collection<? extends GenericNode> nodes, Color color,
     Icon icon, String caption)
   {
-    if (nodes == null || nodes.size() == 0) {
+    if (nodes == null || nodes.isEmpty()) {
       clearHighlightedNodes(highlightKey);
     } else {
       ATree<ATreeNode<GenericNode>> tree = getNavigationTree();

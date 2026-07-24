@@ -2,9 +2,12 @@ package com.almworks.explorer;
 
 import com.almworks.api.application.*;
 import com.almworks.api.application.tree.GenericNode;
+import com.almworks.api.application.tree.QueryResult;
+import com.almworks.api.application.tree.RootNode;
 import com.almworks.api.engine.Engine;
 import com.almworks.api.engine.ItemProvider;
 import com.almworks.api.platform.ProductInformation;
+import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.collections.ChangeListener1;
 import com.almworks.util.components.*;
 import com.almworks.util.components.plaf.macosx.Aqua;
@@ -16,7 +19,10 @@ import com.almworks.util.model.ModelUtils;
 import com.almworks.util.model.ValueModel;
 import com.almworks.util.ui.UIComponentWrapper;
 import com.almworks.util.ui.UIUtil;
+import org.almworks.util.Collections15;
+import org.almworks.util.Log;
 import org.almworks.util.TypedKey;
+import org.almworks.util.detach.Lifespan;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +37,8 @@ import java.util.List;
 class Explorer {
   private static final TypedKey<Boolean> DEFAULT_TAB = TypedKey.create("default");
   private static final TypedKey<TabKey> QUERY_TAB_KEY = TypedKey.create("queryKey");
+  /** Node id of the tab's backing navigation node, if any - null for ad-hoc tabs (text search, URL, summary, ...). */
+  private static final TypedKey<String> NODE_ID_KEY = TypedKey.create("nodeId");
 
   private final ExplorerForm myForm;
   private final Configuration myFormConfig;
@@ -76,6 +84,8 @@ class Explorer {
     if (tab == null)
       return SearchResult.EMPTY;
     tab.setUserProperty(QUERY_TAB_KEY, contextInfo.getQueryKey());
+    GenericNode queryNode = contextInfo.getQuery();
+    tab.setUserProperty(NODE_ID_KEY, queryNode != null ? queryNode.getNodeId() : null);
     TableControllerImpl tableController =
       new TableControllerImpl(myFormConfig, tab, myColumnsCollector, myExplorer, contextInfo.getSourceConnection());
     SearchResult result = tableController.showSource(source, contextInfo, focusToTable);
@@ -161,5 +171,58 @@ class Explorer {
   @NotNull
   private TabsManager getTabsManager() {
     return myForm.getTabsManager();
+  }
+
+  // Notifies (on the AWT thread) whenever the set of open tabs or the selection changes, for persisting tab state.
+  // Delivered via AWT_QUEUED so the callback runs after the change settles: a tab still reports isShowing()==true
+  // while it is being removed (its wrapper is only cleared after removal is complete).
+  void addTabChangeListener(ChangeListener listener) {
+    getTabsManager().getModifiable().addChangeListener(Lifespan.FOREVER, ThreadGate.AWT_QUEUED, listener);
+  }
+
+  /** Node ids of currently open, node-backed tabs, in tab order. Ad-hoc tabs (no backing node) are skipped. */
+  List<String> collectOpenNodeIds() {
+    List<String> result = Collections15.arrayList();
+    for (ContentTab tab : getTabsManager().getTabs()) {
+      if (!tab.isShowing()) continue;
+      String nodeId = tab.getUserProperty(NODE_ID_KEY);
+      if (nodeId != null) result.add(nodeId);
+    }
+    return result;
+  }
+
+  /** Node id of the currently selected tab, or null if there is none or it isn't node-backed. */
+  @Nullable
+  String getSelectedNodeId() {
+    ContentTab selected = getTabsManager().getSelectedTab();
+    return selected == null ? null : selected.getUserProperty(NODE_ID_KEY);
+  }
+
+  /**
+   * Attempt to re-open previously open node-backed tabs. Node ids that no longer resolve (node deleted,
+   * connection removed) or whose query isn't runnable are silently skipped.
+   */
+  void restoreNodeTabs(RootNode root, ExplorerComponent explorerComponent, List<String> nodeIds, @Nullable String selectedNodeId) {
+    for (String nodeId : nodeIds) {
+      GenericNode node = root.getNodeById(nodeId);
+      if (node == null) continue;
+      QueryResult result = node.getQueryResult();
+      if (!result.isRunnable()) continue;
+      ItemSource source = result.getItemSource();
+      ItemCollectionContext context = result.getCollectionContext();
+      if (source == null || context == null) continue;
+      try {
+        explorerComponent.showItemsInTab(source, context, false);
+      } catch (Exception e) {
+        Log.warn("Failed to restore tab for node " + nodeId, e);
+      }
+    }
+    if (selectedNodeId == null) return;
+    for (ContentTab tab : getTabsManager().getTabs()) {
+      if (selectedNodeId.equals(tab.getUserProperty(NODE_ID_KEY))) {
+        tab.select();
+        break;
+      }
+    }
   }
 }
