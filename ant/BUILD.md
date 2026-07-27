@@ -3,59 +3,78 @@
 ### Build parameters
 The [build.xml](build.xml) Ant script takes the following parameters:
 
- * **jdk** - path to Oracle JDK 8. The script uses this JDK to compile sources and run tests
+ * **jdk** - path to Oracle JDK 8. The script uses this JDK to compile sources and run tests.
  
- * **build.number** - build number. A built application shows build number on its About screen.
-    Build script creates ZIP file with build number.
-    If the build number is not provided, 0 (zero) build number is used by default.
+ * **build.number** - build number. A built application shows the build number on its About screen.
+    The build script creates a ZIP file with the build number.
+    If the build number is not provided, 0 is used by default.
 
-A sample shell script to run the build:
+### Running the build
 
+[build.sh](build.sh) supplies these parameters. It reads all paths from the
+environment and contains none itself:
+
+ * **ANT_HOME** - Apache Ant install directory (the one holding `bin` and `lib`)
+
+ * **JDK8_HOME** - Oracle JDK 8 home directory (the one holding `bin` and `lib`)
+
+ * **BUILD_NUMBER** - optional, passed as `build.number`. Defaults to 0.
+
+ * **ANT_FILE** - optional, the build file to run. Defaults to `./build.xml`.
+
+Run it from the [ant](.) directory:
+
+```sh
+export ANT_HOME=/opt/apache-ant-1.10.7
+export JDK8_HOME=/usr/lib/jvm/jdk1.8.0_192
+
+./build.sh
 ```
 
-#! /bin/sh
+Arguments are passed through as Ant targets. Since the per-module targets live in
+the generated [runGenerated.xml](runGenerated.xml) rather than in
+[build.xml](build.xml), compiling without running tests takes two steps:
 
-# Installation directory of Apache ANT (the dir which containts "bin", "lib" sub directories)
-ANT_HOME=
-# Home directory of Java8 JDK (the dir which contains "bin", "lib", "jre" subdirectories)
-JDK8_HOME=
-
-"$JDK8_HOME/bin/java" -cp "$ANT_HOME/lib/ant-launcher.jar" org.apache.tools.ant.launch.Launcher -f ./build.xml prepareDistribution -Djdk="$JDK8_HOME" -Dbuild.number=9876
+```sh
+./build.sh generateBuildXml init
+ANT_FILE=./runGenerated.xml ./build.sh ALL.compile
 ```
 
-Run the script from the [ant](.) directory          
-    
+On Windows the path form must match the shell being used; see the
+[README](../README.md) for per-shell instructions.
+
+
 ### Files
- * [build.xml](build.xml) main build script
- * [build.sh](build.sh) sample shell script which launches a build process and provides it all parameters
- * [genHeader.xml](genHeader.xml), [properties.xml](properties.xml), [runGenerated.xml](runGenerated.xml) supplementary build files
- * [meta.xml](meta.xml) describes source modules, external libraries, source dependencies and distribution layout
- * [transform.xsl](transform.xsl) used to transform the [meta.xml](meta.xml) file to Ant build script
+ * [build.xml](build.xml) main build script.
+ * [build.sh](build.sh) sample shell script which launches a build process and provides it with all required parameters.
+ * [genHeader.xml](genHeader.xml), [properties.xml](properties.xml), [runGenerated.xml](runGenerated.xml) supplementary build files.
+ * [meta.xml](meta.xml) describes source modules, external libraries, source dependencies and distribution layout.
+ * [transform.xsl](transform.xsl) used to transform the [meta.xml](meta.xml) file to an Ant build script.
  * [generated.xml](generated.xml) temporary build script produced by [transform.xsl](transform.xsl) applied to [meta.xml](meta.xml)
- * [lib](lib) directory contains third-party Java libraries required by the build
-    * [javac2.jar](lib/javac2.jar), [bcel.jar](lib/bcel.jar), [asm-all.jar](lib/asm-all.jar) are required to define the _javac2_ task
-    * [saxon9he.jar](lib/saxon9he.jar) is required for XSL transformation of the [meta.xml](meta.xml) file
+ * [lib](lib) directory contains third-party Java libraries required by the build:
+    * [javac2.jar](lib/javac2.jar), [bcel.jar](lib/bcel.jar), [asm-all.jar](lib/asm-all.jar) are required to define the _javac2_ task.
+    * [saxon9he.jar](lib/saxon9he.jar) is required for XSL transformation of the [meta.xml](meta.xml) file.
 
 ## meta.xml file format
 The [meta.xml](meta.xml) file describes:
 
- * Modules - Java Sources
+ * Modules - Java Sources.
 
- * Libraries - external JAR files
+ * Libraries - external JAR files.
  
- * Product Description - JARs the product distribution consists of and their locations
+ * Product Description - JARs the product distribution consists of and their locations.
 
 ### Modules
-Java source and resource are organized into modules. Module is a unit of dependency.
-The [meta.xml](meta.xml) file include the **module** tag for each module.
-The **name** parameter of the tag defines module root directory and module name.
+Java source and resource are organized into modules. Each module is a unit of dependency.
+The [meta.xml](meta.xml) file includes the **module** tag for each module.
+The **name** parameter of the tag defines the module root directory and module name.
 
 #### Child Tags
  * **depends** describes module dependency on other modules.
-  The tag has the only **module** parameter. 
+  The tag has only a **module** parameter. 
   The value of the parameter is the name of a module this module depends on.
  * **uselib** describes module dependency on external libraries.
-  The tag has the single parameter **lib**. 
+  The tag has only a **lib** parameter. 
   The value of the parameter is the name of a library this module depends on.
 
 Note, dependencies are not transitive. 
@@ -63,44 +82,40 @@ If a module M1 depends on a module M2 and the M2 module depends on module M3 and
 the module M1 has no automatic dependency neither on module M3 nor on library L1.
 If the M1 module requires this dependencies, they must be explicitly described.
    
-#### Module Direcories
-Each module may have the following directories:
+#### Module Directories
+Each module may have the following, optional, directories:
 
- * **src** - contains production java source files
- * **tests** - contains java sources with tests and supplementary classes.
+ * **src** - contains production Java source files.
+ * **tests** - contains Java sources with tests and supplementary classes.
    * The build compiles these sources, but does not include them in distributable JARs.
    * Test classes must end with "Test" or "Tests" suffix.
- * **rc** - contains production resources. Build copies all these files
- to  the destination JAR as is and preserving packages.
- * **test.rc** - contains test resources. These resources are available
- during execution of tests, but are not included in distributable JARs.
+ * **rc** - contains production resources. Build copies all these files to the destination JAR as is and preserves packages.
+ * **test.rc** - contains test resources. These resources are available during execution of tests, but are not included in distributable JARs.
  
-All directories above are optional.
-
 ### Libraries
 
 A library is one or more external JAR files.
-The [meta.xml](meta.xml) file include the **lib** tag for each library.
-The **name** parameter of the library defines library's name, it is used to refer to this library.
+The [meta.xml](meta.xml) file includes the **lib** tag for each library.
+The **name** parameter of the library defines the library's name, which is used to refer to this library.
 
-A **lib** tag has one or more **jar** child tag.
-Each **jar** tag has the only parameter **jar** which contains a path to a single JAR file.
+A **lib** tag has one or more **jar** child tags.
+Each **jar** tag has one parameter, **jar**, which contains a path to a single JAR file.
 The path is relative to the [lib](..\lib) directory.
 
 ### Product Description
 
-The **product** tag describe layout of a distribution.
+The **product** tag describes the layout of a distribution.
 
 #### JARs Built from Sources
 
 The [meta.xml](meta.xml) file describes distributable JARs with **distjar** tags.
-The tag has single **jar** parameter - the name of the JAR file (it does not include path).
+The tag has a single **jar** parameter, which is the name of the JAR file (it does not include a path).
 
 ##### Child Tags
  * **place** - location of the JAR in the distribution. There must be only one such child.
-   The only parameter is **dir** - directory where to place the JAR.
+   The only parameter is **dir**: the directory where to place the JAR.
  * **include** - includes a module into the JAR. One child tag for one module to include.
-   The only parameter is **module** - the name of a module to include.
+   The only parameter is **module**: the name of a module to include.
  * **manifest** - defines META-INF/MANIFEST.MF file content.
    The **attribute** child tag instructs the build to add one manifest attribute.
    The **name** parameter is the name of the attribute.
