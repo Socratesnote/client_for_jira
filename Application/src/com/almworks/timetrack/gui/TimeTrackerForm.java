@@ -266,10 +266,30 @@ public class TimeTrackerForm implements UIComponentWrapper {
         myCurrentComments = "";
         if (myCommentsEnabled) {
             List<TaskTiming> timings = tt.getTaskTimings(task);
-            if (timings != null && !timings.isEmpty())
-                myCurrentComments = timings.get(timings.size() - 1).getComments();
+            if (timings != null && !timings.isEmpty()) {
+                TaskTiming last = timings.get(timings.size() - 1);
+                myCurrentComments = last.getComments();
+                // Pause closes the current timing (keeping its comment) and resume
+                // opens a new empty one, so the just-typed comment would vanish from
+                // the box. When tracking resumes on the same task, carry the comment
+                // from the immediately preceding, now-closed segment onto the new
+                // timing so it stays visible and editable. Never done mid-edit.
+                if (tt.isTracking() && isCommentEmpty(last.getComments())
+                        && timings.size() >= 2 && !myCurrentCommentsEdited) {
+                    TaskTiming prev = timings.get(timings.size() - 2);
+                    if (!isCommentEmpty(prev.getComments()) && prev.getStopped() > 0) {
+                        myCurrentComments = prev.getComments();
+                        tt.replaceTiming(task, last,
+                                new TaskTiming(last.getStarted(), last.getStopped(), prev.getComments()));
+                    }
+                }
+            }
         }
         updateCommentsField();
+    }
+
+    private static boolean isCommentEmpty(String comment) {
+        return comment == null || comment.trim().length() == 0;
     }
 
     private void updateCommentsField() {

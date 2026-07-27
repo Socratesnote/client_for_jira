@@ -18,6 +18,7 @@ import com.almworks.util.exec.ThreadGate;
 import com.almworks.util.ui.actions.*;
 import org.almworks.util.Collections15;
 import org.almworks.util.Const;
+import org.almworks.util.Log;
 import org.almworks.util.Util;
 
 import javax.swing.*;
@@ -191,6 +192,18 @@ class ChangeLastEventTimeAction extends SimpleAction {
     } else {
       originalTime = period.started;
       canAdjustOthers = newTime < originalTime;
+    }
+
+    // TODO diagnostic (remove after confirming Bug 2 root cause at runtime): a
+    // non-zero delta on a confirm the user did not edit indicates a shifted newTime.
+    if (newTime != originalTime) {
+      Log.debug("ChangeLastEventTime: end=" + end + " original=" + originalTime
+        + " new=" + newTime + " delta(ms)=" + (newTime - originalTime));
+    }
+
+    // No-op guard: an unchanged event time must never mutate a timing.
+    if (newTime == originalTime) {
+      return;
     }
 
     if (canAdjustOthers) {

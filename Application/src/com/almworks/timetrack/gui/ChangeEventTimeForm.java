@@ -50,6 +50,15 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
     private final TimePeriod myEditedPeriod;
     private final List<TimePeriod> myOtherPeriods;
 
+    // The exact event instant the dialog opened on. Used to return a byte-for-byte
+    // identity value when the user never actually edits, avoiding a re-parsed shift.
+    private final long myOriginalValue;
+    // Set once wiring is complete, so the initial programmatic model/slider updates
+    // in linkModels() are not mistaken for a user edit.
+    private boolean myInitialized;
+    // True once a genuine user interaction (field, slider, or spent) changed a value.
+    private boolean myUserEdited;
+
     public ChangeEventTimeForm(boolean endTime, TimePeriod period, List<TimePeriod> others) {
         myEndTime = endTime;
 
@@ -59,6 +68,7 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
         myOtherPeriods = others;
 
         final long value = myEndTime ? myEditedPeriod.stopped : myEditedPeriod.started;
+        myOriginalValue = value;
 
         $$$setupUI$$$();
         myHeadLabel.setText(
@@ -99,6 +109,8 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
             }
         };
         myDateModel.addAWTChangeListener(listener);
+
+        myInitialized = true;
     }
 
     /**
@@ -304,6 +316,7 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
             public void stateChanged(ChangeEvent e) {
                 if (!updating) {
                     updating = true;
+                    if (myInitialized) myUserEdited = true;
                     try {
                         myDateModel.setValue(new Date(sliderToTime(mySliderModel.getValue())));
                         updateSpent();
@@ -316,6 +329,7 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
             public void onChange() {
                 if (!updating) {
                     updating = true;
+                    if (myInitialized) myUserEdited = true;
                     try {
                         final Date date = myDateModel.getValue();
                         if (date != null) {
@@ -331,6 +345,7 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
             public void invoke(Integer arg) {
                 if (arg != null && !updating) {
                     updating = true;
+                    if (myInitialized) myUserEdited = true;
                     try {
                         final long millis = TimeTrackingUtil.millis(arg);
                         final long moment;
@@ -350,18 +365,28 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
             }
 
             private void updateSpent() {
+                // The date model is transiently null while an invalid string is being
+                // typed into the time field; skip until it is parseable again.
+                final Date d = myDateModel.getValue();
+                if (d == null) {
+                    return;
+                }
+
                 final long start;
                 final long end;
 
                 if (myEndTime) {
                     start = myEditedPeriod.started;
-                    end = myDateModel.getValue().getTime();
+                    end = d.getTime();
                 } else {
-                    start = myDateModel.getValue().getTime();
+                    start = d.getTime();
                     end = System.currentTimeMillis();
                 }
 
-                mySpentField.setSeconds(TimeTrackingUtil.seconds(end - start));
+                final int seconds = TimeTrackingUtil.seconds(end - start);
+                if (seconds != mySpentField.getSeconds()) {
+                    mySpentField.setSeconds(seconds);
+                }
             }
         }
 
@@ -370,6 +395,15 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
         myDateModel.addAWTChangeListener(myListener);
         mySpentField = new DurationField(myListener);
         myListener.onChange();
+
+        // Populate Time spent on open (the start-time case is otherwise blank until
+        // the first edit, since mySpentField is created after the initial onChange).
+        myListener.updating = true;
+        try {
+            myListener.updateSpent();
+        } finally {
+            myListener.updating = false;
+        }
     }
 
     private void configureFields() {
@@ -388,6 +422,14 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
     }
 
     protected void doOk(Procedure<Long> proc) {
+        // If the user never edited anything, return the exact instant the dialog
+        // opened on. This avoids the ADateField DATE_TIME format/parse round-trip
+        // returning a value shifted by the local UTC/DST offset for an untouched
+        // confirm (which otherwise silently changed the recorded duration).
+        if (!myUserEdited) {
+            proc.invoke(Math.min(myOriginalValue, System.currentTimeMillis()));
+            return;
+        }
         final Date date = myDateModel.getValue();
         if (date == null) {
             proc.invoke(null);
