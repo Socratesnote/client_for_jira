@@ -10,6 +10,7 @@ import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
 import com.almworks.jira.provider3.remotedata.issue.edit.CreateIssueUnit;
 import com.almworks.jira.provider3.schema.Comment;
 import com.almworks.jira.provider3.services.upload.UploadUnit;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.jira.provider3.sync.schema.ServerComment;
 import com.almworks.jira.provider3.sync.schema.ServerIssue;
 import com.almworks.jira.provider3.sync.schema.ServerUser;
@@ -92,9 +93,8 @@ class CommentValues extends SlaveValues {
   @SuppressWarnings("unchecked")
   public JSONObject createJson() {
     JSONObject object = new JSONObject();
-    //TODO: AddEditComment posts this to api/3, which expects "body" as an ADF document - a plain string is
-    // rejected by Jira Cloud. Needs text-to-ADF conversion on upload (inverse of AdfText).
-    object.put("body", myText);
+    // api/3 requires the body as an ADF document. Text is never empty here - load() rejects that.
+    object.put("body", AdfDocument.fromText(myText));
     object.put("visibility", myVisibility != null ? myVisibility.createJson() : null);
     return object;
   }

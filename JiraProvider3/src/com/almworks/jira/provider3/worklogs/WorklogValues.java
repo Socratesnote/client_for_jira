@@ -9,6 +9,7 @@ import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
 import com.almworks.jira.provider3.remotedata.issue.fields.scalar.ScalarUploadType;
 import com.almworks.jira.provider3.schema.Worklog;
 import com.almworks.jira.provider3.services.upload.UploadUnit;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.jira.provider3.sync.schema.ServerIssue;
 import com.almworks.jira.provider3.sync.schema.ServerUser;
 import com.almworks.jira.provider3.sync.schema.ServerWorklog;
@@ -79,9 +80,10 @@ class WorklogValues extends SlaveValues {
   @SuppressWarnings("unchecked")
   public JSONObject createJson() {
     JSONObject result = new JSONObject();
-    //TODO: AddEditWorklog posts this to api/3, which expects "comment" as an ADF document - a plain string is
-    // rejected by Jira Cloud. Needs text-to-ADF conversion on upload (inverse of AdfText).
-    result.put("comment", myComment);
+    // api/3 requires the comment as an ADF document. A worklog may have no comment at all - omit the key
+    // then, since JIRA rejects a rich-text value with no content.
+    JSONObject comment = AdfDocument.fromText(myComment);
+    if (comment != null) result.put("comment", comment);
     result.put("visibility", myVisibility != null ? myVisibility.createJson() : null);
     result.put("started", ScalarUploadType.DATE.toJsonValue(myStarted));
     result.put("timeSpentSeconds", mySeconds);

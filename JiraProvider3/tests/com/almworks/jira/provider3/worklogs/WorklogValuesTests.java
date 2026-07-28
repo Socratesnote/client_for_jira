@@ -1,6 +1,7 @@
 package com.almworks.jira.provider3.worklogs;
 
 import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.util.tests.BaseTestCase;
 import org.json.simple.JSONObject;
 
@@ -24,9 +25,16 @@ public class WorklogValuesTests extends BaseTestCase {
     assertEquals(Integer.valueOf(3600), json.get("timeSpentSeconds"));
     assertNull(json.get("visibility"));
     assertNotNull(json.get("started"));
-    // NOTE: api/3 expects "comment" as an ADF document, not a plain string (see WorklogValues TODO).
-    // When text->ADF conversion lands, update this assertion to reflect the ADF object.
-    assertEquals("worked", json.get("comment"));
+    // api/3 requires the comment as an ADF document. AdfDocumentTests covers the conversion itself.
+    assertEquals(AdfDocument.fromText("worked"), json.get("comment"));
+  }
+
+  // JIRA rejects a rich-text value carrying no content, so a comment-less worklog must omit the key entirely.
+  public void testCreateJsonOmitsEmptyComment() throws Exception {
+    JSONObject json = create(10001, new Date(0), 3600, null).createJson();
+    assertFalse(json.containsKey("comment"));
+    assertEquals(4, json.size());
+    assertFalse(create(10001, new Date(0), 3600, "").createJson().containsKey("comment"));
   }
 
   // A new worklog has no id yet, so the "id" key must be omitted from the request.

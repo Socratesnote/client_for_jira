@@ -104,6 +104,12 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
 
   public static final ScalarProperties<String> EDITABLE_TEXT =
     new ScalarProperties<String>(JsonKey.emptyTextToNull(AdfText.adfAware(JsonKey.TEXT_TRIM)), ScalarUploadType.TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
+  /**
+   * For rich-text fields, which api/3 requires as ADF documents. Differs from {@link #EDITABLE_TEXT} only in
+   * the upload type - reading already accepts ADF for every text field.
+   */
+  public static final ScalarProperties<String> EDITABLE_ADF_TEXT =
+    new ScalarProperties<String>(JsonKey.emptyTextToNull(AdfText.adfAware(JsonKey.TEXT_TRIM)), ScalarUploadType.ADF_TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
   public static final ScalarProperties<String> READONLY_TEXT =
     new ScalarProperties<String>(AdfText.adfAware(JsonKey.TEXT_TRIM_TO_NULL), null, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
   public static final ScalarProperties<Date> EDITABLE_DATE =
@@ -136,6 +142,13 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
 
   public static ScalarFieldDescriptor<String> editableText(String fieldId, String displayName, EntityKey<String> entityKey) {
     return new ScalarFieldDescriptor<String>(fieldId, EDITABLE_TEXT, entityKey, displayName, true);
+  }
+
+  /**
+   * For rich-text fields. Plain-text fields such as summary must use {@link #editableText}.
+   */
+  public static ScalarFieldDescriptor<String> editableAdfText(String fieldId, String displayName, EntityKey<String> entityKey) {
+    return new ScalarFieldDescriptor<String>(fieldId, EDITABLE_ADF_TEXT, entityKey, displayName, true);
   }
 
   public static ScalarFieldDescriptor<Date> readonlyDateTime(String fieldId, String displayName, EntityKey<Date> entityKey, boolean checkConflict) {

@@ -1,6 +1,7 @@
 package com.almworks.jira.provider3.comments;
 
 import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.util.tests.BaseTestCase;
 import org.json.simple.JSONObject;
 
@@ -23,8 +24,12 @@ public class CommentValuesTests extends BaseTestCase {
     assertTrue(json.containsKey("body"));
     assertTrue(json.containsKey("visibility"));
     assertNull(json.get("visibility"));
-    // NOTE: api/3 expects "body" as an ADF document, not a plain string (see CommentValues TODO).
-    // When text->ADF conversion lands, update this assertion to reflect the ADF object.
-    assertEquals("hello world", json.get("body"));
+    // api/3 requires the body as an ADF document. AdfDocumentTests covers the conversion itself.
+    assertEquals(AdfDocument.fromText("hello world"), json.get("body"));
+  }
+
+  public void testMultiLineBodyIsAdf() throws Exception {
+    JSONObject json = create(10105, "first\nsecond", null).createJson();
+    assertEquals(AdfDocument.fromText("first\nsecond"), json.get("body"));
   }
 }

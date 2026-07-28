@@ -1,5 +1,6 @@
 package com.almworks.jira.provider3.remotedata.issue.fields.scalar;
 
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.restconnector.operations.RestServerInfo;
 import com.almworks.util.datetime.DateUtil;
 import org.almworks.util.Util;
@@ -13,6 +14,12 @@ import java.util.TimeZone;
 
 public interface ScalarUploadType<T> {
   ScalarUploadType<String> TEXT = new Text();
+
+  /**
+   * For rich-text fields (description, environment, textarea custom fields), which api/3 requires as ADF
+   * documents. Plain-text fields such as summary must keep using {@link #TEXT}.
+   */
+  ScalarUploadType<String> ADF_TEXT = new AdfDocumentText();
 
   DateTime DATE = new DateTime();
 
@@ -70,6 +77,27 @@ public interface ScalarUploadType<T> {
     }
   }
 
+
+  class AdfDocumentText implements ScalarUploadType<String> {
+    /**
+     * Sends JSON null to clear the field. An empty ADF document is valid ADF but JIRA rejects rich-text values
+     * that carry no content, so null - which is not a document at all - is the reliable way to clear.
+     * Deliberately does not reuse {@link Text#normalize}, which turns null into an empty string and would lose
+     * the distinction between "no value" and "text".
+     */
+    @Override
+    public Object toJsonValue(String value, RestServerInfo serverInfo) {
+      return value != null ? AdfDocument.fromText(value.trim()) : null;
+    }
+
+    /**
+     * Form values feed the legacy HTML wizards, which take plain text regardless of what JSON needs.
+     */
+    @Override
+    public String toFormValue(String value, RestServerInfo serverInfo) {
+      return Util.NN(value).trim();
+    }
+  }
 
   class DateTime implements ScalarUploadType<Date> {
     @Override

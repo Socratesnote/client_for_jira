@@ -12,6 +12,7 @@ import com.almworks.jira.provider3.custom.fieldtypes.ConvertorFactory;
 import com.almworks.jira.provider3.custom.loadxml.ConfigKeys;
 import com.almworks.jira.provider3.gui.JiraFields;
 import com.almworks.jira.provider3.remotedata.issue.fields.scalar.ScalarFieldDescriptor;
+import com.almworks.jira.provider3.remotedata.issue.fields.scalar.ScalarProperties;
 import com.almworks.util.text.NameMnemonic;
 import org.almworks.util.Collections15;
 import org.almworks.util.TypedKey;
@@ -55,7 +56,7 @@ public class TextFieldType extends FieldType {
     String prefix = ConfigKeys.PREFIX.getFrom(map);
     if (prefix == null) prefix = editable ? "editableText" : "readonlyText";
     return ScalarKind.create(kind.myConvertor, prefix, fieldInfo, remoteSearch, editorType,
-      editable ? ScalarFieldDescriptor.EDITABLE_TEXT : ScalarFieldDescriptor.READONLY_TEXT);
+      editable ? kind.myEditableProperties : ScalarFieldDescriptor.READONLY_TEXT);
   }
 
 
@@ -100,19 +101,22 @@ public class TextFieldType extends FieldType {
         return ScalarFieldEditor.textPane(name, attribute);
       }
     };
-    map.put("shortText", new Info(SHORT_TEXT, shortEditor));
-    map.put("longText", new Info(LONG_TEXT, longEditor));
-    map.put("url", new Info(URL_TEXT, shortEditor));
+    map.put("shortText", new Info(SHORT_TEXT, shortEditor, ScalarFieldDescriptor.EDITABLE_TEXT));
+    // The textarea custom field type maps to this kind, and api/3 requires it as ADF.
+    map.put("longText", new Info(LONG_TEXT, longEditor, ScalarFieldDescriptor.EDITABLE_ADF_TEXT));
+    map.put("url", new Info(URL_TEXT, shortEditor, ScalarFieldDescriptor.EDITABLE_TEXT));
     KINDS = map;
   }
 
   private static class Info {
     private final ScalarKind.ScalarConvertor<String> myConvertor;
     private final ScalarEditorType<?> myEditorType;
+    private final ScalarProperties<String> myEditableProperties;
 
-    Info(ScalarKind.ScalarConvertor<String> convertor, ScalarEditorType<?> editorType) {
+    Info(ScalarKind.ScalarConvertor<String> convertor, ScalarEditorType<?> editorType, ScalarProperties<String> editableProperties) {
       myConvertor = convertor;
       myEditorType = editorType;
+      myEditableProperties = editableProperties;
     }
   }
 }
