@@ -118,10 +118,11 @@ public class AdfText {
       out.append('\n');
       return;
     default:
-      //TODO: Unknown ADF construct: log so it can be revisited later, and salvage any nested text.
-
-      // Warning, not error: LogHelper.error logs SEVERE and surfaces as an internal error to the user.
-      LogHelper.error("AdfText: unhandled ADF node type", type);
+      // Unknown ADF construct: log it so it can be revisited, and salvage any nested text.
+      // Log this as Warning, not Error, because that would make it look more severe than it is and turns this into a
+      // test failure. Since Atlassian may change nodes without warning it is expected to run into unknown types from
+      // time to time.
+      LogHelper.warning("AdfText: unhandled ADF node type", type);
       appendContent(node, out);
     }
   }
