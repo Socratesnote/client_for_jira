@@ -11,6 +11,8 @@ import java.util.Date;
 public class JRComment {
   public static final JsonKey<Integer> ID = JsonKey.integer("id");
   public static final JsonKey<String> BODY = AdfText.textTrimLines("body");
+  /** Same field as {@link #BODY}, kept as its raw document. Mapping is by key instance, so the shared name is fine. */
+  public static final JsonKey<String> BODY_ADF = AdfText.rawAdf("body");
   public static final JsonKey<Entity> AUTHOR = JsonUserParser.jsonKey("author");
   public static final JsonKey<Date> CREATED = JsonKey.dateTime("created");
   public static final JsonKey<Entity> UPDATE_AUTHOR = JsonUserParser.jsonKey("updateAuthor");
@@ -21,6 +23,7 @@ public class JRComment {
     new EntityParser.Builder()
       .map(ID, ServerComment.ID)
       .map(BODY, ServerComment.TEXT)
+      .map(BODY_ADF, ServerComment.TEXT_ADF)
       .map(AUTHOR, ServerComment.AUTHOR)
       .map(CREATED, ServerComment.CREATED)
       .map(UPDATE_AUTHOR, ServerComment.EDITOR)

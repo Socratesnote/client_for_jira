@@ -88,6 +88,9 @@ class AddEditComment extends AddEditSlaveUnit<CommentValues> {
       if (newSlave) comment.setItem(item);
       context.reportUploaded(item, SyncSchema.INVISIBLE);
       context.reportUploaded(item, Comment.TEXT);
+      // Editing writes the body's document alongside its text, so both must be reported. Reporting only the
+      // text would leave the companion looking like an unuploaded change, and the comment would never stop showing as modified.
+      context.reportUploaded(item, Comment.TEXT_ADF);
       context.reportUploaded(item, Comment.LEVEL);
     }
   }

@@ -55,6 +55,22 @@ class ScalarKind<T> implements FieldKind, FieldSetup {
     return new ScalarKind<T>(convertor, prefix, fieldInfo, remoteSearch, editorType, scalarProperties);
   }
 
+  /**
+   * Suffix of the companion key holding the raw ADF document of a rich-text field. A field id never contains
+   * a dot after its prefix segment, so this cannot collide with another field's key.
+   */
+  private static final String ADF_SUFFIX = ".adf";
+
+  /**
+   * Companion key for rich-text kinds, built from the same full id as the value key.
+   * @return null when this kind is not rich text, which is what clears the link on a kind change
+   */
+  @Nullable
+  private EntityKey<String> createAdfKey(String fullId) {
+    if (!myScalarProperties.isRichText()) return null;
+    return EntityKey.scalar(fullId + ADF_SUFFIX, String.class, EntityKeyProperties.shadowable());
+  }
+
   @Nullable
   public EntityKey<T> createEntityKey(EntityHolder field) {
     String fullId = ServerCustomField.createFullId(field, myPrefix);
@@ -62,6 +78,9 @@ class ScalarKind<T> implements FieldKind, FieldSetup {
     Entity description = myScalarProperties.isEditSupported() ? EntityKeyProperties.shadowable() : null;
     EntityKey<T> key = EntityKey.scalar(fullId, myScalarProperties.getScalarClass(), description);
     field.setValue(ServerCustomField.ATTRIBUTE, key.toEntity());
+    EntityKey<String> adfKey = createAdfKey(fullId);
+    // Written even when null, so a field that changes to a kind without rich text drops its stale companion.
+    field.setValue(ServerCustomField.ADF_ATTRIBUTE, adfKey != null ? adfKey.toEntity() : null);
     return key;
   }
 
@@ -70,7 +89,8 @@ class ScalarKind<T> implements FieldKind, FieldSetup {
     String fullId = ServerCustomField.createFullId(connectionId, myPrefix, fieldId);
     Entity description = myScalarProperties.isEditSupported() ? EntityKeyProperties.shadowable() : null;
     final EntityKey<T> key = EntityKey.scalar(fullId, myScalarProperties.getScalarClass(), description);
-    IssueFieldDescriptor descriptor = ScalarFieldDescriptor.create(fieldId, myScalarProperties, key, fieldName, myScalarProperties.isEditSupported());
+    IssueFieldDescriptor descriptor =
+      ScalarFieldDescriptor.create(fieldId, myScalarProperties, key, createAdfKey(fullId), fieldName, myScalarProperties.isEditSupported());
     return new Field(descriptor, null);
   }
 
@@ -88,6 +108,10 @@ class ScalarKind<T> implements FieldKind, FieldSetup {
     EntityKey<T> key = EntityKey.scalar(fullId, myScalarProperties.getScalarClass(), myScalarProperties.isEditSupported() ? EntityKeyProperties.shadowable() : null);
     DBAttribute<?> attribute = FieldType.MigrationProblem.ensureCanMigrateAttribute(field, ServerJira.createAttributeInfo(key));
     field.setValue(CustomField.ATTRIBUTE, attribute);
+    EntityKey<String> adfKey = createAdfKey(fullId);
+    DBAttribute<?> adfAttribute = adfKey != null ? FieldType.MigrationProblem.ensureCanMigrateAttribute(field, ServerJira.createAttributeInfo(adfKey)) : null;
+    // Set unconditionally: a field that moved to a kind without rich text must lose the companion, not keep a stale one.
+    field.setValue(CustomField.ADF_ATTRIBUTE, adfAttribute);
   }
 
   @Override

@@ -53,6 +53,29 @@ public class AdfText {
     return new JsonKey<>(name, JsonKey.emptyTextToNull(adfAware(JsonKey.TEXT_TRIM_LINES)));
   }
 
+  /**
+   * Keeps the ADF document itself, serialized, so an edit can rebuild it instead of flattening it.
+   * Yields null for values that arrived as plain text, which is what pre-ADF servers and non-rich fields send.
+   */
+  public static final Convertor<Object, String> RAW_ADF = new Convertor<Object, String>() {
+    @Override
+    public String convert(Object value) {
+      if (value == null) return null;
+      JSONObject doc = Util.castNullable(JSONObject.class, value);
+      if (doc != null) return doc.toJSONString();
+      // Plain strings are the pre-ADF form and carry no document; anything else is unexpected but not fatal.
+      if (Util.castNullable(String.class, value) == null) LogHelper.warning("AdfText: expected text or ADF document", value);
+      return null;
+    }
+  };
+
+  /**
+   * Companion of {@link #textTrimLines(String)} reading the same field as its raw document.
+   */
+  public static JsonKey<String> rawAdf(String name) {
+    return new JsonKey<>(name, RAW_ADF);
+  }
+
   private static void appendNode(JSONObject node, StringBuilder out) {
     String type = Util.castNullable(String.class, node.get("type"));
     if (type == null) {

@@ -1,7 +1,9 @@
 package com.almworks.items.gui.edit.editors.text;
 
+import com.almworks.integers.LongList;
 import com.almworks.items.api.DBAttribute;
 import com.almworks.items.gui.edit.*;
+import com.almworks.items.sync.VersionSource;
 import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.ui.UIUtil;
 import org.almworks.util.StringUtil;
@@ -34,6 +36,12 @@ public abstract class ScalarValueKey<T> {
   public abstract void commitValue(CommitContext context, DBAttribute<T> attribute);
 
   public abstract boolean hasValue(EditModelState model);
+
+  /**
+   * Called once the editor has loaded its stored value, for keys that need more than that attribute alone.
+   * Does nothing by default.
+   */
+  public void prepareValue(VersionSource source, EditItemModel model, ScalarFieldEditor<T> editor) {}
 
   public boolean[] listenTextComponent(Lifespan life, final EditModelState model, final JTextComponent textComponent) {
     final boolean[] duringUpdate = {false};
@@ -132,6 +140,131 @@ public abstract class ScalarValueKey<T> {
     @Override
     public boolean hasValue(EditModelState model) {
       return getValue(model) != null;
+    }
+  }
+
+  /**
+   * Holds a rich-text field as editable text while keeping the server's own rich value beside it.<br>
+   * The stored plain text is left to the ordinary attribute; this key adds the rich source the edit started
+   * from, and a snapshot of the text as first shown. This helps detect whether a field was edited, such that if the text still equals the snapshot, committing writes nothing at all.
+   */
+  public static class RichText extends ScalarValueKey<String> {
+    private final TypedKey<String> myKey;
+    private final TypedKey<String> mySourceKey;
+    private final TypedKey<String> myOpenedKey;
+    private final DBAttribute<String> mySourceAttribute;
+    private final RichTextTransform myTransform;
+
+    public RichText(String debugName, DBAttribute<String> sourceAttribute, RichTextTransform transform) {
+      myKey = TypedKey.create(debugName);
+      mySourceKey = TypedKey.create(debugName + "/source");
+      myOpenedKey = TypedKey.create(debugName + "/opened");
+      mySourceAttribute = sourceAttribute;
+      myTransform = transform;
+    }
+
+    /**
+     * Replaces the plain text loaded by the editor with its editable form, and records what was shown.
+     */
+    @Override
+    public void prepareValue(VersionSource source, EditItemModel model, ScalarFieldEditor<String> editor) {
+      String rawSource = null;
+      LongList items = model.getEditingItems();
+      // One document belongs to one item. Editing several at once falls back to plain text, which is
+      // lossless here only because an untouched field is never written back.
+      if (items != null && items.size() == 1) rawSource = source.forItem(items.get(0)).getValue(mySourceAttribute);
+      String editable = myTransform.toEditable(model.getValue(myKey), rawSource);
+      model.putValue(myKey, editable);
+      model.putValue(mySourceKey, rawSource);
+      model.putValue(myOpenedKey, editable);
+    }
+
+    @Override
+    protected String fromText(String text) {
+      return Util.NN(text);
+    }
+
+    /**
+     * No trimming: leading spaces are meaningful in this text, where an indented line can be a nested list
+     * item or part of a code block.
+     */
+    @Override
+    protected String toText(String value) {
+      return Util.NN(value);
+    }
+
+    @Override
+    public void setValue(EditModelState model, String value) {
+      model.putValue(myKey, Util.NN(value));
+    }
+
+    @Override
+    public void setText(EditModelState model, String newText) {
+      String value = normalize(newText);
+      if (Util.equals(model.getValue(myKey), value)) return;
+      model.putValue(myKey, value);
+    }
+
+    private static String normalize(String text) {
+      return Util.NN(text).replaceAll(StringUtil.LOCAL_LINE_SEPARATOR, "\n");
+    }
+
+    @NotNull
+    @Override
+    public String getText(EditModelState model) {
+      return Util.NN(model.getValue(myKey));
+    }
+
+    @Override
+    public String getValue(EditModelState model) {
+      return getText(model);
+    }
+
+    @Override
+    public String getInitialValue(EditModelState model) {
+      return model.getValue(myOpenedKey);
+    }
+
+    /**
+     * Changed means the text differs from what was first shown. Comparing against the snapshot rather than
+     * the stored attribute lets an untouched rich field be left completely alone.
+     */
+    @Override
+    public boolean isChanged(EditItemModel model) {
+      return !Util.equals(getText(model), model.getValue(myOpenedKey));
+    }
+
+    @Override
+    public boolean hasValue(EditModelState model) {
+      return !getText(model).isEmpty();
+    }
+
+    /**
+     * Warns when the edit would drop something the editable form only stands in for, such as an image or a
+     * mention. Raised only just before a commit, so it does not interrupt typing.
+     */
+    @Override
+    public void verifyData(DataVerification verifyContext, ScalarFieldEditor<String> editor) {
+      if (verifyContext.getPurpose() == DataVerification.Purpose.EDIT_WARNING) return;
+      EditModelState model = verifyContext.getModel();
+      if (!Util.equals(getText(model), model.getValue(myOpenedKey))) {
+        String loss = myTransform.checkLoss(getText(model), model.getValue(mySourceKey));
+        if (loss != null) verifyContext.addError(editor, editor.getLabelText().getText() + " loses: " + loss);
+      }
+    }
+
+    /**
+     * Writes both halves, and only when the text actually changed: so opening an editor and closing it, or
+     * editing some other field of the same item never rewrites a rich document.
+     */
+    @Override
+    public void commitValue(CommitContext context, DBAttribute<String> attribute) {
+      EditModelState model = context.getModel();
+      String text = getText(model);
+      if (Util.equals(text, model.getValue(myOpenedKey))) return;
+      RichTextTransform.Result result = myTransform.fromEditable(text, model.getValue(mySourceKey));
+      context.getCreator().setValue(attribute, result.getPlainText());
+      context.getCreator().setValue(mySourceAttribute, result.getRawSource());
     }
   }
 

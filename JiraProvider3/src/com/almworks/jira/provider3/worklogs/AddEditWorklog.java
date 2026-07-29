@@ -122,6 +122,9 @@ class AddEditWorklog extends AddEditSlaveUnit<WorklogValues> {
     context.reportUploaded(item, Worklog.TIME_SECONDS);
     context.reportUploaded(item, Worklog.SECURITY);
     context.reportUploaded(item, Worklog.COMMENT);
+    // Editing writes the comment's document alongside its text, so both must be reported, or the worklog
+    // keeps showing as locally modified after a successful upload.
+    context.reportUploaded(item, Worklog.COMMENT_ADF);
     context.reportUploaded(item, Worklog.EDITOR);
     context.reportUploaded(item, Worklog.AUTO_ADJUST);
   }

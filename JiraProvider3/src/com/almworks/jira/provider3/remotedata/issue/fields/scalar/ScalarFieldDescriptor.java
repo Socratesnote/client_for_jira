@@ -11,7 +11,9 @@ import com.almworks.jira.provider3.remotedata.issue.fields.IssueFieldValue;
 import com.almworks.jira.provider3.services.upload.PostUploadContext;
 import com.almworks.jira.provider3.services.upload.UploadJsonUtil;
 import com.almworks.jira.provider3.sync.download2.details.JsonIssueField;
+import com.almworks.jira.provider3.sync.download2.details.fields.AdfScalarField;
 import com.almworks.jira.provider3.sync.download2.details.fields.ScalarField;
+import com.almworks.jira.provider3.sync.download2.rest.AdfCanonical;
 import com.almworks.jira.provider3.sync.download2.rest.AdfText;
 import com.almworks.jira.provider3.sync.schema.ServerJira;
 import com.almworks.restconnector.json.JsonKey;
@@ -69,9 +71,11 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
     }
   };
 
-  //TODO: Conflict detection compares ADF-extracted plain text against local plain-text edits, so a server-side
-  // rich-text edit that only changes formatting produces identical extracted text and is not detected as a conflict.
-  // Revisit once upload-side ADF support exists (compare raw ADF, or a canonical form).
+  /**
+   * Plain-text equality, still the right comparison for fields that hold no formatting, such as summary.
+   * Rich-text fields compare their ADF documents instead - see MyValue.areEqual - because two documents that
+   * differ only in formatting extract to identical text.
+   */
   public static final Equality<String> TEXT_EQUALITY = new Equality<String>() {
     @Override
     public boolean areEqual(String a, String b) {
@@ -105,11 +109,12 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
   public static final ScalarProperties<String> EDITABLE_TEXT =
     new ScalarProperties<String>(JsonKey.emptyTextToNull(AdfText.adfAware(JsonKey.TEXT_TRIM)), ScalarUploadType.TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
   /**
-   * For rich-text fields, which api/3 requires as ADF documents. Differs from {@link #EDITABLE_TEXT} only in
-   * the upload type - reading already accepts ADF for every text field.
+   * For rich-text fields, which api/3 requires as ADF documents. Differs from {@link #EDITABLE_TEXT} in the
+   * upload type - reading already accepts ADF for every text field - and in being rich text, which gives the
+   * field a companion attribute holding the server's own document.
    */
   public static final ScalarProperties<String> EDITABLE_ADF_TEXT =
-    new ScalarProperties<String>(JsonKey.emptyTextToNull(AdfText.adfAware(JsonKey.TEXT_TRIM)), ScalarUploadType.ADF_TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
+    new ScalarProperties<String>(JsonKey.emptyTextToNull(AdfText.adfAware(JsonKey.TEXT_TRIM)), ScalarUploadType.ADF_TEXT, TEXT_EQUALITY, Convertor.<String>identity(), String.class, true);
   public static final ScalarProperties<String> READONLY_TEXT =
     new ScalarProperties<String>(AdfText.adfAware(JsonKey.TEXT_TRIM_TO_NULL), null, TEXT_EQUALITY, Convertor.<String>identity(), String.class);
   public static final ScalarProperties<Date> EDITABLE_DATE =
@@ -126,41 +131,61 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
   private final ScalarProperties<T> myScalarProperties;
   private final EntityKey<T> myKey;
   private final DBAttribute<T> myAttribute;
+  @Nullable
+  private final EntityKey<String> myAdfKey;
+  @Nullable
+  private final DBAttribute<String> myAdfAttribute;
   private final boolean myCheckConflict;
 
   /**
    * @param checkConflict if true - create upload value to check conflict even when upload is not supported.<br>
    *                      If false - loads value (and checks conflict) iff upload is supported
+   * @param adfKey companion key holding the server's raw ADF document. Null for everything but rich text
    */
-  private ScalarFieldDescriptor(String fieldId, ScalarProperties<T> scalarProperties, EntityKey<T> key, String displayName, boolean checkConflict) {
+  private ScalarFieldDescriptor(String fieldId, ScalarProperties<T> scalarProperties, EntityKey<T> key, @Nullable EntityKey<String> adfKey, String displayName,
+    boolean checkConflict) {
     super(fieldId, displayName);
     myScalarProperties = scalarProperties;
     myKey = key;
     myCheckConflict = checkConflict;
     myAttribute = ServerJira.toScalarAttribute(myKey);
+    myAdfKey = scalarProperties.isRichText() ? adfKey : null;
+    myAdfAttribute = myAdfKey != null ? ServerJira.toScalarAttribute(myAdfKey) : null;
+    LogHelper.assertError(adfKey == null || scalarProperties.isRichText(), "ADF companion on a field that is not rich text", fieldId);
   }
 
   public static ScalarFieldDescriptor<String> editableText(String fieldId, String displayName, EntityKey<String> entityKey) {
-    return new ScalarFieldDescriptor<String>(fieldId, EDITABLE_TEXT, entityKey, displayName, true);
+    return new ScalarFieldDescriptor<String>(fieldId, EDITABLE_TEXT, entityKey, null, displayName, true);
   }
 
   /**
    * For rich-text fields. Plain-text fields such as summary must use {@link #editableText}.
+   * @param adfEntityKey companion key storing the server's own ADF document, so an edit rebuilds it rather
+   * than replacing it with flat paragraphs
    */
-  public static ScalarFieldDescriptor<String> editableAdfText(String fieldId, String displayName, EntityKey<String> entityKey) {
-    return new ScalarFieldDescriptor<String>(fieldId, EDITABLE_ADF_TEXT, entityKey, displayName, true);
+  public static ScalarFieldDescriptor<String> editableAdfText(String fieldId, String displayName, EntityKey<String> entityKey, EntityKey<String> adfEntityKey) {
+    return new ScalarFieldDescriptor<String>(fieldId, EDITABLE_ADF_TEXT, entityKey, adfEntityKey, displayName, true);
   }
 
   public static ScalarFieldDescriptor<Date> readonlyDateTime(String fieldId, String displayName, EntityKey<Date> entityKey, boolean checkConflict) {
-    return new ScalarFieldDescriptor<Date>(fieldId, READ_ONLY_DATE, entityKey, displayName, checkConflict);
+    return new ScalarFieldDescriptor<Date>(fieldId, READ_ONLY_DATE, entityKey, null, displayName, checkConflict);
   }
 
   public static ScalarFieldDescriptor<Integer> editableDays(String fieldId, String displayName, EntityKey<Integer> entityKey) {
-    return new ScalarFieldDescriptor<Integer>(fieldId, EDITABLE_DAYS, entityKey, displayName, true);
+    return new ScalarFieldDescriptor<Integer>(fieldId, EDITABLE_DAYS, entityKey, null, displayName, true);
   }
 
   public static <T> ScalarFieldDescriptor<T> create(String fieldId, ScalarProperties<T> scalarProperties, EntityKey<T> key, String displayName, boolean checkConflict) {
-    return new ScalarFieldDescriptor<T>(fieldId, scalarProperties, key, displayName, checkConflict);
+    return create(fieldId, scalarProperties, key, null, displayName, checkConflict);
+  }
+
+  /**
+   * @param adfKey companion key for rich-text kinds, built by the caller alongside the value key. Ignored
+   * when the properties are not rich text
+   */
+  public static <T> ScalarFieldDescriptor<T> create(String fieldId, ScalarProperties<T> scalarProperties, EntityKey<T> key, @Nullable EntityKey<String> adfKey, String displayName,
+    boolean checkConflict) {
+    return new ScalarFieldDescriptor<T>(fieldId, scalarProperties, key, adfKey, displayName, checkConflict);
   }
 
   @Override
@@ -169,7 +194,9 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
     if (uploadType == null && !myCheckConflict) return null;
     T change = trunk.getValue(myAttribute);
     T expected = base.getValue(myAttribute);
-    return new MyValue<T>(this, expected, change);
+    String changeAdf = myAdfAttribute != null ? trunk.getValue(myAdfAttribute) : null;
+    String expectedAdf = myAdfAttribute != null ? base.getValue(myAdfAttribute) : null;
+    return new MyValue<T>(this, expected, change, expectedAdf, changeAdf);
   }
 
   @NotNull
@@ -178,9 +205,16 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
     return myKey;
   }
 
+  @Nullable
+  @Override
+  public EntityKey<String> getAdfEntityKey() {
+    return myAdfKey;
+  }
+
   @Override
   public JsonIssueField createDownloadField() {
-    return ScalarField.independent(myKey, myScalarProperties.getFromJson());
+    if (myAdfKey == null) return ScalarField.independent(myKey, myScalarProperties.getFromJson());
+    return AdfScalarField.create(myKey, myScalarProperties.getFromJson(), myAdfKey);
   }
 
   @Nullable
@@ -216,12 +250,30 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
 
     private final T myExpected;
     private final T myChange;
+    /** The server's own document at edit start, and the one the edit produced. Null when the field has no ADF. */
+    @Nullable
+    private final String myExpectedAdf;
+    @Nullable
+    private final String myChangeAdf;
 
-    public MyValue(ScalarFieldDescriptor<T> descriptor, T expected, T change) {
+    public MyValue(ScalarFieldDescriptor<T> descriptor, T expected, T change, @Nullable String expectedAdf, @Nullable String changeAdf) {
       super(descriptor.getProperties().isEditSupported());
       myDescriptor = descriptor;
       myExpected = expected;
       myChange = change;
+      myExpectedAdf = expectedAdf;
+      myChangeAdf = changeAdf;
+    }
+
+    /**
+     * Compares two states of the field, preferring the ADF documents when both are present.<br>
+     * Extracted plain text is equal for two documents that differ only in formatting, so comparing text alone
+     * hides a formatting-only change in either direction. Values stored before the companion attribute
+     * existed have no document, and those fall back to the text comparison until the next sync fills them in.
+     */
+    private boolean areEqual(T text, T otherText, @Nullable String adf, @Nullable String otherAdf) {
+      if (adf != null && otherAdf != null) return AdfCanonical.areEqualRaw(adf, otherAdf);
+      return myDescriptor.getProperties().areEqual(text, otherText);
     }
 
     @Override
@@ -241,21 +293,41 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
     @Override
     public String checkInitialState(EntityHolder issue) {
       T server = issue.getScalarValue(myDescriptor.getIssueEntityKey());
-      if (myDescriptor.getProperties().areEqual(server, myExpected)) return null;
+      if (areEqual(server, myExpected, serverAdf(issue), myExpectedAdf)) return null;
       return myDescriptor.getConflictMessage(myExpected, server);
     }
 
+    @Nullable
+    private String serverAdf(EntityHolder issue) {
+      EntityKey<String> adfKey = myDescriptor.getAdfEntityKey();
+      return adfKey != null ? issue.getScalarValue(adfKey) : null;
+    }
+
+    /**
+     * Sends the document the edit produced rather than rebuilding one from plain text, so formatting the
+     * client cannot express still reaches the server intact.
+     */
     @Override
     public void addChange(EditIssueRequest edit) {
       ScalarUploadType<T> uploadType = myDescriptor.getProperties().getUploadType();
       if (uploadType == null) return;
       String fieldId = myDescriptor.getFieldId();
       if (edit.needsUpload(fieldId, SET, needsUpload(edit.getServerInfo()))) {
+        Object jsonValue = myChangeAdf != null ? AdfCanonical.parse(myChangeAdf) : null;
+        // Falls back for values that never had a document, and for a stored document that will not parse.
+        if (jsonValue == null) jsonValue = uploadType.toJsonValue(myChange, edit.getServerInfo());
         //noinspection unchecked
-        edit.addEdit(this, fieldId, UploadJsonUtil.singleObjectElementArray(SET, uploadType.toJsonValue(myChange, edit.getServerInfo())));
+        edit.addEdit(this, fieldId, UploadJsonUtil.singleObjectElementArray(SET, jsonValue));
       }
     }
 
+    /**
+     * Deliberately compares the extracted text rather than the documents.<br>
+     * The question here is only whether the edit landed, and JIRA may normalize a document the client built -
+     * assigning localId and the like - so a document comparison can report a successful upload as failed and
+     * leave the item locally changed for ever. Formatting differences matter in {@link #isChanged} and
+     * {@link #checkInitialState}, not here.
+     */
     @Override
     protected void doFinishUpload(long issueItem, EntityHolder issue, PostUploadContext context) {
       if (myDescriptor.getProperties().isEditSupported()) {
@@ -267,10 +339,14 @@ public class ScalarFieldDescriptor<T> extends IssueFieldDescriptor {
         }
       }
       context.reportUploaded(issueItem, myDescriptor.getAttribute());
+      // The commit wrote both halves, so both must be reported. Reporting only the text leaves the companion
+      // looking like an unuploaded local change, and the item never stops showing as modified.
+      DBAttribute<String> adfAttribute = myDescriptor.myAdfAttribute;
+      if (adfAttribute != null) context.reportUploaded(issueItem, adfAttribute);
     }
 
     public boolean isChanged() {
-      return !myDescriptor.getProperties().areEqual(myExpected, myChange);
+      return !areEqual(myExpected, myChange, myExpectedAdf, myChangeAdf);
     }
 
     @Override

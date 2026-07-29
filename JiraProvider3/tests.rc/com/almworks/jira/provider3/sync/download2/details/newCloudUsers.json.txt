@@ -16,6 +16,7 @@ EntityKey[comment.id:Int]=10105
 EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=10000, issue.key=TP-1)
 EntityKey[comment.security:Entity]=<null>
 EntityKey[comment.text:String]=comment
+EntityKey[comment.textAdf:String]=<null>
 EntityKey[comment.updated:Date]=21 Dec 2019 11:15:06.646 GMT
 EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
   TYPE: Entity[TYPE:'types.issue']
@@ -43,8 +44,10 @@ EntityKey[issue.assignee:Entity]=Entity[types.user](user.accountId=557058:f7042e
 EntityKey[issue.components:Entity COLLECTION]={}
 EntityKey[issue.created:Date]=12 Nov 2016 12:34:12.742 GMT
 EntityKey[issue.description:String]=descr
+EntityKey[issue.descriptionAdf:String]=<null>
 EntityKey[issue.due:Int]=<null>
 EntityKey[issue.environment:String]=<null>
+EntityKey[issue.environmentAdf:String]=<null>
 EntityKey[issue.fixVersions:Entity COLLECTION]={}
 EntityKey[issue.id:Int]=10000
 EntityKey[issue.key:String]=TP-1
@@ -72,6 +75,7 @@ EntityKey[sys.store.downloadStage.mark:com.almworks.items.entities.dbwrite.downl
 EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
 EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=557058:f7042e9f-c74c-416a-9b75-f08f781eda42)
 EntityKey[worklog.comment:String]=<null>
+EntityKey[worklog.commentAdf:String]=<null>
 EntityKey[worklog.created:Date]=31 Oct 2017 13:08:29.334 GMT
 EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=557058:f7042e9f-c74c-416a-9b75-f08f781eda42)
 EntityKey[worklog.id:Int]=10001
@@ -84,6 +88,7 @@ EntityKey[worklog.updated:Date]=31 Oct 2017 13:08:29.334 GMT
 EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
 EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=557058:f7042e9f-c74c-416a-9b75-f08f781eda42)
 EntityKey[worklog.comment:String]=<null>
+EntityKey[worklog.commentAdf:String]=<null>
 EntityKey[worklog.created:Date]=31 Oct 2017 13:08:30.418 GMT
 EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=557058:f7042e9f-c74c-416a-9b75-f08f781eda42)
 EntityKey[worklog.id:Int]=10002
@@ -96,6 +101,7 @@ EntityKey[worklog.updated:Date]=31 Oct 2017 13:08:30.418 GMT
 EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
 EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=557058:f7042e9f-c74c-416a-9b75-f08f781eda42)
 EntityKey[worklog.comment:String]=prev
+EntityKey[worklog.commentAdf:String]=<null>
 EntityKey[worklog.created:Date]=31 Oct 2017 13:08:31.276 GMT
 EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=557058:f7042e9f-c74c-416a-9b75-f08f781eda42)
 EntityKey[worklog.id:Int]=10003

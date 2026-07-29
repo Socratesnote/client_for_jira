@@ -45,6 +45,21 @@ public class ScalarFieldEditor<T> extends BaseScalarFieldEditor<T> {
     return new ScalarFieldEditor<String>(labelText, attribute, new EditorKind.TextPane(prefHeight), new ScalarValueKey.Text(attribute.getId(), true));
   }
 
+  /**
+   * A text pane for a field whose server value is richer than the text shown.
+   * @param sourceAttribute companion attribute holding that rich value, written alongside the text on commit
+   */
+  public static ScalarFieldEditor<String> richTextPane(NameMnemonic labelText, DBAttribute<String> attribute, DBAttribute<String> sourceAttribute,
+    RichTextTransform transform) {
+    return new ScalarFieldEditor<String>(labelText, attribute, EditorKind.TEXT_PANE, new ScalarValueKey.RichText(attribute.getId(), sourceAttribute, transform));
+  }
+
+  public static ScalarFieldEditor<String> richTextPane(NameMnemonic labelText, DBAttribute<String> attribute, DBAttribute<String> sourceAttribute,
+    RichTextTransform transform, int prefHeight) {
+    return new ScalarFieldEditor<String>(labelText, attribute, new EditorKind.TextPane(prefHeight),
+      new ScalarValueKey.RichText(attribute.getId(), sourceAttribute, transform));
+  }
+
   public static FieldEditor decimal(NameMnemonic labelText, DBAttribute<BigDecimal> attribute) {
     return new ScalarFieldEditor<BigDecimal>(labelText, attribute, EditorKind.TEXT_FIELD, new ScalarValueKey.Decimal(attribute.getId()));
   }
@@ -64,6 +79,7 @@ public class ScalarFieldEditor<T> extends BaseScalarFieldEditor<T> {
     model.registerEditor(this);
     T value = myCommonValue.loadValue(source, model, getAttribute(), model.getEditingItems());
     if (value != null) myKey.setValue(model, value);
+    myKey.prepareValue(source, model, this);
   }
 
   @NotNull

@@ -35,6 +35,25 @@ public class AdfFieldWiringTests extends BaseTestCase {
     assertSame(ScalarFieldDescriptor.EDITABLE_TEXT, editablePropertiesOf("url"));
   }
 
+  /**
+   * Only rich text carries a companion attribute for the server's own document. A companion on a plain field
+   * would store a document nothing maintains; a missing one on a rich field silently reinstates flattening.
+   */
+  public void testRichTextFlagFollowsTheUploadType() {
+    assertTrue(ScalarFieldDescriptor.EDITABLE_ADF_TEXT.isRichText());
+    assertFalse(ScalarFieldDescriptor.EDITABLE_TEXT.isRichText());
+    assertFalse(ScalarFieldDescriptor.READONLY_TEXT.isRichText());
+    assertFalse(ScalarFieldDescriptor.EDITABLE_DATE.isRichText());
+  }
+
+  public void testOnlyRichTextIssueFieldsHaveAdfCompanion() {
+    assertNotNull(IssueFields.DESCRIPTION.getAdfEntityKey());
+    assertNotNull(IssueFields.ENVIRONMENT.getAdfEntityKey());
+    assertNull(IssueFields.SUMMARY.getAdfEntityKey());
+    // The two companions must be distinct, or one field would overwrite the other's document.
+    assertFalse(IssueFields.DESCRIPTION.getAdfEntityKey().equals(IssueFields.ENVIRONMENT.getAdfEntityKey()));
+  }
+
   private static Object editablePropertiesOf(String kind) throws Exception {
     Field kinds = TextFieldType.class.getDeclaredField("KINDS");
     kinds.setAccessible(true);

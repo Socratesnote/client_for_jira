@@ -11,6 +11,7 @@ import com.almworks.jira.provider3.custom.fieldtypes.CommonFieldInfo;
 import com.almworks.jira.provider3.custom.fieldtypes.ConvertorFactory;
 import com.almworks.jira.provider3.custom.loadxml.ConfigKeys;
 import com.almworks.jira.provider3.gui.JiraFields;
+import com.almworks.jira.provider3.markup.AdfRichTextTransform;
 import com.almworks.jira.provider3.remotedata.issue.fields.scalar.ScalarFieldDescriptor;
 import com.almworks.jira.provider3.remotedata.issue.fields.scalar.ScalarProperties;
 import com.almworks.util.text.NameMnemonic;
@@ -99,6 +100,14 @@ public class TextFieldType extends FieldType {
       @Override
       protected FieldEditor createEditor(NameMnemonic name, DBAttribute<String> attribute) {
         return ScalarFieldEditor.textPane(name, attribute);
+      }
+
+      @Override
+      protected FieldEditor createEditor(NameMnemonic name, DBAttribute<String> attribute, DBAttribute<String> adfAttribute) {
+        // No companion means this field has not been re-synced since it gained one. Degrade to the plain
+        // editor rather than failing: the field still edits, it just cannot preserve formatting yet.
+        if (adfAttribute == null) return createEditor(name, attribute);
+        return ScalarFieldEditor.richTextPane(name, attribute, adfAttribute, AdfRichTextTransform.TRIM);
       }
     };
     map.put("shortText", new Info(SHORT_TEXT, shortEditor, ScalarFieldDescriptor.EDITABLE_TEXT));

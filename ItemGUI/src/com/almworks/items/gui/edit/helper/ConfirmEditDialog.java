@@ -31,20 +31,20 @@ public class ConfirmEditDialog {
   private boolean myUploadAnyway;
 
   private static final String uploadHeaderTextOne = wrapHeader(
-    "This " + Terms.ref_artifact + " has illegal values, Save & Upload may fail or lose them.<br>" +
+    "This " + Terms.ref_artifact + " has illegal changes. Save & Upload may fail or lose them.<br>" +
     "Would you like to continue editing and fix these values?"
 //    "It is recommended to continue editing and fix these values."
   );
   private static final String localChangeHeaderTextOne = wrapHeader(
-    "This " + Terms.ref_artifact + " has illegal values, Save may fail or lose them.<br>" +
+    "This " + Terms.ref_artifact + " has illegal changes. Save may fail or lose them.<br>" +
     "Would you like to continue editing and fix these values?"
   );
   private static final String uploadHeaderTextMany = wrapHeader(
-    "Some of these " + Terms.ref_artifacts + " have illegal values, Save & Upload may fail or lose them.<br>" +
+    "Some of these " + Terms.ref_artifacts + " have illegal changes. Save & Upload may fail or lose them.<br>" +
     "Would you like to continue editing and fix these values?"
   );
   private static final String localChangeHeaderTextMany = wrapHeader(
-    "Some of these " + Terms.ref_artifacts + " have illegal values, Save may fail or lose them.<br>" +
+    "Some of these " + Terms.ref_artifacts + " have illegal changes. Save may fail or lose them.<br>" +
     "Would you like to continue editing and fix these values?"
   );
 

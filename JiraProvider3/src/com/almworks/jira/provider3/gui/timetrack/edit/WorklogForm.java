@@ -8,6 +8,7 @@ import com.almworks.items.gui.edit.editors.scalar.TimeSpentEditor;
 import com.almworks.items.gui.edit.editors.text.ScalarFieldEditor;
 import com.almworks.jira.provider3.gui.edit.editors.VisibilityEditor;
 import com.almworks.jira.provider3.gui.timetrack.RemainEstimateEditor;
+import com.almworks.jira.provider3.markup.AdfRichTextTransform;
 import com.almworks.jira.provider3.schema.Group;
 import com.almworks.jira.provider3.schema.ProjectRole;
 import com.almworks.jira.provider3.schema.Worklog;
@@ -32,7 +33,8 @@ import java.awt.*;
 class WorklogForm {
     static final TimeSpentEditor TIME_SPENT = new TimeSpentEditor(NameMnemonic.parseString("&Time Spent"), Worklog.TIME_SECONDS, EditWorklogsFeature.DEFAULT_UNIT);
     static final StartTimeEditor START = new StartTimeEditor(NameMnemonic.parseString("&Started"), Worklog.STARTED, TIME_SPENT, Const.SECOND);
-    static final ScalarFieldEditor<String> COMMENT = ScalarFieldEditor.textPane(NameMnemonic.parseString("Co&mment"), Worklog.COMMENT);
+    static final ScalarFieldEditor<String> COMMENT =
+      ScalarFieldEditor.richTextPane(NameMnemonic.parseString("Co&mment"), Worklog.COMMENT, Worklog.COMMENT_ADF, AdfRichTextTransform.TRIM_LINES);
     static final AdjustmentEditor ADJUSTMENT = AdjustmentEditor.INSTANCE;
     static final DropdownEnumEditor VISIBILITY = VisibilityEditor.create(Worklog.SECURITY);
 

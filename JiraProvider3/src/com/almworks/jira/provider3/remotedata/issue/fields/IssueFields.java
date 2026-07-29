@@ -44,8 +44,10 @@ public class IssueFields {
 
   public static final ScalarFieldDescriptor<String> SUMMARY = ScalarFieldDescriptor.editableText("summary", "Summary", ServerIssue.SUMMARY);
   // Description and environment are rich text on api/3; summary above is not.
-  public static final ScalarFieldDescriptor<String> DESCRIPTION = ScalarFieldDescriptor.editableAdfText("description", "Description", ServerIssue.DESCRIPTION);
-  public static final ScalarFieldDescriptor<String> ENVIRONMENT = ScalarFieldDescriptor.editableAdfText("environment", "Environment", ServerIssue.ENVIRONMENT);
+  public static final ScalarFieldDescriptor<String> DESCRIPTION =
+    ScalarFieldDescriptor.editableAdfText("description", "Description", ServerIssue.DESCRIPTION, ServerIssue.DESCRIPTION_ADF);
+  public static final ScalarFieldDescriptor<String> ENVIRONMENT =
+    ScalarFieldDescriptor.editableAdfText("environment", "Environment", ServerIssue.ENVIRONMENT, ServerIssue.ENVIRONMENT_ADF);
   public static final EntityFieldDescriptor<Integer> PRIORITY = EntityFieldDescriptor.generic("priority", "Priority", ServerIssue.PRIORITY, T_PRIORITY);
   public static final EntityFieldDescriptor<Integer> RESOLUTION = EntityFieldDescriptor.generic("resolution", "Resolution", ServerIssue.RESOLUTION, T_RESOLUTION);
   public static final EntityFieldDescriptor<String> REPORTER = EntityFieldDescriptor.generic("reporter", "Reporter", ServerIssue.REPORTER, T_USER);
