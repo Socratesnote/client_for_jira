@@ -19,6 +19,11 @@ public class ServerCustomField {
   public static final EntityKey<String> KEY = EntityKey.string("customField.key", null);
   public static final EntityKey<String> DESCRIPTION = EntityKey.string("customField.description", null);
   public static final EntityKey<Entity> ATTRIBUTE = EntityKey.entity("customField.attr", null);
+  /**
+   * Companion of {@link #ATTRIBUTE} holding the field's raw ADF document, for rich-text kinds only.
+   * Null for every other kind, and cleared when a field changes to a kind that is not rich text.
+   */
+  public static final EntityKey<Entity> ADF_ATTRIBUTE = EntityKey.entity("customField.adfAttr", null);
   public static final EntityKey<Entity> ENUM_TYPE = EntityKey.entity("customField.enumType", null);
   public static final EntityKey<Collection<Entity>> ONLY_IN_PROJECTS = Commons.ONLY_IN_PROJECTS;
   public static final EntityKey<Collection<Entity>> ONLY_IN_ISSUE_TYPES = Commons.ONLY_IN_ISSUE_TYPES;

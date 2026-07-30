@@ -98,6 +98,9 @@ public interface FieldKind {
       if (fieldEntity == null) return;
       EntityKey<?> key = myDescriptor.getIssueEntityKey();
       fieldEntity.setValue(ServerCustomField.ATTRIBUTE, key.toEntity());
+      // Null for every kind but rich text, which also clears the link when a field changes away from it.
+      EntityKey<String> adfKey = myDescriptor.getAdfEntityKey();
+      fieldEntity.setValue(ServerCustomField.ADF_ATTRIBUTE, adfKey != null ? adfKey.toEntity() : null);
       fieldEntity.setValue(ServerCustomField.ENUM_TYPE, myEnumType);
       fieldEntity.setNNValue(ServerCustomField.KEY, fieldClass);
       if (myDescriptor.hasDisplayName()) fieldEntity.setNNValue(ServerCustomField.NAME, myDescriptor.getDisplayName());

@@ -1,6 +1,8 @@
 package com.almworks.jira.provider3.worklogs;
 
 import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
+import com.almworks.jira.provider3.sync.download2.rest.AdfCanonical;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.util.tests.BaseTestCase;
 import org.json.simple.JSONObject;
 
@@ -11,10 +13,14 @@ import java.util.Date;
 // constructor and an ItemVersion-based load(), so reflection keeps this a pure unit test.
 public class WorklogValuesTests extends BaseTestCase {
   private static WorklogValues create(Integer id, Date started, Integer seconds, String comment) throws Exception {
+    return create(id, started, seconds, comment, null);
+  }
+
+  private static WorklogValues create(Integer id, Date started, Integer seconds, String comment, String commentAdf) throws Exception {
     Constructor<WorklogValues> c = WorklogValues.class.getDeclaredConstructor(
-      Integer.class, Date.class, Integer.class, String.class, VisibilityLevel.class, String.class, Date.class);
+      Integer.class, Date.class, Integer.class, String.class, String.class, VisibilityLevel.class, String.class, Date.class);
     c.setAccessible(true);
-    return c.newInstance(id, started, seconds, comment, null, "author", new Date(0));
+    return c.newInstance(id, started, seconds, comment, commentAdf, null, "author", new Date(0));
   }
 
   public void testCreateJsonShape() throws Exception {
@@ -24,9 +30,16 @@ public class WorklogValuesTests extends BaseTestCase {
     assertEquals(Integer.valueOf(3600), json.get("timeSpentSeconds"));
     assertNull(json.get("visibility"));
     assertNotNull(json.get("started"));
-    // NOTE: api/3 expects "comment" as an ADF document, not a plain string (see WorklogValues TODO).
-    // When text->ADF conversion lands, update this assertion to reflect the ADF object.
-    assertEquals("worked", json.get("comment"));
+    // api/3 requires the comment as an ADF document. AdfDocumentTests covers the conversion itself.
+    assertEquals(AdfDocument.fromText("worked"), json.get("comment"));
+  }
+
+  // JIRA rejects a rich-text value carrying no content, so a comment-less worklog must omit the key entirely.
+  public void testCreateJsonOmitsEmptyComment() throws Exception {
+    JSONObject json = create(10001, new Date(0), 3600, null).createJson();
+    assertFalse(json.containsKey("comment"));
+    assertEquals(4, json.size());
+    assertFalse(create(10001, new Date(0), 3600, "").createJson().containsKey("comment"));
   }
 
   // A new worklog has no id yet, so the "id" key must be omitted from the request.
@@ -34,5 +47,23 @@ public class WorklogValuesTests extends BaseTestCase {
     JSONObject json = create(null, new Date(0), 60, "x").createJson();
     assertFalse(json.containsKey("id"));
     assertEquals(4, json.size());
+  }
+
+  /**
+   * The point of storing the server's document: an edit sends it back rather than a flat rebuild, so
+   * formatting this client cannot express is not destroyed on the way out.
+   */
+  public void testStoredAdfIsSentVerbatim() throws Exception {
+    String stored = "{\"type\":\"doc\",\"version\":1,\"content\":[{\"type\":\"paragraph\",\"content\":"
+      + "[{\"type\":\"text\",\"text\":\"worked\",\"marks\":[{\"type\":\"em\"}]}]}]}";
+    JSONObject comment = (JSONObject) create(10001, new Date(0), 3600, "worked", stored).createJson().get("comment");
+    assertTrue(AdfCanonical.areEqualRaw(stored, comment.toJSONString()));
+    assertFalse(AdfCanonical.areEqual(AdfDocument.fromText("worked"), comment));
+  }
+
+  // Malformed stored data must not block an upload; it falls back rather than sending something invalid.
+  public void testUnparseableStoredAdfFallsBack() throws Exception {
+    JSONObject json = create(10001, new Date(0), 3600, "worked", "not json").createJson();
+    assertEquals(AdfDocument.fromText("worked"), json.get("comment"));
   }
 }

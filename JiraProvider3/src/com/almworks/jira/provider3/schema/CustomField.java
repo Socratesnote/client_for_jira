@@ -21,6 +21,7 @@ public class CustomField {
   public static final DBAttribute<String> KEY = ServerJira.toScalarAttribute(ServerCustomField.KEY);
   public static final DBAttribute<String> NAME = ServerJira.toScalarAttribute(ServerCustomField.NAME);
   public static final DBAttribute<Long> ATTRIBUTE = ServerJira.toLinkAttribute(ServerCustomField.ATTRIBUTE);
+  public static final DBAttribute<Long> ADF_ATTRIBUTE = ServerJira.toLinkAttribute(ServerCustomField.ADF_ATTRIBUTE);
   public static final DBAttribute<Long> ENUM_TYPE = ServerJira.toLinkAttribute(ServerCustomField.ENUM_TYPE);
   public static final DBAttribute<String> ENUM_STRING_ID = ServerJira.toScalarAttribute(ServerCustomField.ENUM_STRING_ID);
   public static final DBAttribute<String> ENUM_DISPLAY_NAME = ServerJira.toScalarAttribute(ServerCustomField.ENUM_DISPLAY_NAME);

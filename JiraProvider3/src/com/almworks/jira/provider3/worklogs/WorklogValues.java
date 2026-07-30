@@ -9,6 +9,8 @@ import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
 import com.almworks.jira.provider3.remotedata.issue.fields.scalar.ScalarUploadType;
 import com.almworks.jira.provider3.schema.Worklog;
 import com.almworks.jira.provider3.services.upload.UploadUnit;
+import com.almworks.jira.provider3.sync.download2.rest.AdfCanonical;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.jira.provider3.sync.schema.ServerIssue;
 import com.almworks.jira.provider3.sync.schema.ServerUser;
 import com.almworks.jira.provider3.sync.schema.ServerWorklog;
@@ -25,15 +27,18 @@ class WorklogValues extends SlaveValues {
   private final Date myStarted;
   private final Integer mySeconds;
   private final String myComment;
+  @Nullable("When the comment never was an ADF document")
+  private final String myCommentAdf;
   private final VisibilityLevel myVisibility;
   private final String myAuthorName;
   private final Date myCreated;
 
-  private WorklogValues(Integer id, Date started, Integer seconds, String comment, VisibilityLevel visibility, String authorName, Date created) {
+  private WorklogValues(Integer id, Date started, Integer seconds, String comment, @Nullable String commentAdf, VisibilityLevel visibility, String authorName, Date created) {
     super(id);
     myStarted = started;
     mySeconds = seconds;
     myComment = comment;
+    myCommentAdf = commentAdf;
     myVisibility = visibility;
     myAuthorName = authorName;
     myCreated = created;
@@ -42,6 +47,7 @@ class WorklogValues extends SlaveValues {
   public static WorklogValues load(ItemVersion worklog) throws UploadUnit.CantUploadException {
     Integer id = worklog.getValue(Worklog.ID);
     String comment = worklog.getValue(Worklog.COMMENT);
+    String commentAdf = worklog.getValue(Worklog.COMMENT_ADF);
     Date started = worklog.getValue(Worklog.STARTED);
     Integer seconds = worklog.getValue(Worklog.TIME_SECONDS);
     VisibilityLevel visibility = VisibilityLevel.load(worklog.readValue(Worklog.SECURITY));
@@ -49,7 +55,7 @@ class WorklogValues extends SlaveValues {
     Date created = worklog.getValue(Worklog.CREATED);
     if (created == null) created = new Date();
     String authorName = AddEditSlaveUnit.loadAuthor(worklog.readValue(Worklog.AUTHOR));
-    return new WorklogValues(id, started, seconds, comment, visibility, authorName, created);
+    return new WorklogValues(id, started, seconds, comment, commentAdf, visibility, authorName, created);
   }
 
   @Override
@@ -73,15 +79,30 @@ class WorklogValues extends SlaveValues {
     Integer seconds = worklog.getScalarValue(ServerWorklog.TIME_SECONDS);
     String comment = worklog.getScalarValue(ServerWorklog.COMMENT);
     EntityHolder visibility = worklog.getReference(ServerWorklog.SECURITY);
-    return Util.equals(myStarted, start) && Util.equals(mySeconds, seconds) && Util.equals(myComment, comment) && VisibilityLevel.areSame(visibility, myVisibility);
+    return Util.equals(myStarted, start) && Util.equals(mySeconds, seconds)
+      && sameComment(comment, worklog.getScalarValue(ServerWorklog.COMMENT_ADF)) && VisibilityLevel.areSame(visibility, myVisibility);
   }
 
+  /**
+   * Compares the documents when both sides have one, so a formatting-only server edit is not mistaken for an
+   * unchanged comment. Worklogs stored before the companion attribute existed fall back to their text.
+   */
+  private boolean sameComment(@Nullable String serverComment, @Nullable String serverAdf) {
+    if (myCommentAdf != null && serverAdf != null) return AdfCanonical.areEqualRaw(myCommentAdf, serverAdf);
+    return Util.equals(myComment, serverComment);
+  }
+
+  /**
+   * Sends the stored document when there is one, so formatting this client cannot express survives an edit.
+   */
   @SuppressWarnings("unchecked")
   public JSONObject createJson() {
     JSONObject result = new JSONObject();
-    //TODO: AddEditWorklog posts this to api/3, which expects "comment" as an ADF document - a plain string is
-    // rejected by Jira Cloud. Needs text-to-ADF conversion on upload (inverse of AdfText).
-    result.put("comment", myComment);
+    // api/3 requires the comment as an ADF document. A worklog may have no comment at all - omit the key
+    // then, since JIRA rejects a rich-text value with no content.
+    JSONObject comment = myCommentAdf != null ? AdfCanonical.parse(myCommentAdf) : null;
+    if (comment == null) comment = AdfDocument.fromText(myComment);
+    if (comment != null) result.put("comment", comment);
     result.put("visibility", myVisibility != null ? myVisibility.createJson() : null);
     result.put("started", ScalarUploadType.DATE.toJsonValue(myStarted));
     result.put("timeSpentSeconds", mySeconds);

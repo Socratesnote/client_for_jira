@@ -22,17 +22,32 @@ public class ScalarProperties<T> {
   private final Convertor<T, String> myToDisplayable;
   @NotNull
   private final Class<T> myScalarClass;
+  private final boolean myRichText;
 
   public ScalarProperties(Convertor<Object, T> fromJson, @Nullable ScalarUploadType<T> uploadType, Equality<T> equality, Convertor<T, String> toDisplayable, Class<T> scalarClass) {
+    this(fromJson, uploadType, equality, toDisplayable, scalarClass, false);
+  }
+
+  public ScalarProperties(Convertor<Object, T> fromJson, @Nullable ScalarUploadType<T> uploadType, Equality<T> equality, Convertor<T, String> toDisplayable, Class<T> scalarClass,
+    boolean richText) {
     myFromJson = fromJson;
     myUploadType = uploadType;
     myEquality = equality;
     myToDisplayable = toDisplayable;
     myScalarClass = scalarClass;
+    myRichText = richText;
   }
 
   public boolean isEditSupported() {
     return myUploadType != null;
+  }
+
+  /**
+   * Whether values of this kind are ADF documents whose formatting must be preserved across an edit.
+   * Drives whether a field gets a companion attribute holding the server's raw document.
+   */
+  public boolean isRichText() {
+    return myRichText;
   }
 
   @NotNull

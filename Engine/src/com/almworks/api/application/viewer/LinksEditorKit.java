@@ -205,6 +205,11 @@ public class LinksEditorKit extends StyledEditorKit {
       processMouse(e);
     }
 
+    /**
+     * Anchors are handled inside {@link TextComponentWrapper#processMouse}, which also sets the hand cursor,
+     * so a hit there must not fall through to the cursor reset below. Swing's own link controller sets the
+     * cursor only when the anchor changes, so resetting here would undo it on the next movement.
+     */
     private void processMouse(MouseEvent e) {
       boolean processed = TextComponentWrapper.processMouse(e, myComponent);
       if (!processed)

@@ -27,6 +27,7 @@ import com.almworks.jira.provider3.gui.edit.editors.ResolutionEditor;
 import com.almworks.jira.provider3.gui.edit.editors.move.MoveController;
 import com.almworks.jira.provider3.gui.timetrack.RemainEstimateEditor;
 import com.almworks.jira.provider3.links.actions.AddLinksEditor;
+import com.almworks.jira.provider3.markup.AdfRichTextTransform;
 import com.almworks.jira.provider3.schema.*;
 import com.almworks.jira.provider3.sync.ServerFields;
 import com.almworks.util.advmodel.AListModel;
@@ -94,8 +95,10 @@ public class EditMetaSchema {
 
   public static final EditorsScheme DEFAULT = new EditorsScheme(null)
     .addEditor(ServerFields.SUMMARY, ScalarFieldEditor.shortText(NameMnemonic.parseString("&Summary"), Issue.SUMMARY, true))
-    .addEditor(ServerFields.DESCRIPTION, ScalarFieldEditor.textPane(NameMnemonic.parseString("&Description"), Issue.DESCRIPTION, 100))
-    .addEditor(ServerFields.ENVIRONMENT, ScalarFieldEditor.textPane(NameMnemonic.parseString("&Environment"), Issue.ENVIRONMENT))
+    .addEditor(ServerFields.DESCRIPTION,
+      ScalarFieldEditor.richTextPane(NameMnemonic.parseString("&Description"), Issue.DESCRIPTION, Issue.DESCRIPTION_ADF, AdfRichTextTransform.TRIM, 100))
+    .addEditor(ServerFields.ENVIRONMENT,
+      ScalarFieldEditor.richTextPane(NameMnemonic.parseString("&Environment"), Issue.ENVIRONMENT, Issue.ENVIRONMENT_ADF, AdfRichTextTransform.TRIM))
     .addEditor(ServerFields.TIME_TRACKING, RemainEstimateEditor.INSTANCE)
     .addEditor(ServerFields.DUE, DateEditor.createDate(NameMnemonic.parseString("D&ue Date"), Issue.DUE))
     .addEditor(ServerFields.ASSIGNEE, ASSIGNEE)

@@ -203,7 +203,7 @@ class CommentStateRenderer<T extends Comment> extends BaseRendererComponent
 
   private void setWrapperFullText() {
     myWrapper.setTextForeground(getForegroundFor(myLastState));
-    myWrapper.setText(myLastState.getText());
+    myWrapper.setText(myLastState.getDisplayText());
   }
 
   private boolean isCollapsed() {

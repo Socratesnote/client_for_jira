@@ -28,6 +28,7 @@ import org.json.simple.parser.ParseException;
 import java.util.*;
 
 class NewIssue extends CreateIssueUnit {
+  private static final String PATH_ISSUE = "api/3/issue";
   private static final LocalizedAccessor.Value M_NO_PROJECT_TYPE_SHORT = PrepareIssueUpload.I18N.getFactory("upload.problem.submit.noProjectType.short");
   private static final LocalizedAccessor.Value M_NO_PROJECT_TYPE_FULL = PrepareIssueUpload.I18N.getFactory("upload.problem.submit.noProjectType.full");
   private static final LocalizedAccessor.Value M_OPERATION_NAME = PrepareIssueUpload.I18N.getFactory("upload.operation.submitIssue");
@@ -96,10 +97,7 @@ class NewIssue extends CreateIssueUnit {
     submit.put("fields", fields);
     request.addUpdate(submit);
     try {
-      //TODO: Migrate to api/3/issue. In v3 rich-text fields in the request (description, environment, textarea
-      // custom fields) must be sent as ADF documents ({"type":"doc","version":1,"content":[...]}), not plain
-      // strings - requires a plain-text-to-ADF builder (inverse of AdfText).
-      response = session.restPostJson("api/2/issue", submit, RequestPolicy.NEEDS_LOGIN);
+      response = session.restPostJson(PATH_ISSUE, submit, RequestPolicy.NEEDS_LOGIN);
     } catch (ConnectorException e) {
       exception = e;
     }

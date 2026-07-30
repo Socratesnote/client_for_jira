@@ -16,6 +16,7 @@ public class Comment {
   public static final DBAttribute<Long> ISSUE = ServerJira.toLinkAttribute(ServerComment.ISSUE);
   public static final DBAttribute<Integer> ID = ServerJira.toScalarAttribute(ServerComment.ID);
   public static final DBAttribute<String> TEXT = ServerJira.toScalarAttribute(ServerComment.TEXT);
+  public static final DBAttribute<String> TEXT_ADF = ServerJira.toScalarAttribute(ServerComment.TEXT_ADF);
   public static final DBAttribute<Long> AUTHOR = ServerJira.toLinkAttribute(ServerComment.AUTHOR);
   public static final DBAttribute<Date> CREATED = ServerJira.toScalarAttribute(ServerComment.CREATED);
   public static final DBAttribute<Long> EDITOR = ServerJira.toLinkAttribute(ServerComment.EDITOR);

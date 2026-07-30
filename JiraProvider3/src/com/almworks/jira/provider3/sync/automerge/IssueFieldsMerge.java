@@ -20,8 +20,12 @@ import java.util.Collections;
 import java.util.List;
 
 class IssueFieldsMerge implements ItemAutoMerge {
-  private static final List<DBAttribute<?>> EDITABLE_STATE_NO_DEFAULT = Collections15.unmodifiableListCopy(Issue.SUMMARY, Issue.DESCRIPTION, Issue.DUE, Issue.COMPONENTS,
-    Issue.AFFECT_VERSIONS, Issue.FIX_VERSIONS);
+  /**
+   * A rich-text field and its ADF companion must move together, or a merge leaves the stored document
+   * describing text that is no longer there.
+   */
+  private static final List<DBAttribute<?>> EDITABLE_STATE_NO_DEFAULT = Collections15.unmodifiableListCopy(Issue.SUMMARY, Issue.DESCRIPTION, Issue.DESCRIPTION_ADF,
+    Issue.DUE, Issue.COMPONENTS, Issue.AFFECT_VERSIONS, Issue.FIX_VERSIONS);
   private static final List<DBAttribute<?>> EDITABLE_STATE_WITH_DEFAULT = Collections15.<DBAttribute<?>>unmodifiableListCopy(Issue.ASSIGNEE, Issue.PRIORITY);
   private static final List<DBAttribute<?>> EDITABLE_STATE;
   static {
@@ -79,6 +83,10 @@ class IssueFieldsMerge implements ItemAutoMerge {
       DBAttribute<?> attribute = BadUtil.getAttribute(issue.getReader(), attr);
       if (attribute == null || !isControllingCustomField(issue.getNewerVersion(), attribute)) continue;
       issue.addChange(attribute);
+      // Rich-text custom fields carry their ADF document in a companion attribute; keep the pair consistent.
+      long adfAttr = field.getNNValue(CustomField.ADF_ATTRIBUTE, 0l);
+      DBAttribute<?> adfAttribute = adfAttr > 0 ? BadUtil.getAttribute(issue.getReader(), adfAttr) : null;
+      if (adfAttribute != null) issue.addChange(adfAttribute);
     }
   }
 

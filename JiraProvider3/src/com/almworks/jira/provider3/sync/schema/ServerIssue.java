@@ -21,6 +21,13 @@ public class ServerIssue {
   public static final EntityKey<String> SUMMARY = EntityKey.string("issue.summary", EntityKeyProperties.shadowable());
   public static final EntityKey<String> DESCRIPTION = EntityKey.string("issue.description", EntityKeyProperties.shadowable());
   public static final EntityKey<String> ENVIRONMENT = EntityKey.string("issue.environment", EntityKeyProperties.shadowable());
+  /**
+   * The server's own ADF document for the field beside it, serialized. Kept so that an edit can rebuild the
+   * document instead of replacing it with flat paragraphs, and so that a formatting-only server change is
+   * visible to conflict detection. Null for values that arrived as plain text.
+   */
+  public static final EntityKey<String> DESCRIPTION_ADF = EntityKey.string("issue.descriptionAdf", EntityKeyProperties.shadowable());
+  public static final EntityKey<String> ENVIRONMENT_ADF = EntityKey.string("issue.environmentAdf", EntityKeyProperties.shadowable());
   public static final EntityKey<Date> CREATED = EntityKey.date("issue.created", null);
   public static final EntityKey<Date> UPDATED = EntityKey.date("issue.updated", null);
   public static final EntityKey<String> UPDATED_STRING = EntityKey.hint("issue.updatedText", String.class);

@@ -53,6 +53,29 @@ public class AdfText {
     return new JsonKey<>(name, JsonKey.emptyTextToNull(adfAware(JsonKey.TEXT_TRIM_LINES)));
   }
 
+  /**
+   * Keeps the ADF document itself, serialized, so an edit can rebuild it instead of flattening it.
+   * Yields null for values that arrived as plain text, which is what pre-ADF servers and non-rich fields send.
+   */
+  public static final Convertor<Object, String> RAW_ADF = new Convertor<Object, String>() {
+    @Override
+    public String convert(Object value) {
+      if (value == null) return null;
+      JSONObject doc = Util.castNullable(JSONObject.class, value);
+      if (doc != null) return doc.toJSONString();
+      // Plain strings are the pre-ADF form and carry no document; anything else is unexpected but not fatal.
+      if (Util.castNullable(String.class, value) == null) LogHelper.warning("AdfText: expected text or ADF document", value);
+      return null;
+    }
+  };
+
+  /**
+   * Companion of {@link #textTrimLines(String)} reading the same field as its raw document.
+   */
+  public static JsonKey<String> rawAdf(String name) {
+    return new JsonKey<>(name, RAW_ADF);
+  }
+
   private static void appendNode(JSONObject node, StringBuilder out) {
     String type = Util.castNullable(String.class, node.get("type"));
     if (type == null) {
@@ -118,10 +141,11 @@ public class AdfText {
       out.append('\n');
       return;
     default:
-      //TODO: Unknown ADF construct: log so it can be revisited later, and salvage any nested text.
-
-      // Warning, not error: LogHelper.error logs SEVERE and surfaces as an internal error to the user.
-      LogHelper.error("AdfText: unhandled ADF node type", type);
+      // Unknown ADF construct: log it so it can be revisited, and salvage any nested text.
+      // Log this as Warning, not Error, because that would make it look more severe than it is and turns this into a
+      // test failure. Since Atlassian may change nodes without warning it is expected to run into unknown types from
+      // time to time.
+      LogHelper.warning("AdfText: unhandled ADF node type", type);
       appendContent(node, out);
     }
   }

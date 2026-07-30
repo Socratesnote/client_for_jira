@@ -17,6 +17,8 @@ public class JRWorklog {
   public static final JsonKey<Integer> TIME_SECONDS = JsonKey.integer("timeSpentSeconds");
   public static final JsonKey<Date> STARTED = JsonKey.dateTime("started");
   public static final JsonKey<String> COMMENT = AdfText.textTrimLines("comment");
+  /** Same field as {@link #COMMENT}, kept as its raw document. Mapping is by key instance, so the shared name is fine. */
+  public static final JsonKey<String> COMMENT_ADF = AdfText.rawAdf("comment");
   public static final JsonKey<Entity> VISIBILITY = JRVisibility.jsonKey("visibility");
 
   public static final Convertor<Object, Entity> PARTIAL_JSON_CONVERTOR =
@@ -29,6 +31,7 @@ public class JRWorklog {
       .map(TIME_SECONDS, ServerWorklog.TIME_SECONDS)
       .map(STARTED, ServerWorklog.START_DATE)
       .map(COMMENT, ServerWorklog.COMMENT)
+      .map(COMMENT_ADF, ServerWorklog.COMMENT_ADF)
       .set(ServerWorklog.SECURITY, null)
       .map(VISIBILITY, ServerWorklog.SECURITY)
       .createPartialConvertor(ServerWorklog.TYPE);

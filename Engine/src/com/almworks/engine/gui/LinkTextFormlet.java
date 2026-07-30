@@ -81,7 +81,11 @@ public class LinkTextFormlet extends AbstractFormlet implements WidthDrivenCompo
     Highlightable.HighlightUtil.changeHighlighterPattern(myHighlighter, UIUtil.getDocumentText(myComponent), pattern);
   }
 
+  /**
+   * Reads the rendered text rather than the component's own getText, which on an HTML editor kit returns the
+   * markup source and would put tags in the caption.
+   */
   public String getCaption() {
-    return isCollapsed() ? myComponent.getText() : null;
+    return isCollapsed() ? UIUtil.getDocumentText(myComponent) : null;
   }
 }

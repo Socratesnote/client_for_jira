@@ -30,6 +30,7 @@ import com.almworks.jira.provider3.gui.edit.EditMetaSchema;
 import com.almworks.jira.provider3.gui.edit.editors.JiraEditUtils;
 import com.almworks.jira.provider3.gui.edit.editors.VisibilityEditor;
 import com.almworks.jira.provider3.gui.viewer.CommentImpl;
+import com.almworks.jira.provider3.markup.AdfRichTextTransform;
 import com.almworks.jira.provider3.permissions.IssuePermissions;
 import com.almworks.jira.provider3.schema.Comment;
 import com.almworks.util.LogHelper;
@@ -63,7 +64,8 @@ public abstract class BaseEditComment implements EditFeature {
     }
   };
 
-  static final ScalarFieldEditor<String> COMMENT_TEXT = ScalarFieldEditor.textPane(NameMnemonic.parseString("Co&mment"), Comment.TEXT);
+  static final ScalarFieldEditor<String> COMMENT_TEXT =
+    ScalarFieldEditor.richTextPane(NameMnemonic.parseString("Co&mment"), Comment.TEXT, Comment.TEXT_ADF, AdfRichTextTransform.TRIM_LINES);
   static final DropdownEnumEditor COMMENT_VISIBILITY = VisibilityEditor.create(Comment.LEVEL);
 
   public static final InplaceNewSlave COMMENT_SLAVE = new InplaceNewSlave(NameMnemonic.parseString("Co&mment"), COMMENT_CREATOR, Comment.ISSUE, Arrays.asList(COMMENT_TEXT, COMMENT_VISIBILITY)) {

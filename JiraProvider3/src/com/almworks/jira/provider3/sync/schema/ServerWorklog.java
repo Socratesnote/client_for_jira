@@ -15,6 +15,8 @@ public class ServerWorklog {
   public static final EntityKey<Entity> ISSUE = EntityKey.entity("worklog.issue", EntityKeyProperties.master());
   public static final EntityKey<Integer> TIME_SECONDS = EntityKey.integer("worklog.timeSeconds", EntityKeyProperties.shadowable());
   public static final EntityKey<String> COMMENT = EntityKey.string("worklog.comment", EntityKeyProperties.shadowable());
+  /** The server's own ADF document for {@link #COMMENT}, serialized. See ServerIssue.DESCRIPTION_ADF. */
+  public static final EntityKey<String> COMMENT_ADF = EntityKey.string("worklog.commentAdf", EntityKeyProperties.shadowable());
   public static final EntityKey<Entity> AUTHOR = EntityKey.entity("worklog.author", null);
   public static final EntityKey<Entity> EDITOR = EntityKey.entity("worklog.editor", EntityKeyProperties.shadowable()); // NOTE: Should not be shadowable
   public static final EntityKey<Date> START_DATE = EntityKey.date("worklog.started", EntityKeyProperties.shadowable());

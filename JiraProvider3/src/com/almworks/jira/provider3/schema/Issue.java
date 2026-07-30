@@ -31,6 +31,8 @@ public class Issue {
   public static final DBAttribute<String> SUMMARY = ServerJira.toScalarAttribute(ServerIssue.SUMMARY);
   public static final DBAttribute<String> DESCRIPTION = ServerJira.toScalarAttribute(ServerIssue.DESCRIPTION);
   public static final DBAttribute<String> ENVIRONMENT = ServerJira.toScalarAttribute(ServerIssue.ENVIRONMENT);
+  public static final DBAttribute<String> DESCRIPTION_ADF = ServerJira.toScalarAttribute(ServerIssue.DESCRIPTION_ADF);
+  public static final DBAttribute<String> ENVIRONMENT_ADF = ServerJira.toScalarAttribute(ServerIssue.ENVIRONMENT_ADF);
 
   public static final DBAttribute<Date> CREATED = ServerJira.toScalarAttribute(ServerIssue.CREATED);
   public static final DBAttribute<Date> UPDATED = ServerJira.toScalarAttribute(ServerIssue.UPDATED);

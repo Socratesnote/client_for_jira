@@ -28,6 +28,7 @@ public class Worklog {
   public static final DBAttribute<Integer> ID = ServerJira.toScalarAttribute(ServerWorklog.ID);
   public static final DBAttribute<Integer> TIME_SECONDS = ServerJira.toScalarAttribute(ServerWorklog.TIME_SECONDS);
   public static final DBAttribute<String> COMMENT = ServerJira.toScalarAttribute(ServerWorklog.COMMENT);
+  public static final DBAttribute<String> COMMENT_ADF = ServerJira.toScalarAttribute(ServerWorklog.COMMENT_ADF);
   public static final DBAttribute<Long> AUTHOR = ServerJira.toLinkAttribute(ServerWorklog.AUTHOR);
   public static final DBAttribute<Date> STARTED = ServerJira.toScalarAttribute(ServerWorklog.START_DATE);
   public static final DBAttribute<Date> CREATED = ServerJira.toScalarAttribute(ServerWorklog.CREATED);

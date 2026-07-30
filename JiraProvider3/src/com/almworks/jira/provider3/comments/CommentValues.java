@@ -10,13 +10,14 @@ import com.almworks.jira.provider3.remotedata.issue.VisibilityLevel;
 import com.almworks.jira.provider3.remotedata.issue.edit.CreateIssueUnit;
 import com.almworks.jira.provider3.schema.Comment;
 import com.almworks.jira.provider3.services.upload.UploadUnit;
+import com.almworks.jira.provider3.sync.download2.rest.AdfCanonical;
+import com.almworks.jira.provider3.sync.download2.rest.AdfDocument;
 import com.almworks.jira.provider3.sync.schema.ServerComment;
 import com.almworks.jira.provider3.sync.schema.ServerIssue;
 import com.almworks.jira.provider3.sync.schema.ServerUser;
 import com.almworks.util.LogHelper;
 import com.almworks.util.datetime.DateUtil;
 import com.almworks.util.i18n.text.LocalizedAccessor;
-import org.almworks.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
@@ -25,14 +26,17 @@ import java.util.Date;
 
 class CommentValues extends SlaveValues {
   private final String myText;
-  @Nullable("When no visibility")
+  @Nullable("When the body never was an ADF document")
+  private final String myTextAdf;
+  @Nullable("When no visibility is available")
   private final VisibilityLevel myVisibility;
   private final String myAuthorName;
   private final Date myCreated;
 
-  private CommentValues(Integer id, String text, VisibilityLevel visibility, String authorName, Date created) {
+  private CommentValues(Integer id, String text, @Nullable String textAdf, @Nullable VisibilityLevel visibility, String authorName, Date created) {
     super(id);
     myText = text;
+    myTextAdf = textAdf;
     myVisibility = visibility;
     myAuthorName = authorName;
     myCreated = created;
@@ -42,11 +46,12 @@ class CommentValues extends SlaveValues {
     Integer id = comment.getValue(Comment.ID);
     String text = comment.getValue(Comment.TEXT);
     if (text == null || text.isEmpty()) throw UploadUnit.CantUploadException.create("Empty comment text", comment);
+    String textAdf = comment.getValue(Comment.TEXT_ADF);
     VisibilityLevel visibility = VisibilityLevel.load(comment.readValue(Comment.LEVEL));
     Date created = comment.getValue(Comment.CREATED);
     if (created == null) created = new Date();
     String authorName = AddEditSlaveUnit.loadAuthor(comment.readValue(Comment.AUTHOR));
-    return new CommentValues(id, text, visibility, authorName, created);
+    return new CommentValues(id, text, textAdf, visibility, authorName, created);
   }
 
   @Nullable
@@ -65,12 +70,21 @@ class CommentValues extends SlaveValues {
   }
 
   public boolean checkServer(EntityHolder comment) {
-    String serverText = comment.getScalarValue(ServerComment.TEXT);
-    if (!myText.equals(serverText) || !VisibilityLevel.areSame(comment.getReference(ServerComment.SECURITY), myVisibility)) {
+    if (!sameBody(comment.getScalarValue(ServerComment.TEXT), comment.getScalarValue(ServerComment.TEXT_ADF))
+      || !VisibilityLevel.areSame(comment.getReference(ServerComment.SECURITY), myVisibility)) {
       LogHelper.debug("Comment conflict", getId());
       return false;
     }
     return true;
+  }
+
+  /**
+   * Compares the documents when both sides have one, so a formatting-only server edit is not mistaken for an
+   * unchanged body. Comments stored before the companion attribute existed fall back to their text.
+   */
+  private boolean sameBody(@Nullable String serverText, @Nullable String serverAdf) {
+    if (myTextAdf != null && serverAdf != null) return AdfCanonical.areEqualRaw(myTextAdf, serverAdf);
+    return myText.equals(serverText);
   }
 
   @NotNull
@@ -89,12 +103,17 @@ class CommentValues extends SlaveValues {
     return message.formatMessage(author, DateUtil.toLocalDateOrTime(created));
   }
 
+  /**
+   * Sends the stored document when there is one, so formatting this client cannot express survives an edit.
+   * Falls back to building one from plain text for a new comment, or one that predates the companion value.
+   */
   @SuppressWarnings("unchecked")
   public JSONObject createJson() {
     JSONObject object = new JSONObject();
-    //TODO: AddEditComment posts this to api/3, which expects "body" as an ADF document - a plain string is
-    // rejected by Jira Cloud. Needs text-to-ADF conversion on upload (inverse of AdfText).
-    object.put("body", myText);
+    // api/3 requires the body as an ADF document. Text is never empty here - load() rejects that.
+    JSONObject body = myTextAdf != null ? AdfCanonical.parse(myTextAdf) : null;
+    if (body == null) body = AdfDocument.fromText(myText);
+    object.put("body", body);
     object.put("visibility", myVisibility != null ? myVisibility.createJson() : null);
     return object;
   }
@@ -102,6 +121,6 @@ class CommentValues extends SlaveValues {
   @Override
   public boolean matchesFailure(EntityHolder slave, @NotNull Entity thisUser) {
     return ServerUser.sameUser(thisUser, slave.getReference(ServerComment.AUTHOR))
-      && Util.equals(slave.getScalarValue(ServerComment.TEXT), myText);
+      && sameBody(slave.getScalarValue(ServerComment.TEXT), slave.getScalarValue(ServerComment.TEXT_ADF));
   }
 }

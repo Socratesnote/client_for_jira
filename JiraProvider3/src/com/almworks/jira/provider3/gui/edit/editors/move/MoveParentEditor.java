@@ -279,7 +279,12 @@ class MoveParentEditor extends BaseFieldEditor implements ParentEditor {
 
   private long resolveParent(DBReader reader, EditItemModel model) {
     String keys = KEYS.getValue(model);
-    if (keys == null || !KEYS.isChanged(model)) return 0;
+    if (keys == null || !KEYS.isChanged(model)) {
+      // "New Sub-Task here" presets the parent on the model and prepareModel seeds the field with its key as the
+      // initial text, so the text never counts as changed. Without this fallback the create commits with no
+      // parent at all, which then fails as "a sub-task needs a parent".
+      return model.isNewItem() ? ParentSupport.getParentIssue(model) : 0;
+    }
     List<String> keysList = Issue.extractIssueKeys(keys);
     if (keysList.size() != 1) {
       LogHelper.error("Cannot change parent to several values", keys);

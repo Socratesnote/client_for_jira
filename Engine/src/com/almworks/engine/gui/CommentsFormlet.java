@@ -53,7 +53,9 @@ public class CommentsFormlet<T extends Comment> extends AbstractFormlet implemen
     myKey = key;
     myController = CommentsController.setup(myComments, key);
     COMMENTS_CONTROLLER.putClientValue(myComments, myController);
-    myController.setRendererProperties(false, decorators, helper);
+    // Comment bodies are rendered as HTML. Implementations that hold only plain text escape it into HTML in
+    // getDisplayText, so this is safe for every provider, not just the ones with rich text.
+    myController.setRendererProperties(true, decorators, helper);
     myController.setTableBorder(false);
     myController.setComparator(dateComparator);
     myController.addGlobalDataRole(dataRole);

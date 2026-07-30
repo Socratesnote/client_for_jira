@@ -39,6 +39,15 @@ public abstract class IssueFieldDescriptor {
   @NotNull
   public abstract EntityKey<?> getIssueEntityKey();
 
+  /**
+   * Companion key holding the server's raw ADF document for this field, when it is rich text.
+   * @return null for every field that is not rich text, which is all of them by default
+   */
+  @Nullable
+  public EntityKey<String> getAdfEntityKey() {
+    return null;
+  }
+
   public abstract JsonIssueField createDownloadField();
 
   @Nullable("When nothing to upload and nothing to check")

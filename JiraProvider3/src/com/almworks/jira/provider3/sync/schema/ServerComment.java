@@ -14,6 +14,8 @@ public class ServerComment {
   public static final EntityKey<Entity> ISSUE = EntityKey.entity("comment.issue", EntityKeyProperties.master());
   public static final EntityKey<Integer> ID = EntityKey.integer("comment.id", null);
   public static final EntityKey<String> TEXT = EntityKey.string("comment.text", EntityKeyProperties.shadowable());
+  /** The server's own ADF document for {@link #TEXT}, serialized. See ServerIssue.DESCRIPTION_ADF. */
+  public static final EntityKey<String> TEXT_ADF = EntityKey.string("comment.textAdf", EntityKeyProperties.shadowable());
   public static final EntityKey<Date> CREATED = EntityKey.date("comment.created", null);
   public static final EntityKey<Date> UPDATED = EntityKey.date("comment.updated", null);
   public static final EntityKey<Entity> AUTHOR = EntityKey.entity("comment.author", null);

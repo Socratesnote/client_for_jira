@@ -43,13 +43,13 @@ public class IssueViewer3 extends DefaultItemViewer {
     addHighlightable(formlet);
     addFormlet(column, "Attachments", formlet, 2);
 
-    LinkTextFormlet envFormlet = linkTextFormlet(settings, MetaSchema.KEY_ENVIRONMENT);
+    LinkTextFormlet envFormlet = linkTextFormlet(settings, MetaSchema.KEY_ENVIRONMENT, MetaSchema.KEY_ENVIRONMENT_ADF);
     addFormlet(column, "Environment", envFormlet, 3);
     addHighlightable(envFormlet);
 
     addFormlet(column, "Links", JiraLinks.createFormlet(getFeatures(), settings.getOrCreateSubset("links")), 4);
 
-    LinkTextFormlet descriptionFormlet = linkTextFormlet(settings, MetaSchema.KEY_DESCRIPTION);
+    LinkTextFormlet descriptionFormlet = linkTextFormlet(settings, MetaSchema.KEY_DESCRIPTION, MetaSchema.KEY_DESCRIPTION_ADF);
     addFormlet(column, "Description", descriptionFormlet, 5);
     addHighlightable(descriptionFormlet);
 
@@ -76,11 +76,17 @@ public class IssueViewer3 extends DefaultItemViewer {
     return formlet;
   }
 
-  private LinkTextFormlet linkTextFormlet(Configuration settings, DBStaticObject keyId) {
+  /**
+   * Rich-text fields render as HTML built from the ADF document the download stored, falling back to the
+   * plain text when there is no document. The HTML editor kit has always been available here; it was only
+   * ever passed false because the Jira Server era supplied pre-rendered HTML and the Cloud era supplied none.
+   */
+  private LinkTextFormlet linkTextFormlet(Configuration settings, DBStaticObject keyId, DBStaticObject adfKeyId) {
     ModelKey<String> modelKey = getFeatures().findScalarKey(keyId, String.class);
+    ModelKey<String> adfKey = getFeatures().findScalarKey(adfKeyId, String.class);
     JEditorPane component = new JEditorPane();
-    component.setEditorKit(LinksEditorKit.create(myDecorators, false));
-    BaseTextController<String> controller = TextController.humanTextViewer(modelKey);
+    component.setEditorKit(LinksEditorKit.create(myDecorators, true));
+    BaseTextController<String> controller = new AdfHtmlController(modelKey, adfKey);
     TextController.installController(component, controller);
     return new LinkTextFormlet(component, controller, settings.getOrCreateSubset(modelKey.getName()));
   }
