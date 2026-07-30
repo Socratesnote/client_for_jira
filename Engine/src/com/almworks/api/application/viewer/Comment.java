@@ -2,6 +2,8 @@ package com.almworks.api.application.viewer;
 
 import com.almworks.api.application.UiItem;
 import com.almworks.util.collections.Containers;
+import com.almworks.util.text.TextUtil;
+import com.almworks.util.xml.JDOMUtils;
 import org.almworks.util.Util;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +33,16 @@ public interface Comment extends UiItem {
   };
 
   String getText();
+
+  /**
+   * The form to display. The comments view renders HTML, so this returns HTML.<br>
+   * Separate from {@link #getText()} because that stays the plain text everything else needs - quoting a
+   * reply, copying, searching. The default escapes the plain text, which is correct for any implementation
+   * holding nothing richer; one whose stored value carries formatting overrides this to supply real markup.
+   */
+  default String getDisplayText() {
+    return TextUtil.preprocessHtml(JDOMUtils.escapeXmlEntities(Util.NN(getText())).replace("\n", "<br>"));
+  }
 
   String getWhenText();
 

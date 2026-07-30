@@ -5,6 +5,7 @@ import com.almworks.util.ErrorHunt;
 import com.almworks.util.components.ReadOnlyTextFields;
 import com.almworks.util.components.ScrollPaneBorder;
 import com.almworks.util.components.renderer.CellState;
+import com.almworks.util.files.ExternalBrowser;
 import com.almworks.util.threads.Threads;
 import com.almworks.util.ui.ColorUtil;
 import com.almworks.util.ui.UIUtil;
@@ -17,6 +18,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 
@@ -106,13 +109,42 @@ public abstract class TextComponentWrapper implements TextAreaWrapper {
   public static boolean processMouse(MouseEvent e, JTextComponent component) {
     if (e.getID() == MouseEvent.MOUSE_EXITED) return false;
     TextDecoration link = findLink(component, e.getPoint());
-    if (link == null) return false;
+    if (link == null) return processHtmlAnchor(e, component);
     e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     if (link != null && e.isPopupTrigger())
       showPopup(e, link);
     else if (link != null && e.getID() == MouseEvent.MOUSE_CLICKED && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1)
       processMouse(e, link);
     return true;
+  }
+
+  /**
+   * Handles a real HTML anchor, as opposed to a link the decorators found in plain text.<br>
+   * This is the one place both rich-text views pass through - an editor pane in the component hierarchy for
+   * issue fields, and an offscreen pane painting a cell for comments, which never receives mouse events of
+   * its own - so anchors have to be handled here to work in both.
+   */
+  private static boolean processHtmlAnchor(MouseEvent e, JTextComponent component) {
+    String href = findAnchorHref(component, e.getPoint());
+    if (href == null) return false;
+    e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    if (e.getID() == MouseEvent.MOUSE_CLICKED && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1)
+      ExternalBrowser.openURL(href, true);
+    return true;
+  }
+
+  @Nullable
+  private static String findAnchorHref(JTextComponent component, Point point) {
+    Document document = component.getDocument();
+    if (!(document instanceof HTMLDocument)) return null;
+    int pos = component.viewToModel(point);
+    if (!checkTextPosition(component, pos, point)) return null;
+    Element element = ((HTMLDocument) document).getCharacterElement(pos);
+    if (element == null) return null;
+    Object anchor = element.getAttributes().getAttribute(HTML.Tag.A);
+    if (!(anchor instanceof AttributeSet)) return null;
+    Object href = ((AttributeSet) anchor).getAttribute(HTML.Attribute.HREF);
+    return href != null ? String.valueOf(href) : null;
   }
 
   private static void showPopup(MouseEvent e, TextDecoration link) {

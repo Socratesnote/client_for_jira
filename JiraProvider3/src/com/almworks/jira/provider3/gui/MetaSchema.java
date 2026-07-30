@@ -81,6 +81,9 @@ public class MetaSchema {
   public static final DBStaticObject KEY_PRIORITY;
   public static final DBStaticObject KEY_DESCRIPTION;
   public static final DBStaticObject KEY_ENVIRONMENT;
+  /** Companions of the two above, holding the raw ADF document for the viewer. See adfCompanionKey. */
+  public static final DBStaticObject KEY_DESCRIPTION_ADF;
+  public static final DBStaticObject KEY_ENVIRONMENT_ADF;
   public static final DBStaticObject KEY_VOTED;
   public static final DBStaticObject KEY_WATCHING;
   public static final DBStaticObject KEY_REMAIN_ESTIMATE;
@@ -264,6 +267,8 @@ public class MetaSchema {
     // Right side viewers are hardcoded so we need to materialize model keys which aren't referred by columns.
     drain.materialize(KEY_ENVIRONMENT);
     drain.materialize(KEY_DESCRIPTION);
+    drain.materialize(KEY_ENVIRONMENT_ADF);
+    drain.materialize(KEY_DESCRIPTION_ADF);
     drain.materialize(KEY_COMMENTS_LIST);
     drain.materialize(KEY_ATTACHMENTS_LIST);
     drain.materialize(KEY_LINKS_LIST);
@@ -525,6 +530,23 @@ public class MetaSchema {
     CONSTRAINT_DESCRIPTION = description.createDescriptor();
     KEY_DESCRIPTION = description.createModelKey();
     EXPORT_DESCRIPTION = description.createExport();
+    KEY_DESCRIPTION_ADF = adfCompanionKey("Description", "description.adf", Issue.DESCRIPTION_ADF);
+  }
+
+  /**
+   * Model key carrying a rich-text field's raw ADF document to the viewer, which needs the document rather
+   * than the extracted text.<br>
+   * Only a model key is created: no constraint, no column and no export, so the companion stays invisible to
+   * search, the column chooser and exports, exactly as the extracted text remains the value everything else
+   * reads. It has to be materialized alongside the other hardcoded right-side viewer keys.
+   */
+  private static DBStaticObject adfCompanionKey(String displayName, String id, DBAttribute<String> attribute) {
+    return JiraFields.longText()
+      .setOwner(Jira.JIRA_PROVIDER_ID)
+      .setDisplayName(displayName)
+      .setId(id)
+      .setAttribute(attribute)
+      .createModelKey();
   }
 
   static {
@@ -536,6 +558,7 @@ public class MetaSchema {
     CONSTRAINT_ENVIRONMENT = environment.createDescriptor();
     KEY_ENVIRONMENT = environment.createModelKey();
     EXPORT_ENVIRONMENT = environment.createExport();
+    KEY_ENVIRONMENT_ADF = adfCompanionKey("Environment", "environment.adf", Issue.ENVIRONMENT_ADF);
   }
 
   static {

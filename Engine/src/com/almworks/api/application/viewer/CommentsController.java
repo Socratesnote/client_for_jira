@@ -384,9 +384,9 @@ public class CommentsController<T extends Comment> implements UIController<JPane
   public static void setWrapperText(TextAreaWrapper wrapper, CommentState<?> state) {
     Object parsed = state.getParsedText();
     if (parsed != null)
-      wrapper.setCachedTextData(parsed, state.getText());
+      wrapper.setCachedTextData(parsed, state.getDisplayText());
     else
-      state.setParsed(wrapper.setText(state.getText()));
+      state.setParsed(wrapper.setText(state.getDisplayText()));
   }
 
   public SimpleModifiable getModifiable() {

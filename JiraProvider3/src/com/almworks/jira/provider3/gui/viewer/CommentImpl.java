@@ -55,24 +55,32 @@ public class CommentImpl implements Comment {
   private final Date myCreated;
   private final long myAuthor;
   private final String myText;
+  /** The body as HTML, built from the stored ADF document at load time. See CommentImplLoader. */
+  private final String myHtmlText;
   private final Date myUpdated;
   private final long myUpdateAuthor;
   private final long myVisibility;
   private final SyncState mySyncState;
   private final GuiFeaturesManager myManager;
 
-  CommentImpl(GuiFeaturesManager manager, long item, Date created, long author, String text, Date updated, long updateAuthor,
-    long visibility, SyncState syncState) 
+  CommentImpl(GuiFeaturesManager manager, long item, Date created, long author, String text, String htmlText, Date updated, long updateAuthor,
+    long visibility, SyncState syncState)
   {
     myManager = manager;
     myCreated = created;
     myAuthor = author;
     myText = Util.NN(text);
+    myHtmlText = Util.NN(htmlText);
     myUpdated = updated;
     myUpdateAuthor = updateAuthor;
     mySyncState = syncState;
     myVisibility = visibility;
     myItem = item;
+  }
+
+  @Override
+  public String getDisplayText() {
+    return myHtmlText;
   }
 
   @Override

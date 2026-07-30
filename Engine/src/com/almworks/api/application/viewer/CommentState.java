@@ -32,8 +32,19 @@ class CommentState<T extends Comment> {
     return myComment.hashCode();
   }
 
+  /**
+   * The plain text. Used for measuring and for the collapsed preview, both of which count characters and
+   * wrap lines, so this must not be markup.
+   */
   public String getText() {
     return myComment.getText();
+  }
+
+  /**
+   * The form handed to the text wrapper for display, which is HTML.
+   */
+  public String getDisplayText() {
+    return myComment.getDisplayText();
   }
 
   public T getComment() {

@@ -6,8 +6,12 @@ import com.almworks.items.gui.meta.commons.ReferrerLoader;
 import com.almworks.items.sync.ItemVersion;
 import com.almworks.items.sync.SyncState;
 import com.almworks.items.sync.util.identity.ScalarSequence;
+import com.almworks.jira.provider3.markup.AdfToHtml;
 import com.almworks.jira.provider3.schema.Comment;
 import com.almworks.jira.provider3.schema.Jira;
+import com.almworks.jira.provider3.sync.download2.rest.AdfCanonical;
+import com.almworks.util.text.TextUtil;
+import org.json.simple.JSONObject;
 
 import java.util.Date;
 
@@ -31,10 +35,17 @@ public class CommentImplLoader extends ReferrerLoader<CommentImpl> {
     long author = slaveVersion.getNNValue(Comment.AUTHOR, 0l);
     long updateAuthor = slaveVersion.getNNValue(Comment.EDITOR, 0l);
     String text = Comment.loadHumanText(slaveVersion);
+    // Built once here rather than per repaint. Falls back to the plain text when the comment has no stored
+    // document, which is any comment downloaded before the companion attribute existed.
+    JSONObject doc = AdfCanonical.parse(slaveVersion.getValue(Comment.TEXT_ADF));
+    // Wrapped here rather than at paint time: the wrapper applies the UI font, and doing it once per load
+    // keeps it off the rendering path.
+    String htmlText = TextUtil.preprocessHtml(doc != null ? AdfToHtml.render(doc) : AdfToHtml.renderPlainText(text));
     long security = slaveVersion.getNNValue(Comment.LEVEL, 0l);
     long item = slaveVersion.getItem();
     Date updated = slaveVersion.getValue(Comment.UPDATED);
     SyncState syncState = slaveVersion.getSyncState();
-    return new CommentImpl(GuiFeaturesManager.getInstance(slaveVersion.getReader()), item, created, author, text, updated, updateAuthor, security, syncState);
+    return new CommentImpl(GuiFeaturesManager.getInstance(slaveVersion.getReader()), item, created, author, text, htmlText, updated, updateAuthor, security,
+      syncState);
   }
 }
