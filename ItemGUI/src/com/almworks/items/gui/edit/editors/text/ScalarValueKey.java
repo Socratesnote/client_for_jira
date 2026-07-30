@@ -43,6 +43,37 @@ public abstract class ScalarValueKey<T> {
    */
   public void prepareValue(VersionSource source, EditItemModel model, ScalarFieldEditor<T> editor) {}
 
+  /**
+   * Companion attribute holding the rich value beside the plain text, for keys that have one.
+   * @return null for every key whose whole value is the plain text, which is all of them by default
+   */
+  @Nullable
+  public DBAttribute<String> getSourceAttribute() {
+    return null;
+  }
+
+  @Nullable
+  public RichTextTransform getRichTextTransform() {
+    return null;
+  }
+
+  /**
+   * Explanation shown on the editor component, for keys whose editable form needs one.
+   * @return null when the field is ordinary text and needs no explaining, which is the default
+   */
+  @Nullable
+  public String getEditorTooltip() {
+    return null;
+  }
+
+  /**
+   * Sets the value together with the rich form it came from, so that replacing the value - as resolving a
+   * merge does - carries the formatting rather than just the extracted text.
+   */
+  public void setValue(EditModelState model, T value, @Nullable String rawSource) {
+    setValue(model, value);
+  }
+
   public boolean[] listenTextComponent(Lifespan life, final EditModelState model, final JTextComponent textComponent) {
     final boolean[] duringUpdate = {false};
     UIUtil.addTextListener(life, textComponent, new ChangeListener() {
@@ -196,6 +227,41 @@ public abstract class ScalarValueKey<T> {
     @Override
     public void setValue(EditModelState model, String value) {
       model.putValue(myKey, Util.NN(value));
+    }
+
+    /**
+     * Replaces both halves, so the editor shows the rich value's own editable form and a later commit
+     * rebuilds from that document rather than from whichever one the editor happened to open with.
+     */
+    @Override
+    public void setValue(EditModelState model, String value, @Nullable String rawSource) {
+      model.putValue(mySourceKey, rawSource);
+      model.putValue(myKey, myTransform.toEditable(value, rawSource));
+    }
+
+    @Nullable
+    @Override
+    public DBAttribute<String> getSourceAttribute() {
+      return mySourceAttribute;
+    }
+
+    @Nullable
+    @Override
+    public RichTextTransform getRichTextTransform() {
+      return myTransform;
+    }
+
+    /**
+     * Says what the editable form is and what the placeholder tokens are, since a user meeting one otherwise
+     * has no way to know it stands for something real and must not be edited by hand.
+     */
+    @Nullable
+    @Override
+    public String getEditorTooltip() {
+      return "<html>This field is edited as Markdown with text marks like <b>**bold**</b>, <i>_italic_</i>, <tt>`code`</tt>,"
+        + " <tt>[label](url)</tt>, <tt>-</tt> for lists, etc.<br>"
+        + "Items shown as <tt>⟦...⟧</tt> (tables, panels, images, and mentions) cannot be edited in this Client. To change these, use Jira in a web browser. "
+        + "These items are preserved during upload/download so you can safely edit the content around them; if you delete one you will be warned.";
     }
 
     @Override

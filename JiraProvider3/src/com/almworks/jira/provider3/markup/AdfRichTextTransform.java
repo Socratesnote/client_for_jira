@@ -66,6 +66,11 @@ public class AdfRichTextTransform implements RichTextTransform {
         return new Result(plainText, doc.toJSONString());
     }
 
+    @Override
+    public boolean isSameSource(@Nullable String a, @Nullable String b) {
+        return AdfCanonical.areEqualRaw(a, b);
+    }
+
     @Nullable
     @Override
     public String checkLoss(@Nullable String editedText, @Nullable String originalRawSource) {

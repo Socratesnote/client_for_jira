@@ -11,12 +11,15 @@ import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.config.Configuration;
 import com.almworks.util.text.NameMnemonic;
 import org.almworks.util.Util;
+import org.almworks.util.detach.Detach;
 import org.almworks.util.detach.Lifespan;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
@@ -74,6 +77,23 @@ public class ScalarFieldEditor<T> extends BaseScalarFieldEditor<T> {
     return myKey.toText(value);
   }
 
+  @Nullable
+  @Override
+  public DBAttribute<String> getSourceAttribute() {
+    return myKey.getSourceAttribute();
+  }
+
+  @Nullable
+  @Override
+  public RichTextTransform getRichTextTransform() {
+    return myKey.getRichTextTransform();
+  }
+
+  @Override
+  public void setValue(EditModelState model, T value, @Nullable String rawSource) {
+    myKey.setValue(model, value, rawSource);
+  }
+
   @Override
   public void prepareModel(VersionSource source, EditItemModel model, EditPrepare editPrepare) {
     model.registerEditor(this);
@@ -95,9 +115,44 @@ public class ScalarFieldEditor<T> extends BaseScalarFieldEditor<T> {
     return attachModel(life, model, myKind.setupComponent(life, this, model, c, myCommonValue.getComponentEnabledState(model, false)));
   }
 
+  /**
+   * Holds a tooltip open for as long as the pointer stays on the component.<br>
+   * Swing dismisses tooltips after a few seconds, which may not be long enough to read an explanation. The dismiss delay is global, so it is raised on entry and put back on exit, and also on detach in
+   * case the window closes while the pointer is still inside.
+   */
+  private static void keepTooltipWhileHovering(Lifespan life, final JComponent component) {
+    final ToolTipManager manager = ToolTipManager.sharedInstance();
+    final int defaultDismissDelay = manager.getDismissDelay();
+    final MouseAdapter adapter = new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        manager.setDismissDelay(Integer.MAX_VALUE);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        manager.setDismissDelay(defaultDismissDelay);
+      }
+    };
+    component.addMouseListener(adapter);
+    life.add(new Detach() {
+      @Override
+      protected void doDetach() {
+        component.removeMouseListener(adapter);
+        manager.setDismissDelay(defaultDismissDelay);
+      }
+    });
+  }
+
   private ComponentControl attachModel(Lifespan life, final EditItemModel model, ComponentControl control) {
     final JTextComponent textComponent = myKind.getTextComponent(control);
     if (textComponent == null) return null;
+    // Null leaves any tooltip the component already had, so a plain editor is unaffected.
+    String tooltip = myKey.getEditorTooltip();
+    if (tooltip != null) {
+      textComponent.setToolTipText(tooltip);
+      keepTooltipWhileHovering(life, textComponent);
+    }
     textComponent.setText(myKey.getText(model));
     final boolean[] duringUpdate = myKey.listenTextComponent(life, model, textComponent);
     model.addAWTChangeListener(life, new ChangeListener() {

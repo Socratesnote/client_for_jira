@@ -32,6 +32,13 @@ public interface RichTextTransform {
   String checkLoss(@Nullable String editedText, @Nullable String originalRawSource);
 
   /**
+   * Whether two rich values mean the same thing, which is not the same as being equal strings.<br>
+   * Needed where a merge or a comparison would otherwise only see the extracted plain text, and so would
+   * miss a difference that is purely formatting.
+   */
+  boolean isSameSource(@Nullable String a, @Nullable String b);
+
+  /**
    * The two halves written back: the plain text every existing consumer reads, and the rich value beside it.
    */
   class Result {

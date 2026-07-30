@@ -34,6 +34,8 @@ public abstract class MergeValue {
   public static final int LOCAL = 0;
   public static final int BASE = 1;
   public static final int REMOTE = 2;
+  /** No side chosen yet. */
+  public static final int NONE = -1;
 
   private final String myDisplayName;
   private final long myItem;
@@ -93,8 +95,13 @@ public abstract class MergeValue {
     return items.get(0);
   }
 
+  /**
+   * Whether this row is part of the merge at all.<br>
+   * Deliberately independent of whether a side has been chosen: a chosen row stays listed and stays
+   * actionable, so the choice can be changed as often as the user likes until the merge is committed.
+   */
   public final boolean isChangeOrConflict() {
-    return !isResolved() && (isConflict() || isChanged(true) || isChanged(false));
+    return isConflict() || isChanged(true) || isChanged(false);
   }
 
   /**
@@ -102,14 +109,30 @@ public abstract class MergeValue {
    */
   public abstract boolean isResolved();
 
+  /**
+   * Which side the user chose, for showing the choice back to them.
+   * @return {@link #NONE} when no side has been chosen, or when the resolution is not one of the three versions
+   */
+  public int getChosenVersion() {
+    return NONE;
+  }
+
   public abstract void addChangeListener(Lifespan life, ChangeListener listener);
 
   public abstract void commit(CommitContext context) throws CancelCommitException;
 
 
+  /**
+   * A value whose resolution is applied straight into the edit model, so the form below the merge table
+   * shows the chosen side immediately.<br>
+   * Choosing is repeatable: nothing is written to the database until the merge is committed, so a choice can
+   * be replaced any number of times, and cancelling the merge discards all of them. What "resolved" means
+   * here is only that the user has picked a side, which is what allows the merge to be uploaded or saved.
+   */
   public static abstract class Simple extends MergeValue {
     private final SimpleModifiable myModifiable = new SimpleModifiable();
-    private boolean myResolved = false;
+    private int myChosenVersion = NONE;
+    private boolean myIgnored = false;
 
     protected Simple(String displayName, long item) {
       super(displayName, item);
@@ -117,13 +140,20 @@ public abstract class MergeValue {
 
     @Override
     public final boolean isResolved() {
-      return myResolved;
+      return myChosenVersion != NONE || myIgnored;
+    }
+
+    @Override
+    public final int getChosenVersion() {
+      return myChosenVersion;
     }
 
     @Override
     public final void setResolution(int version) {
       doSetResolution(version);
-      markResolved();
+      myChosenVersion = version;
+      myIgnored = false;
+      myModifiable.fireChanged();
     }
 
     @Override
@@ -131,8 +161,12 @@ public abstract class MergeValue {
       myModifiable.addAWTChangeListener(life, listener);
     }
 
+    /**
+     * Records that the user has dealt with this row without taking any particular side, which is what
+     * "Ignore Conflict" means: keep whatever the edit model already holds.
+     */
     public final void markResolved() {
-      myResolved = true;
+      myIgnored = true;
       myModifiable.fireChanged();
     }
 

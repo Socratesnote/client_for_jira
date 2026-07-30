@@ -120,6 +120,15 @@ public class SlaveMergeValue<V extends SlaveMergeValue.SlaveVersion> extends Mer
   }
 
   @Override
+  public int getChosenVersion() {
+    V resolution = getResolution();
+    if (resolution == null) return NONE;
+    for (int i = 0; i < myVersions.length; i++) if (resolution.equals(myVersions[i])) return i;
+    // An edited resolution matches no version exactly, which is still a choice, just not one of the three.
+    return NONE;
+  }
+
+  @Override
   public void addChangeListener(Lifespan life, ChangeListener listener) {
     myModel.addAWTChangeListener(life, listener);
   }

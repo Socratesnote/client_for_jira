@@ -278,13 +278,21 @@ public class WorklogFormlet extends AbstractFormlet {
         if (item == null)
           return;
         presetCanvas(item, canvas, state);
-        String comment = item.getComment();
-        if (comment.length() > MAX_COMMENT_LENGTH)
-          comment = comment.substring(0, MAX_COMMENT_LENGTH) + "\u2026";
-        canvas.appendText(comment);
+        canvas.appendText(oneLinePreview(item.getComment()));
       }
     });
     return column;
+  }
+
+  /**
+   * Flattens a comment to a single truncated line for the table cell.<br>
+   * Deliberately the extracted plain text rather than the rich form: this is a one-line preview in a narrow
+   * column, where markup would be noise. Line breaks are collapsed so a multi-line comment reads as one line
+   * instead of spilling its structure into a single-line cell.
+   */
+  private static String oneLinePreview(String comment) {
+    String text = comment.replace("\r\n", " ").replace('\r', ' ').replace('\n', ' ').replaceAll(" {2,}", " ").trim();
+    return text.length() > MAX_COMMENT_LENGTH ? text.substring(0, MAX_COMMENT_LENGTH) + "…" : text;
   }
 
   private static void presetCanvas(LoadedWorklog item, Canvas canvas, CellState cell) {
