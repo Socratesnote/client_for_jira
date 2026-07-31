@@ -32,6 +32,14 @@ public abstract class LongEventQueue {
     Context.pop();
   }
 
+  // Use instead of removeFromContext when shutting down something the queued tasks use, such as a
+  // database: this waits for in-flight work to finish, so a task cannot start work against a resource
+  // that has already been closed.
+  public static void removeFromContextAndWait(long timeoutMs) {
+    instance().shutdownGracefullyAndWait(timeoutMs);
+    Context.pop();
+  }
+
   public ImmediateThreadGate immediate() {
     return getImmediateGate(null);
   }
@@ -57,6 +65,12 @@ public abstract class LongEventQueue {
   }
 
   public abstract void shutdownGracefully();
+
+  // As shutdownGracefully, but blocks until work already in flight has finished. Not abstract, so
+  // implementations for which waiting is meaningless keep the non-waiting behaviour.
+  public void shutdownGracefullyAndWait(long timeoutMs) {
+    shutdownGracefully();
+  }
 
   public abstract void shutdownImmediately();
 

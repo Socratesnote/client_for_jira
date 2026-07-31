@@ -87,6 +87,24 @@ public class LongEventQueueImpl extends LongEventQueue {
     myStaleSequenceWorkers.clear();
   }
 
+  // Worker.stop() enqueues a terminator behind the tasks already queued, so by the time the worker
+  // thread dies it has finished the task it was running and everything queued behind it. Waiting for
+  // that is what lets a caller shut down a resource those tasks use - a database, say - without a task
+  // starting work against it after it has closed.
+  @Override
+  public void shutdownGracefullyAndWait(long timeoutMs) {
+    Worker worker;
+    synchronized (this) {
+      worker = myMainstreamWorker; // shutdownGracefully clears the field, so capture it first.
+    }
+    shutdownGracefully();
+    // Deliberately outside the monitor: the worker locks LongEventQueueImpl.this on every loop pass,
+    // so joining it while holding that monitor would deadlock.
+    if (worker != null && !worker.join(timeoutMs)) {
+      warn("worker still running " + timeoutMs + "ms after graceful shutdown was requested");
+    }
+  }
+
   public synchronized void shutdownImmediately() {
     if (!checkAlive()) {
       return;
@@ -381,6 +399,16 @@ public class LongEventQueueImpl extends LongEventQueue {
       log("interrupting " + this);
       myStoppingNow = true;
       myThread.interrupt();
+    }
+
+    // Returns false if the thread was still alive when the timeout expired.
+    public boolean join(long timeoutMs) {
+      try {
+        myThread.join(timeoutMs);
+      } catch (InterruptedException e) {
+        throw new RuntimeInterruptedException(e);
+      }
+      return !myThread.isAlive();
     }
 
     public String toString() {

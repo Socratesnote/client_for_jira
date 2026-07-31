@@ -15,6 +15,9 @@ import java.util.logging.Logger;
 import static org.almworks.util.Collections15.arrayList;
 
 public abstract class DatabaseFixture extends BaseTestCase {
+  // Bounded so a wedged worker fails the test with a warning rather than hanging the whole suite.
+  private static final long QUEUE_SHUTDOWN_TIMEOUT = 10000;
+
   protected final List<SQLiteDatabase> databases = arrayList();
   protected final List<File> tempFiles = arrayList();
   protected final List<File> tempDirs = arrayList();
@@ -66,8 +69,15 @@ public abstract class DatabaseFixture extends BaseTestCase {
     LongEventQueue.installToContext();
   }
 
+  // Shuts down in dependency order: whatever produces database work first, then the databases.
+  //
+  // Long-event-queue tasks can start new database writes as they run - an upload cancel does exactly
+  // that - so the queue has to finish before the database it writes to is stopped. Stopping the
+  // database first makes such a write throw DatabaseLifecycleException, which is logged at SEVERE,
+  // which BaseTestCase turns into a test failure for whichever test happened to be running.
   @Override
   protected void tearDown() throws Exception {
+    LongEventQueue.removeFromContextAndWait(QUEUE_SHUTDOWN_TIMEOUT);
     for (SQLiteDatabase database : databases) {
       try {
         database.stop();
@@ -81,7 +91,6 @@ public abstract class DatabaseFixture extends BaseTestCase {
     for (File tempDir : tempDirs) {
       FileUtil.deleteDirectoryWithContents(tempDir);
     }
-    LongEventQueue.removeFromContext();
     super.tearDown();
   }
 
