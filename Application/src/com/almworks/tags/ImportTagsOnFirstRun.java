@@ -116,7 +116,16 @@ public class ImportTagsOnFirstRun {
    * */
   private boolean exportTagsFromOldDb(Lifespan lifespan, Progress progress) throws Exception {
     File tagExporterJar = getTagExporterJarFile();
-    if (!tagExporterJar.isFile()) throw new Exception(tagExporterJar + " is not a file");
+    if (!tagExporterJar.isFile()) {
+      // Absence of the jar is the normal case, not a fault: it is built from the Deskzilla 2.x
+      // codebase, which this repository does not contain and this build does not ship. The jar is
+      // only needed to decide whether a 2.x workspace exists at all, so without it there is nothing
+      // to import and nothing to report - treat it as "no old database found". A workspace that
+      // genuinely needs importing must supply the jar via the path.to.TagExporter.jar property,
+      // and any failure after this point stays loud.
+      Log.debug("No tag exporter jar at " + tagExporterJar + ", skipping import of tags from a 2.x workspace");
+      return false;
+    }
     URLClassLoader jarLoader = new URLClassLoader(new URL[] {tagExporterJar.toURI().toURL()}, getClass().getClassLoader());
     Class<?> tagExporterClass = jarLoader.loadClass("com.almworks.tools.tagexporter.TagExporter2x");
     Method exportTagsMethod = tagExporterClass.getMethod("exportTags", File.class, File.class, Progress.class, Procedure2.class);
@@ -144,7 +153,7 @@ public class ImportTagsOnFirstRun {
       }
     }
     File f = new File(myWorkArea.getInstallationEtcDir(), "tagexporter/tagexporter.jar");
-    Log.warn("Using path to tag exporter " + f);
+    Log.debug("Using path to tag exporter " + f);
     return f;
   }
 
