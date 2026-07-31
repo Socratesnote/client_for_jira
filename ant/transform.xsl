@@ -415,29 +415,36 @@
         <target name="{$MODULE_NAME}.compileTests"
                 depends="{$MODULE_NAME}.doCompileTests, {$MODULE_NAME}.copyTestResources"/>
 
+        <!-- Runs this module's own tests only. Dependency modules' test *sources* are still compiled and
+             their tests.rc resources copied, because .compileTests fans out over depends; what is not
+             pulled in is the execution of their tests. ALL.test covers every module, so nothing is lost. -->
         <target name="{$MODULE_NAME}.test" if="available.tests.{$MODULE_NAME}" unless="without.tests">
           <xsl:attribute name="depends">
             <xsl:value-of select="$MODULE_NAME"/>
-            <xsl:text>.checkDirs</xsl:text>
-            <xsl:for-each select="depends">
-              <xsl:text>,</xsl:text>
-              <xsl:value-of select="@module"/>
-              <xsl:text>.test</xsl:text>
-            </xsl:for-each>
-            <xsl:text>,</xsl:text>
+            <xsl:text>.checkDirs,</xsl:text>
             <xsl:value-of select="$MODULE_NAME"/>
             <xsl:text>.compileTests</xsl:text>
           </xsl:attribute>
 
           <mkdir dir="${{dir.test.results}}"/>
           <echo message="Testing with JDK: ${{jdk}}/bin/java"/>
+          <!-- A test.class filter that matches nothing would otherwise run zero tests and pass green. -->
+          <fail message="No test class in {$MODULE_NAME} matches test.class=${{test.class}} (include pattern ${{test.includes}}). Check the class name.">
+            <condition>
+              <and>
+                <isset property="test.class"/>
+                <resourcecount count="0">
+                  <fileset dir="${{dir.project}}/{$MODULE_DIR}/${{subdir.java.tests}}" includes="${{test.includes}}"/>
+                </resourcecount>
+              </and>
+            </condition>
+          </fail>
           <junit fork="true" forkmode="once" printsummary="true" haltonfailure="true">
             <jvmarg value="-Djava.awt.headless=true"/>
             <formatter type="xml"/>
             <classpath refid="classpath.tests.{$MODULE_NAME}"/>
             <batchtest todir="${{dir.test.results}}">
-              <fileset dir="${{dir.project}}/{$MODULE_DIR}/${{subdir.java.tests}}" includes="**/*Test.java"/>
-              <fileset dir="${{dir.project}}/{$MODULE_DIR}/${{subdir.java.tests}}" includes="**/*Tests.java"/>
+              <fileset dir="${{dir.project}}/{$MODULE_DIR}/${{subdir.java.tests}}" includes="${{test.includes}}"/>
             </batchtest>
           </junit>
         </target>

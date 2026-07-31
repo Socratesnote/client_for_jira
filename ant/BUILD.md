@@ -90,7 +90,7 @@ Each module may have the following, optional, directories:
    * The build compiles these sources, but does not include them in distributable JARs.
    * Test classes must end with "Test" or "Tests" suffix.
  * **rc** - contains production resources. Build copies all these files to the destination JAR as is and preserves packages.
- * **test.rc** - contains test resources. These resources are available during execution of tests, but are not included in distributable JARs.
+ * **tests.rc** - contains test resources. These resources are available during execution of tests, but are not included in distributable JARs.
  
 ### Libraries
 

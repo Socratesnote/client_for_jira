@@ -25,6 +25,14 @@
   <property name="subdir.resources" value="rc"/>
   <property name="subdir.resources.tests" value="tests.rc"/>
 
+  <!-- Which test sources a <Module>.test target runs. Pass -Dtest.class=SomeTests to run one class;
+       otherwise every class matching the naming convention runs. Properties are write-once, so the
+       condition below wins when test.class is set and the default applies when it is not. -->
+  <condition property="test.includes" value="**/${test.class}.java">
+    <isset property="test.class"/>
+  </condition>
+  <property name="test.includes" value="**/*Test.java,**/*Tests.java"/>
+
   <property name="file.generated" location="generated.xml"/>
   <property name="file.product.cm" value="${product.name}.properties"/>
 
