@@ -195,10 +195,13 @@ class LoadProjects {
     myTypeIdsInProject.add(insIndex, Pair.create(project, issueTypeIds));
     storeComponents(project, JRProject.COMPONENTS.list(fullProject));
     storeVersions(project, JRProject.VERSIONS.list(fullProject));
-    storeRoles(JRProject.ROLES.getValue(fullProject));
+    storeRoles(project, JRProject.ROLES.getValue(fullProject));
   }
 
-  private void storeRoles(JSONObject roles) {
+  // Stores the roles of one project. Roles are per-project - the same names recur in every project with
+  // different ids - so each role is linked to its project, which is what scopes the visibility picker and
+  // makes resolution by name unambiguous.
+  private void storeRoles(EntityHolder project, JSONObject roles) {
     if (roles == null) return;
     for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) roles).entrySet()) {
       String name = Util.castNullable(String.class, entry.getKey());
@@ -209,7 +212,10 @@ class LoadProjects {
       }
       EntityHolder role = myTransaction.addEntity(ServerProjectRole.TYPE, ServerProjectRole.ID, id);
       if (role == null) LogHelper.error("Failed to store role", id, name);
-      else role.setValue(ServerProjectRole.NAME, name);
+      else {
+        role.setValue(ServerProjectRole.NAME, name);
+        role.setNNReference(ServerProjectRole.PROJECT, project);
+      }
     }
   }
 

@@ -35,7 +35,7 @@ public class WorklogsField implements JsonIssueField {
   private static final HintValue<Boolean> NOT_FULL = HintValue.flag("worklog.load.notFull");
   private static final String PATH_ISSUE = "api/3/issue/";
 
-  private final SimpleDependent mySlaveLoader = new SimpleDependent(ServerWorklog.TYPE, ServerWorklog.ISSUE, JRWorklog.PARTIAL_JSON_CONVERTOR, null);
+  private final SimpleDependent mySlaveLoader = new SimpleDependent(ServerWorklog.TYPE, ServerWorklog.ISSUE, JRWorklog.PARTIAL_JSON_CONVERTOR, null, ServerWorklog.SECURITY);
 
   @Override
   public Collection<? extends ParsedValue> loadValue(@Nullable Object jsonValue) {

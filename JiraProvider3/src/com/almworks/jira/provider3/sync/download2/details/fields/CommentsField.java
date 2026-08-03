@@ -38,7 +38,7 @@ public class CommentsField implements JsonIssueField {
   private static final String PATH_ISSUE = "api/3/issue/";
 
   private final SimpleDependent myCommentLoader =
-    new SimpleDependent(ServerComment.TYPE, ServerComment.ISSUE, JRComment.PARTIAL_JSON_CONVERTOR, null);
+    new SimpleDependent(ServerComment.TYPE, ServerComment.ISSUE, JRComment.PARTIAL_JSON_CONVERTOR, null, ServerComment.SECURITY);
 
   @Override
   public Collection<? extends ParsedValue> loadValue(@Nullable Object jsonValue) {
