@@ -44,9 +44,7 @@ public class JiraIssueJsonFields {
       .add(ServerFields.TIME_TRACKING.getJiraId(), time.create())
       .add("votes", votes)
       .add("watches", watchers)
-      .add(ServerFields.COMMENTS.getJiraId(), new FieldMultiplexer(
-        new SimpleDependent(ServerComment.TYPE, ServerComment.ISSUE, JRComment.PARTIAL_JSON_CONVERTOR, null).toField(false, "comments"),
-        CheckFullCollection.INSTANCE))
+      .add(ServerFields.COMMENTS.getJiraId(), CommentsField.INSTANCE)
       .add(ServerFields.LINKS.getJiraId(), DependentBagField.create(new SlaveLink(), true))
       .add(ServerFields.WORK_LOG.getJiraId(), WorklogsField.INSTANCE)
       .add("subtasks", DependentBagField.create(new Subtasks(), true))

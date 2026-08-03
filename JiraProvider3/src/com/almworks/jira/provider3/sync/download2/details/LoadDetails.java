@@ -13,6 +13,7 @@ import com.almworks.jira.provider3.permissions.IssuePermissions;
 import com.almworks.jira.provider3.remotedata.issue.fields.JsonUserParser;
 import com.almworks.jira.provider3.sync.ConnectorManager;
 import com.almworks.jira.provider3.sync.download2.details.fields.AttachmentsField;
+import com.almworks.jira.provider3.sync.download2.details.fields.CommentsField;
 import com.almworks.jira.provider3.sync.download2.details.fields.JiraIssueJsonFields;
 import com.almworks.jira.provider3.sync.download2.details.fields.WorklogsField;
 import com.almworks.jira.provider3.sync.download2.process.util.ProgressInfo;
@@ -83,7 +84,8 @@ public class LoadDetails {
   }
 
   private static void maybeLoadAdditional(EntityHolder issue, RestSession session, ProgressInfo progress) throws ConnectorException {
-    WorklogsField.INSTANCE.maybeLoadAdditional(issue, session, progress.spawn(0.5));
+    WorklogsField.INSTANCE.maybeLoadAdditional(issue, session, progress.spawn(0.34));
+    CommentsField.INSTANCE.maybeLoadAdditional(issue, session, progress.spawn(0.33));
     AttachmentsField.INSTANCE.maybeLoadAdditional(issue, session, progress.spawnAll());
   }
 

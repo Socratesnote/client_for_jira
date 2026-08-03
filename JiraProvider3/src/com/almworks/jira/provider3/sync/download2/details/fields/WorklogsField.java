@@ -76,27 +76,11 @@ public class WorklogsField implements JsonIssueField {
       LogHelper.error("Missing issue ID", issue);
       return;
     }
-    RestResponse response = session.restGet(PATH_ISSUE + issueId + "/worklog", RequestPolicy.SAFE_TO_RETRY);
-    if (!response.isSuccessful()) {
-      LogHelper.error("Failed to load all worklogs", response.getStatusCode());
-      return;
-    }
-    try {
-      JSONObject object = response.getJSONObject();
-      if (!CheckFullCollection.isFullCollection(object)) {
-        LogHelper.error("Not all worklogs has been loaded");
-        return;
-      }
-      JSONArray worklogs = WORKLOGS.getValue(object);
-      if (worklogs == null) {
-        LogHelper.error("Missing worklogs");
-        return;
-      }
-      List<SlaveLoader.Parsed<EntityBag2>> fullBag = DependentBagField.loadEntities(worklogs, mySlaveLoader);
-      DependentBagField.createBagValue(fullBag, mySlaveLoader).addTo(issue);
-    } catch (ParseException e) {
-      LogHelper.error("Failed to get worklogs", e);
-    }
+    // Ensure that worklogs are fetched until the whole collection has been gathered.
+    List<SlaveLoader.Parsed<EntityBag2>> fullBag =
+      PagedCollectionLoader.loadAllPages(PagedCollectionLoader.restFetcher(session, PATH_ISSUE + issueId + "/worklog", "worklogs"), WORKLOGS, mySlaveLoader, "worklogs");
+    // Null means the read did not complete; writing a full bag then would delete the worklogs never fetched.
+    if (fullBag != null) DependentBagField.createBagValue(fullBag, mySlaveLoader).addTo(issue);
     progress.setDone();
   }
 }

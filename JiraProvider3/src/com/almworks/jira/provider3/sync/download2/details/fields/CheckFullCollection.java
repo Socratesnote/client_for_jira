@@ -30,14 +30,23 @@ public class CheckFullCollection implements JsonIssueField {
     return null;
   }
 
+  /**
+   * @return true only when the embedded page definitely holds the whole collection. Counters may be missing which should lead to re-reading the collection from the caller's endpoint. Partial pages should not be marked as complete to avoid dropping data.
+   */
   public static boolean isFullCollection(JSONObject obj) {
     Integer total = CheckFullCollection.TOTAL.getValue(obj);
     Integer startAt = CheckFullCollection.START_AT.getValue(obj);
     Integer maxResults = CheckFullCollection.MAX_RESULTS.getValue(obj);
     if (total == null || startAt == null || maxResults == null) {
-      LogHelper.error("Missing data", total, startAt, maxResults);
+      // Log as warning: Jira may omit any of these values, so indicate that the collection needs to be re-read.
+      LogHelper.warning("Incomplete pagination counters, will re-read collection", total, startAt, maxResults);
       return false;
     }
     return startAt == 0 && total <= maxResults;
+  }
+
+  @Nullable
+  static Integer getTotal(JSONObject obj) {
+    return TOTAL.getValue(obj);
   }
 }
