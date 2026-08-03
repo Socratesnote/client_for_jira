@@ -4,6 +4,7 @@ import com.almworks.items.gui.edit.ComponentControl;
 import com.almworks.items.gui.edit.EditItemModel;
 import com.almworks.items.gui.edit.FieldEditor;
 import com.almworks.items.gui.edit.util.VerticalLinePlacement;
+import com.almworks.jira.provider3.gui.edit.fields.EditableFields;
 import com.almworks.jira.provider3.gui.edit.fields.FieldInfoSet;
 import com.almworks.util.Pair;
 import com.almworks.util.text.NameMnemonic;
@@ -145,6 +146,7 @@ class MultiTabLayout {
 
     public JComponent buildComponent(Lifespan lifespan, EditItemModel model, FieldInfoSet fieldInfo) {
       VerticalLinePlacement builder = new VerticalLinePlacement(model.getEditingItems().size() > 1);
+      EditableFields editableFields = EditableFields.getInstance(model);
       for (Pair<String, List<? extends ComponentControl>> pair : myComponents) {
         List<? extends ComponentControl> components = pair.getSecond();
         if (components.isEmpty()) continue;
@@ -160,6 +162,11 @@ class MultiTabLayout {
           label = null;
           mandatory = false;
         }
+        // A field the issue does not accept stays visible, showing its current value, but cannot be edited: disabling
+        // also drops it from the commit, so it can no longer reach the upload and fail there. Must come after
+        // addComponent, which sets the enabled state itself when it draws a multi-issue checkbox.
+        if (editableFields != null && editableFields.isKnownNotEditable(fieldId))
+          for (ComponentControl component : components) component.setEnabled(false);
       }
       return builder.finishPanel(lifespan);
     }

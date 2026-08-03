@@ -114,7 +114,7 @@ public class TimeTrackerForm implements UIComponentWrapper {
     }
 
     private void initComments() {
-        DocumentUtil.setDocumentText(myCommentHintDocument, "task comments");
+        DocumentUtil.setDocumentText(myCommentHintDocument, "Enter worklog comment here...");
         DocumentUtil.setDocumentText(myCommentsDocument, "");
 
         myComments.addFocusListener(new FocusListener() {

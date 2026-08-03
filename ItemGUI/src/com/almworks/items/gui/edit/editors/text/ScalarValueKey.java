@@ -260,7 +260,7 @@ public abstract class ScalarValueKey<T> {
     public String getEditorTooltip() {
       return "<html>This field is edited as Markdown with text marks like <b>**bold**</b>, <i>_italic_</i>, <tt>`code`</tt>,"
         + " <tt>[label](url)</tt>, <tt>-</tt> for lists, etc.<br>"
-        + "Items shown as <tt>⟦...⟧</tt> (tables, panels, images, and mentions) cannot be edited in this Client. To change these, use Jira in a web browser. "
+        + "Items shown as <tt>⟦...⟧</tt> (tables, panels, images, and mentions) cannot be edited in this Client. To change these, use Jira in a web browser.<br>"
         + "These items are preserved during upload/download so you can safely edit the content around them; if you delete one you will be warned.";
     }
 

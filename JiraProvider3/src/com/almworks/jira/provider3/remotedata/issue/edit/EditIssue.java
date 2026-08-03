@@ -183,10 +183,13 @@ public class EditIssue implements UploadUnit {
   @Nullable("When no problem")
   private UploadProblem createNotDone(ArrayList<IssueFieldValue> notUploaded) {
     if (notUploaded == null || notUploaded.isEmpty()) return null;
+    // Name the issue on every line. One of these problems is reported per issue, so after a multi-issue edit the
+    // messages are otherwise indistinguishable and the offending issue can only be found by bisecting the selection.
+    String issueName = myCreate.getDisplayableName();
     StringBuilder builder = new StringBuilder();
     for (IssueFieldValue value : notUploaded) {
       if (builder.length() > 0) builder.append("\n");
-      builder.append(value.getDisplayName());
+      builder.append(issueName).append(": ").append(value.getDisplayName());
     }
     return UploadProblem.fatal(M_NOT_DONE_SHORT.create(), M_NOT_DONE_FULL.formatMessage(notUploaded.size(), builder.toString()));
   }

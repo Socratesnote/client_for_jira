@@ -8,6 +8,7 @@ import com.almworks.items.sync.VersionSource;
 import com.almworks.jira.provider3.app.connection.JiraConnection3;
 import com.almworks.jira.provider3.gui.edit.EditorsScheme;
 import com.almworks.jira.provider3.gui.edit.FieldSet;
+import com.almworks.jira.provider3.gui.edit.fields.EditableFields;
 import com.almworks.jira.provider3.issue.editor.ScreenController;
 import com.almworks.jira.provider3.issue.editor.ScreenSet;
 import com.almworks.jira.provider3.sync.ServerFields;
@@ -64,8 +65,20 @@ public class ScreenChooser implements ScreenSet {
     JiraScreens screens = JiraScreens.load(connection);
     List<EditIssueScreen> allScreens = Collections15.arrayList();
     RemoteScreen.collectRemotes(connection, model, screens, allScreens);
-    AllFieldsScreen.load(connection, allScreens);
-    RelevantScreen.load(connection, model, allScreens);
+    EditableFields editableFields = EditableFields.ensureLoaded(connection, model);
+    List<EditIssueScreen> relevantScreen = Collections15.arrayList();
+    RelevantScreen.load(connection, model, relevantScreen);
+    // "All Fields" lists every field the connection knows of, without asking whether the edited issue accepts it. With
+    // one issue that is survivable, because an inapplicable field is shown disabled against that issue's own editmeta.
+    // With several there is no single issue to disable against, so the screen is withheld and the edit is limited to
+    // the relevant fields, which are applicable to every selected issue by construction.
+    //
+    // Two fallbacks keep the editor usable: no relevant screen at all, and no stored editmeta on any selected issue.
+    // In the second case "relevant" has nothing to stand on either, so withholding "All Fields" would narrow the edit
+    // on a guess.
+    boolean limitToRelevant = model.getEditingItems().size() > 1 && !relevantScreen.isEmpty() && editableFields.isKnown();
+    if (!limitToRelevant) AllFieldsScreen.load(connection, allScreens);
+    allScreens.addAll(relevantScreen);
     ScreenScheme resolvedScheme = screens != null ? screens.resolve(connection) : null;
     return Pair.create(allScreens, resolvedScheme);
   }

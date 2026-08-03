@@ -46,38 +46,50 @@ class RelevantFields {
     if (loaded != null) return loaded;
     LoadedFieldInfo info = LoadedFieldInfo.ensureLoaded(source, model);
     if (info == null) return null;
-    LongSet applicableToAtLeastOne = new LongSet();
     LongList editingItems = model.getEditingItems();
     Long commonProject = null;
     Long commonType = null;
+    // A selection spanning several projects or types still gets a relevant list - the intersection below is defined
+    // whether or not the issues have anything else in common. Only the project/type-keyed shortcut in getFieldIds is
+    // given up, by leaving the common project and type unset.
+    boolean sameProject = true;
+    boolean sameType = true;
     ArrayList<String> fieldIds;
     if (editingItems.isEmpty()) fieldIds = null;
     else {
+      // The intersection, not the union: a field editable on only some of the selected issues cannot be uploaded for
+      // the rest, so offering it only moves the failure to upload time.
+      LongSet applicableToAll = null;
       for (ItemVersion issue : source.readItems(editingItems)) {
         LongList fields = Issue.FIELDS_FOR_EDIT.getValue(issue);
-        if (fields == null) continue;
-        applicableToAtLeastOne.addAll(fields);
+        // No stored editmeta means the issue was never fully downloaded. Skip it rather than intersecting to nothing.
+        if (fields != null && !fields.isEmpty()) {
+          if (applicableToAll == null) applicableToAll = LongSet.copy(fields);
+          else applicableToAll.retainAll(fields);
+        }
         Long project = issue.getValue(Issue.PROJECT);
         if (commonProject == null) commonProject = project;
-        else if (project != null && !commonProject.equals(project)) return null; // No common project
+        else if (project != null && !commonProject.equals(project)) sameProject = false;
         Long type = issue.getValue(Issue.ISSUE_TYPE);
         if (commonType == null) commonType = type;
-        else if (type != null && !commonType.equals(type)) return null; // No common type
+        else if (type != null && !commonType.equals(type)) sameType = false;
       }
-      if (applicableToAtLeastOne.isEmpty()) fieldIds = null;
+      if (applicableToAll == null || applicableToAll.isEmpty()) fieldIds = null;
       else {
         fieldIds = Collections15.arrayList();
         for (ServerFields.Field staticField : EditIssueScreen.STATIC_DEFAULT_ORDER) {
           long materialized = staticField.findItem(source);
           if (materialized <= 0) continue;
           if (MANDATORY_FIELDS.contains(staticField)
-            ||applicableToAtLeastOne.contains(materialized)) fieldIds.add(staticField.getJiraId());
+            ||applicableToAll.contains(materialized)) fieldIds.add(staticField.getJiraId());
         }
-        ArrayList<ResolvedField> fields = ResolvedField.load(source, applicableToAtLeastOne);
+        ArrayList<ResolvedField> fields = ResolvedField.load(source, applicableToAll);
         Collections.sort(fields, ResolvedField.BY_DISPLAY_NAME);
         for (ResolvedField field : fields) if (!field.isStatic()) fieldIds.add(field.getJiraId());
       }
     }
+    if (!sameProject) commonProject = null;
+    if (!sameType) commonType = null;
     RelevantFields fields = new RelevantFields(Util.NN(commonProject, -1l), Util.NN(commonType, -1l), fieldIds, info);
     model.getRootModel().putHint(KEY, fields);
     return fields;

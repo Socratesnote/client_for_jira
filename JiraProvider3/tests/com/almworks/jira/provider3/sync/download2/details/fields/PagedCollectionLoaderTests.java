@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 /**
- * Covers the offset paging loop behind comment and worklog re-reads. The rule these tests exist to pin is
- * that an incomplete read returns null: callers turn a non-null result into a full bag, and a full bag
+ * Covers the offset paging loop behind comment and worklog re-reads. This test should ascertain that an incomplete read returns null: callers turn a non-null result into a full bag, and a full bag
  * deletes whatever is missing from it, so a truncated read written as complete would destroy records.
  */
 public class PagedCollectionLoaderTests extends BaseTestCase {
@@ -53,7 +52,7 @@ public class PagedCollectionLoaderTests extends BaseTestCase {
     assertEquals(3, fetcher.myCalls.size());
   }
 
-  /** The important one: a failure part way through must not look like a complete collection. */
+  /** A failure partway through must not look like a complete collection. */
   public void testFailedPageReturnsNull() throws ConnectorException {
     FakeFetcher fetcher = new FakeFetcher(page(0, 10, ids(1, 2)), null);
     assertNull(load(fetcher));
