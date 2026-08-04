@@ -66,7 +66,10 @@ public abstract class BaseEditComment implements EditFeature {
 
   static final ScalarFieldEditor<String> COMMENT_TEXT =
     ScalarFieldEditor.richTextPane(NameMnemonic.parseString("Co&mment"), Comment.TEXT, Comment.TEXT_ADF, AdfRichTextTransform.TRIM_LINES);
-  static final DropdownEnumEditor COMMENT_VISIBILITY = VisibilityEditor.create(Comment.LEVEL);
+  // Named for the comment rather than plain "Visibility Level": in the issue editor this dropdown sits among the
+  // issue's own fields, where an unqualified label reads as a property of the issue.
+  static final DropdownEnumEditor COMMENT_VISIBILITY =
+    VisibilityEditor.create(Comment.LEVEL, NameMnemonic.parseString("Comment Visibilit&y Level"));
 
   public static final InplaceNewSlave COMMENT_SLAVE = new InplaceNewSlave(NameMnemonic.parseString("Co&mment"), COMMENT_CREATOR, Comment.ISSUE, Arrays.asList(COMMENT_TEXT, COMMENT_VISIBILITY)) {
     @Override
@@ -113,8 +116,13 @@ public abstract class BaseEditComment implements EditFeature {
     }
 
     @Override
+    // PROVIDE_PROJECT adds no UI. It publishes the issue's project into the model so the visibility editor can
+    // narrow its role list to that project; without it the dialog offers every project's roles. The issue editor
+    // gets the project from its own field editors, which is why it narrows correctly and this dialog did not.
     public void prepareEdit(DBReader reader, DefaultEditModel.Root model, EditPrepare editPrepare) {
-      COMMENT_SLAVE.prepareModel(BranchSource.trunk(reader), model, editPrepare);
+      BranchSource source = BranchSource.trunk(reader);
+      EditMetaSchema.PROVIDE_PROJECT.prepareModel(source, model, editPrepare);
+      COMMENT_SLAVE.prepareModel(source, model, editPrepare);
     }
 
     @Nullable
