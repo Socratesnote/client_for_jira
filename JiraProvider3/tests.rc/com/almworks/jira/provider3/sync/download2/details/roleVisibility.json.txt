@@ -1,0 +1,116 @@
+  TYPE: Entity[TYPE:'types.attach']
+  TYPE: Entity[TYPE:'types.comment']
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[comment.created:Date]=03 Aug 2026 12:56:04.831 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[comment.id:Int]=12891
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=Comment restricted to Group
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Comment restricted to Group","type":"text"}],"attrs":{"localId":"abd935bbc07f"}}]}
+EntityKey[comment.updated:Date]=03 Aug 2026 12:56:04.831 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[comment.created:Date]=03 Aug 2026 12:56:14.204 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[comment.id:Int]=12892
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+EntityKey[comment.security:Entity]=Entity[types.projectRole](entity.id=null, entity.name=Administrator, entity.project=Entity[types.project])
+EntityKey[comment.text:String]=Comment restricted to Role.
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Comment restricted to Role.","type":"text"}],"attrs":{"localId":"377d0ca5010f"}}]}
+EntityKey[comment.updated:Date]=03 Aug 2026 12:57:38.943 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+  TYPE: Entity[TYPE:'types.issue']
+EntityKey[cf.CONN-ECTI-ON_I-D.editableDay.customfield_10015:Int]=<null>
+EntityKey[cf.CONN-ECTI-ON_I-D.multiEnum.customfield_10021:Entity COLLECTION]={}
+EntityKey[cf.CONN-ECTI-ON_I-D.multiLabels.labels:Entity COLLECTION]={}
+EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10000:String]={}
+EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10001:String]=<null>
+EntityKey[cf.CONN-ECTI-ON_I-D.unknownKind.customfield_10017:String]=orange
+EntityKey[issue.affectedVersions:Entity COLLECTION]={}
+EntityKey[issue.assignee:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[issue.components:Entity COLLECTION]={}
+EntityKey[issue.created:Date]=24 Jul 2026 08:14:40.662 GMT
+EntityKey[issue.description:String]=Test epic description.
+EntityKey[issue.descriptionAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Test epic description.","type":"text"}],"attrs":{"localId":"cf327e9530d0"}}]}
+EntityKey[issue.due:Int]=<null>
+EntityKey[issue.environment:String]=<null>
+EntityKey[issue.environmentAdf:String]=<null>
+EntityKey[issue.fixVersions:Entity COLLECTION]={}
+EntityKey[issue.id:Int]=12654
+EntityKey[issue.key:String]=TST-1
+EntityKey[issue.originalEstimate:Int]=<null>
+EntityKey[issue.parent:Entity]=<null>
+EntityKey[issue.priority:Entity]=Entity[types.priority](entity.id=3)
+EntityKey[issue.project:Entity]=Entity[types.project](entity.id=10012, project.key=TST)
+EntityKey[issue.remainEstimate:Int]=0
+EntityKey[issue.reporter:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[issue.resolution:Entity]=Entity[types.resolution](entity.id=-1)
+EntityKey[issue.resolved:Date]=<null>
+EntityKey[issue.security:Entity]=<null>
+EntityKey[issue.status:Entity]=Entity[types.status](entity.id=10038)
+EntityKey[issue.summary:String]=Test epic
+EntityKey[issue.timeSpent:Int]=16260
+EntityKey[issue.type:Entity]=Entity[types.issueType](entity.id=10048)
+EntityKey[issue.updated:Date]=03 Aug 2026 12:59:42.822 GMT
+EntityKey[issue.watchCount:Int]=1
+EntityKey[issue.watching:bool]=true
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.issue']<no resolution>
+EntityKey[sys.store.downloadStage.mark:com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark HINT]=DownloadStage[FULL]
+  TYPE: Entity[TYPE:'types.link']
+  TYPE: Entity[TYPE:'types.linkType']
+  TYPE: Entity[TYPE:'types.worklog']
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
+EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[worklog.comment:String]=Test worklog comment.
+EntityKey[worklog.commentAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Test worklog comment.","type":"text"}]}]}
+EntityKey[worklog.created:Date]=03 Aug 2026 12:59:42.808 GMT
+EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[worklog.id:Int]=16966
+EntityKey[worklog.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+EntityKey[worklog.security:Entity]=Entity[types.projectRole](entity.id=null, entity.name=Administrator, entity.project=Entity[types.project])
+EntityKey[worklog.started:Date]=03 Aug 2026 08:29:36.0 GMT
+EntityKey[worklog.timeSeconds:Int]=16200
+EntityKey[worklog.updated:Date]=03 Aug 2026 12:59:42.808 GMT
+------------------------------
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
+EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[worklog.comment:String]=1m test
+EntityKey[worklog.commentAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"1m test","type":"text"}],"attrs":{"localId":"269113a97dc6"}}]}
+EntityKey[worklog.created:Date]=03 Aug 2026 12:59:22.68 GMT
+EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=557058:00000000-0000-0000-0000-000000000001)
+EntityKey[worklog.id:Int]=16965
+EntityKey[worklog.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+EntityKey[worklog.security:Entity]=<null>
+EntityKey[worklog.started:Date]=03 Aug 2026 12:58:14.619 GMT
+EntityKey[worklog.timeSeconds:Int]=60
+EntityKey[worklog.updated:Date]=03 Aug 2026 12:59:28.567 GMT
+  ***  BAGS ***
+Entity[TYPE:'types.attach']<no resolution>
+EntityKey[attach.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+DELETE
+------------------------------
+Entity[TYPE:'types.comment']<no resolution>
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+DELETE
+Entity[types.comment](comment.id=12891, comment.issue=Entity[types.issue])
+Entity[types.comment](comment.id=12892, comment.issue=Entity[types.issue])
+------------------------------
+Entity[TYPE:'types.issue']<no resolution>
+EntityKey[issue.parent:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+CHANGE: EntityKey[issue.parent:Entity]=<null>
+------------------------------
+Entity[TYPE:'types.link']<no resolution>
+EntityKey[link.source:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+DELETE
+------------------------------
+Entity[TYPE:'types.link']<no resolution>
+EntityKey[link.target:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+DELETE
+------------------------------
+Entity[TYPE:'types.worklog']<no resolution>
+EntityKey[worklog.issue:Entity]=Entity[types.issue](issue.id=12654, issue.key=TST-1)
+DELETE
+Entity[types.worklog](worklog.id=16966, worklog.issue=Entity[types.issue])
+Entity[types.worklog](worklog.id=16965, worklog.issue=Entity[types.issue])

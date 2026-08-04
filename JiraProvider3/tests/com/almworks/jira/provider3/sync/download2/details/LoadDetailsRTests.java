@@ -37,6 +37,15 @@ public class LoadDetailsRTests extends BaseTestCase {
     runTest("newCloudUsers.json", "newCloudUsers.json.txt");
   }
 
+  /**
+   * A comment and a worklog restricted to a project role. The role arrives carrying only its name, and role names
+   * repeat across projects, so the issue's project must be stamped onto the role for it to resolve; without that
+   * the visibility silently reads back as "visible to all".
+   */
+  public void testRoleVisibility() throws IOException, ParseException {
+    runTest("roleVisibility.json", "roleVisibility.json.txt");
+  }
+
   private static final String CONNECTION_ID = "CONN-ECTI-ON_I-D";
   private void runTest(String source, String result) throws IOException, ParseException {
     Object json = RESOURCES.loadJson(source);

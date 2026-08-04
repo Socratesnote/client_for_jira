@@ -59,8 +59,17 @@ public class VisibilityEditor implements EnumVariantsSource {
   private final TypedKey<Long> myRolesType = TypedKey.create("visibility/roles");
 
   public static DropdownEnumEditor create(DBAttribute<Long> attribute) {
+    return create(attribute, NameMnemonic.parseString("Visibilit&y Level"));
+  }
+
+  /**
+   * Use the label to say what the visibility applies to wherever that is not obvious from the surrounding dialog.
+   * In the issue editor the comment's visibility dropdown renders as a sibling of the issue's own fields, so a
+   * bare "Visibility Level" reads as a property of the issue.
+   */
+  public static DropdownEnumEditor create(DBAttribute<Long> attribute, NameMnemonic labelText) {
     return new DropdownEditorBuilder()
-      .setLabelText(NameMnemonic.parseString("Visibilit&y Level"))
+      .setLabelText(labelText)
       .setAppendNull(true)
       .setVariants(VARIANTS)
       .setAttribute(attribute)

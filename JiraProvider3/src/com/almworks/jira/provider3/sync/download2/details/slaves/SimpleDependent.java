@@ -6,6 +6,8 @@ import com.almworks.items.entities.api.collector.transaction.EntityBag2;
 import com.almworks.items.entities.api.collector.transaction.EntityHolder;
 import com.almworks.items.entities.api.collector.transaction.EntityTransaction;
 import com.almworks.jira.provider3.sync.download2.details.JsonIssueField;
+import com.almworks.jira.provider3.sync.schema.ServerIssue;
+import com.almworks.jira.provider3.sync.schema.ServerProjectRole;
 import com.almworks.jira.provider3.sync.download2.details.fields.ObjectField;
 import com.almworks.util.LogHelper;
 import com.almworks.util.collections.Convertor;
@@ -20,15 +22,31 @@ public class SimpleDependent implements SlaveLoader<EntityBag2> {
   private final Convertor<Object, Entity> mySlaveLoader;
   @Nullable
   private final EntityKey<Integer> myOrder;
+  @Nullable
+  private final EntityKey<Entity> mySecurityKey;
 
   /**
    * @param order if not null set order
    */
   public SimpleDependent(Entity type, EntityKey<Entity> master, Convertor<Object, Entity> dependentLoader, @Nullable EntityKey<Integer> order) {
+    this(type, master, dependentLoader, order, null);
+  }
+
+  /**
+   * @param order if not null set order
+   * @param securityKey the slave's visibility key, if it has one. A visibility restricted to a project role
+   *                    arrives carrying only the role name, and role names repeat across projects, so the role
+   *                    is stamped with the master issue's project here - the first point where that project is
+   *                    known. Without it the role cannot be resolved to the right project's role.
+   */
+  public SimpleDependent(Entity type, EntityKey<Entity> master, Convertor<Object, Entity> dependentLoader,
+    @Nullable EntityKey<Integer> order, @Nullable EntityKey<Entity> securityKey)
+  {
     myType = type;
     myMaster = master;
     mySlaveLoader = dependentLoader;
     myOrder = order;
+    mySecurityKey = securityKey;
   }
 
   public JsonIssueField toField(boolean nullAsEmpty) {
@@ -51,7 +69,7 @@ public class SimpleDependent implements SlaveLoader<EntityBag2> {
       LogHelper.error("Nothing loaded", myType, myMaster);
       return null;
     }
-    return MyParsed.singleton(myType, myMaster, slave, myOrder, order);
+    return MyParsed.singleton(myType, myMaster, slave, myOrder, order, mySecurityKey);
   }
 
   @Override
@@ -71,17 +89,30 @@ public class SimpleDependent implements SlaveLoader<EntityBag2> {
     @Nullable
     private final EntityKey<Integer> myOrder;
     private final int myIndex;
+    @Nullable
+    private final EntityKey<Entity> mySecurityKey;
 
-    public MyParsed(Entity type, EntityKey<Entity> master, Entity dependent, @Nullable EntityKey<Integer> order, int index) {
+    public MyParsed(Entity type, EntityKey<Entity> master, Entity dependent, @Nullable EntityKey<Integer> order, int index,
+      @Nullable EntityKey<Entity> securityKey)
+    {
       myType = type;
       myMaster = master;
       myDependent = dependent;
       myOrder = order;
       myIndex = index;
+      mySecurityKey = securityKey;
     }
 
-    public static Collection<? extends Parsed<EntityBag2>> singleton(Entity type, EntityKey<Entity> master, Entity dependent, @Nullable EntityKey<Integer> order, int index) {
-      return Collections.singleton(new MyParsed(type, master, dependent, order, index));
+    public static Collection<? extends Parsed<EntityBag2>> singleton(Entity type, EntityKey<Entity> master, Entity dependent,
+      @Nullable EntityKey<Integer> order, int index)
+    {
+      return singleton(type, master, dependent, order, index, null);
+    }
+
+    public static Collection<? extends Parsed<EntityBag2>> singleton(Entity type, EntityKey<Entity> master, Entity dependent,
+      @Nullable EntityKey<Integer> order, int index, @Nullable EntityKey<Entity> securityKey)
+    {
+      return Collections.singleton(new MyParsed(type, master, dependent, order, index, securityKey));
     }
 
     @Override
@@ -91,11 +122,26 @@ public class SimpleDependent implements SlaveLoader<EntityBag2> {
         LogHelper.error("Failed to store", myType);
         return;
       }
+      if (mySecurityKey != null) stampRoleProject(master, myDependent, mySecurityKey);
       builder.copy(myDependent);
       builder.addReference(myMaster, master);
       if (myOrder != null) builder.addValue(myOrder, myIndex);
       EntityHolder slave = builder.create();
       if (bag != null) bag.exclude(slave);
+    }
+
+    // Copies the master issue's project onto a project-role visibility, so the role resolves within its own
+    // project. Does nothing for group visibility, for an absent visibility, or when the project is already set.
+    private static void stampRoleProject(EntityHolder master, Entity dependent, EntityKey<Entity> securityKey) {
+      Entity security = dependent.get(securityKey);
+      if (security == null || !ServerProjectRole.TYPE.equals(security.getType())) return;
+      if (security.get(ServerProjectRole.PROJECT) != null) return;
+      EntityHolder project = master.getReference(ServerIssue.PROJECT);
+      if (project == null) {
+        LogHelper.warning("No project for role visibility", master, security);
+        return;
+      }
+      security.put(ServerProjectRole.PROJECT, project.restore());
     }
 
     @Override
