@@ -650,7 +650,7 @@ public class ItemUrlServiceImpl implements ItemUrlService, Startable {
       String url = myUrlField.getText();
       ExternalBrowser browser = new ExternalBrowser();
       browser.setUrl(url + "#", false);
-      browser.setDialogHandler(CommonMessages.OPEN_IN_BROWSER.create(),
+      browser.setDialogHandler(CommonMessages.OPEN_IN_BROWSER_TITLE.create(),
         L.content("Failed to open " + url + " in default browser."));
       browser.openBrowser();
     }
