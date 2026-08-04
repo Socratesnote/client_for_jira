@@ -28,6 +28,7 @@ import com.almworks.util.Pair;
 import com.almworks.util.collections.ConvertingList;
 import com.almworks.util.i18n.text.LocalizedAccessor;
 import org.almworks.util.Collections15;
+import org.almworks.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,13 +126,30 @@ public class JqlQueryBuilder {
     return db.readBackground(reader -> JqlQueryBuilder.create(connection, reader).build(constraint)).waitForCompletion();
   }
 
+  /**
+   * Builds the URL that opens this query in a web browser, in the Cloud issue-navigator form {@code <base>/issues/?jql=<encoded>}.
+   * The Server-era {@code secure/IssueNavigator!executeAdvanced.jspa} page this replaced currently still resolves on Cloud, but only through
+   * a 302 redirect to this form.
+   */
   public static QueryUrlInfo buildQueryInfo(DBReader reader, Constraint constraint, JiraConnection3 connection) {
     JqlQueryBuilder context = JqlQueryBuilder.create(connection, reader);
     JqlQuery jql = context.build(constraint);
-    String url = connection.getConfigHolder().getBaseUrl() + "/secure/IssueNavigator!executeAdvanced.jspa?jqlQuery=" + HttpUtils.encode(jql.getJqlText()) + "&runQuery=true&clear=true";
-    QueryUrlInfo info = new QueryUrlInfo(url);
+    QueryUrlInfo info = new QueryUrlInfo(buildQueryUrl(connection.getConfigHolder().getBaseUrl(), jql.getJqlText()));
     info.setWarning(context.createWarningHtml());
     return info;
+  }
+
+  /**
+   * Assembles the query URL from its two inputs. Kept free of connection and database state so that it can be tested directly.
+   * The stored base URL is not guaranteed to be normalized, so it may or may not carry a trailing slash; a null one yields an
+   * unusable URL rather than throwing, which is what the caller did before this was extracted.
+   */
+  static String buildQueryUrl(@Nullable String baseUrl, String jqlText) {
+    String base = Util.NN(baseUrl);
+    StringBuilder url = new StringBuilder(base);
+    if (!base.endsWith("/")) url.append("/");
+    url.append("issues/?jql=").append(HttpUtils.encode(jqlText));
+    return url.toString();
   }
 
   /**
@@ -142,7 +160,7 @@ public class JqlQueryBuilder {
     StringBuilder builder = new StringBuilder();
     if (!myExcluded.isEmpty()) append(builder, (mySearchableKnown ? EXCLUDED_RIGHT : EXCLUDED_ALL).formatMessage(listFields(myExcluded)));
     if (!myTexts.isEmpty()) append(builder, TEXT_WARNING.formatMessage(listFields(myTexts), Setup.getProductName()));
-    if (!myDates.isEmpty()) { // Append date warning iff server time zone has different offset than local one (https://jira.almworks.com/browse/JCO-1308)
+    if (!myDates.isEmpty()) { // Append date warning if server time zone has different offset than local one (https://jira.almworks.com/browse/JCO-1308)
       TimeZone serverTimeZone = myProperties.getTimeZone();
       TimeZone localTimeZone = TimeZone.getDefault();
       long now = System.currentTimeMillis();
