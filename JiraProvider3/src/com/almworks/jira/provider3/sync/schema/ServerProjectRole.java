@@ -17,6 +17,16 @@ public class ServerProjectRole {
    */
   public static final EntityKey<Entity> PROJECT = Commons.ENTITY_PROJECT;
 
+  /**
+   * Whether the current user is a member of this role. Jira only accepts a comment or worklog restricted to a
+   * role its author belongs to, so a role the user is not in must not be offered by the visibility picker.
+   * <p>
+   * Null means membership could not be established, not "not a member": reading the actor list needs
+   * project-administration permission, so an ordinary user gets a 403. Unknown roles stay on offer, because
+   * hiding a role the user can really use is worse than offering one that fails on upload.
+   */
+  public static final EntityKey<Boolean> CURRENT_USER_MEMBER = EntityKey.bool("projectRole.currentUserMember", null);
+
   // Jira Comment Visibility option (true is for "Project Roles Only", false is for "Groups & Project Roles")
   public static final EntityKey<Boolean> PROJECT_ROLES_ONLY = EntityKey.bool("connection.rolesOnly", null);
 

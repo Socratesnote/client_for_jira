@@ -44,6 +44,8 @@ class LoadProjects {
 //  /** Sorted by project id */
   private final List<Pair<EntityHolder, IntList>> myTypeIdsInProject = Collections15.arrayList();
   private final boolean myProcessTypes;
+  /** Null when the current user could not be identified, which leaves every role's membership unknown. */
+  @Nullable private RoleMembership myRoleMembership;
 
   LoadProjects(EntityTransaction transaction, boolean processTypes) {
     myTransaction = transaction;
@@ -99,6 +101,7 @@ class LoadProjects {
 
   public void loadFullProjects(RestSession session, List<Trio<Integer, String, String>> prjIdKeyName, ProgressInfo progress) throws ConnectorException {
     progress.startActivity("projects");
+    myRoleMembership = RoleMembership.load(session);
     ProgressInfo[] progresses = progress.split(prjIdKeyName.size());
     for (int i = 0, resultSize = prjIdKeyName.size(); i < resultSize; i++) {
       Trio<Integer, String, String> project = prjIdKeyName.get(i);
@@ -112,7 +115,7 @@ class LoadProjects {
         LogHelper.warning("Failed to load project", key);
         continue;
       }
-      storeProject(fullProject);
+      storeProject(session, fullProject);
       stepProgress.setDone();
     }
     if (myProcessTypes) postProcessTypes();
@@ -169,7 +172,7 @@ class LoadProjects {
     return typeOrder;
   }
 
-  private void storeProject(JSONObject fullProject) {
+  private void storeProject(RestSession session, JSONObject fullProject) {
     StoreIterator it = new StoreIterator(myTransaction, ServerProject.TYPE, ServerProject.ID, JRProject.ID, Collections.singleton(fullProject));
     Pair<JSONObject, EntityHolder> prjPair = it.next();
     int prjId = it.getLastId();
@@ -195,13 +198,14 @@ class LoadProjects {
     myTypeIdsInProject.add(insIndex, Pair.create(project, issueTypeIds));
     storeComponents(project, JRProject.COMPONENTS.list(fullProject));
     storeVersions(project, JRProject.VERSIONS.list(fullProject));
-    storeRoles(project, JRProject.ROLES.getValue(fullProject));
+    storeRoles(session, project, prjId, JRProject.ROLES.getValue(fullProject));
   }
 
   // Stores the roles of one project. Roles are per-project - the same names recur in every project with
   // different ids - so each role is linked to its project, which is what scopes the visibility picker and
-  // makes resolution by name unambiguous.
-  private void storeRoles(EntityHolder project, JSONObject roles) {
+  // makes resolution by name unambiguous. Membership is fetched here, one request per role, so that opening
+  // the visibility dropdown stays instant; the sync already walks every project.
+  private void storeRoles(RestSession session, EntityHolder project, int prjId, JSONObject roles) {
     if (roles == null) return;
     for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) roles).entrySet()) {
       String name = Util.castNullable(String.class, entry.getKey());
@@ -215,6 +219,8 @@ class LoadProjects {
       else {
         role.setValue(ServerProjectRole.NAME, name);
         role.setNNReference(ServerProjectRole.PROJECT, project);
+        role.setValue(ServerProjectRole.CURRENT_USER_MEMBER,
+          myRoleMembership == null ? null : myRoleMembership.isCurrentUserMember(session, prjId, id));
       }
     }
   }

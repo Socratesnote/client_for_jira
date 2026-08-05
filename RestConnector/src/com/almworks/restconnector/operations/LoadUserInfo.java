@@ -6,20 +6,27 @@ import com.almworks.api.http.HttpUtils;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
+import com.almworks.restconnector.json.ArrayKey;
 import com.almworks.restconnector.json.JsonKey;
 import com.almworks.util.LogHelper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.TimeZone;
 
 public class LoadUserInfo {
   private static final String PATH_USER = "api/3/user/";
   private static final String PATH_MYSELF = "api/3/myself/";
+  private static final String PATH_MYSELF_GROUPS = "api/3/myself?expand=groups";
   private static final JsonKey<TimeZone> USER_TIME_ZONE = JsonKey.timeZoneID("timeZone");
   private static final JsonKey<String> DISPLAY_NAME = JsonKey.text("displayName");
   private static final JsonKey<String> ACCOUNT_ID = JsonKey.text("accountId");
+  private static final JsonKey<JSONObject> GROUPS = JsonKey.object("groups");
+  private static final ArrayKey<JSONObject> GROUP_ITEMS = ArrayKey.objectArray("items");
 
   private final JSONObject myObject;
 
@@ -37,6 +44,40 @@ public class LoadUserInfo {
 
   public String getAccountId() {
     return ACCOUNT_ID.getValue(myObject);
+  }
+
+  /**
+   * The groups the user belongs to, each with its {@code name} and {@code groupId}. Only populated when the
+   * user was loaded by {@link #loadMeWithGroups}; the plain requests do not ask for the expansion, so an empty
+   * list from them means "not requested" rather than "no groups".
+   */
+  public List<JSONObject> getGroups() {
+    JSONObject groups = GROUPS.getValue(myObject);
+    return groups == null ? Collections.<JSONObject>emptyList() : GROUP_ITEMS.list(groups);
+  }
+
+  /**
+   * The current user together with their group memberships, which the plain myself request does not return.
+   * Returns null on any failure - callers use this to decide what a user may do, so a failure has to be
+   * distinguishable from a definite answer rather than looking like an empty group list.
+   */
+  @Nullable("When the current user cannot be loaded")
+  public static LoadUserInfo loadMeWithGroups(RestSession session) {
+    if (session.getCredentials().isAnonymous()) return null;
+    try {
+      RestResponse response = session.restGet(PATH_MYSELF_GROUPS, RequestPolicy.NEEDS_LOGIN);
+      if (!response.isSuccessful()) {
+        LogHelper.warning("Failed to load current user with groups", response.getStatusCode());
+        return null;
+      }
+      return new LoadUserInfo(response.getJSONObject());
+    } catch (ConnectorException e) {
+      LogHelper.warning("Failed to load current user with groups", e);
+      return null;
+    } catch (ParseException e) {
+      LogHelper.warning("Failed to parse current user with groups");
+      return null;
+    }
   }
 
   public static LoadUserInfo loadMe(RestSession session) throws ConnectorException {

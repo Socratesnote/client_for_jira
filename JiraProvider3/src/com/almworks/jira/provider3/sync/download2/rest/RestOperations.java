@@ -54,6 +54,33 @@ public class RestOperations {
         }
     }
 
+    /**
+     * The full payload of one project role, which is where its actor list comes from.
+     * <p>
+     * Returns null on any failure, and the caller must read that as "unknown" rather than "no actors":
+     * Atlassian documents this endpoint as needing project-administration permission, so an ordinary user
+     * can get a 403 here for a role they are perfectly able to use.
+     */
+    @Nullable("When the role cannot be loaded")
+    public static JSONObject projectRole(RestSession session, int projectId, int roleId) {
+        try {
+            RestResponse response = session.restGet(PATH_PROJECT + "/" + projectId + "/role/" + roleId, RequestPolicy.SAFE_TO_RETRY);
+            if (!response.isSuccessful()) {
+                LogHelper.warning("Failed to load project role", projectId, roleId, response.getStatusCode());
+                return null;
+            }
+            try {
+                return response.getJSONObject();
+            } catch (ParseException e) {
+                LogHelper.warning("Failed to parse project role", projectId, roleId);
+                return null;
+            }
+        } catch (ConnectorException e) {
+            LogHelper.warning("Failed to load project role", projectId, roleId, e);
+            return null;
+        }
+    }
+
     public static List<JSONObject> priorities(RestSession session) throws ConnectorException, ParseException {
         return loadList(session, PATH_PRIORITY, RequestPolicy.SAFE_TO_RETRY);
     }

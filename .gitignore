@@ -3,5 +3,6 @@ build.idea/
 ant/generated.xml
 TestArea/*
 CLAUDE.md
+CLAUDE.*.md
 AGENTS.md
 HISTORY.md

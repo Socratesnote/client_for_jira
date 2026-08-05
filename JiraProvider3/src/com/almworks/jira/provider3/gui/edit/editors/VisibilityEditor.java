@@ -29,9 +29,11 @@ import com.almworks.jira.provider3.schema.ProjectRole;
 import com.almworks.spi.provider.AbstractConnection;
 import com.almworks.util.LogHelper;
 import com.almworks.util.advmodel.AListModel;
+import com.almworks.util.advmodel.FilteringListDecorator;
 import com.almworks.util.advmodel.SegmentedListModel;
 import com.almworks.util.advmodel.SortedListDecorator;
 import com.almworks.util.collections.UserDataHolder;
+import com.almworks.util.commons.Condition;
 import com.almworks.util.components.CanvasRenderable;
 import com.almworks.util.components.CanvasRenderer;
 import com.almworks.util.config.Configuration;
@@ -57,6 +59,21 @@ public class VisibilityEditor implements EnumVariantsSource {
 
   private final TypedKey<Long> myGroupsType = TypedKey.create("visibility/groups");
   private final TypedKey<Long> myRolesType = TypedKey.create("visibility/roles");
+
+  /**
+   * Jira only accepts a comment or worklog restricted to a role its author belongs to, so offering a role the
+   * user is not in produces a failed upload. A null membership means the client could not establish it - the
+   * actor endpoint needs project-administration permission - and those roles stay on offer, to avoid hiding a role
+   * the user can really use.
+   */
+  private static final Condition<LoadedItemKey> CURRENT_USER_CAN_USE = new Condition<LoadedItemKey>() {
+    @Override
+    public boolean isAccepted(LoadedItemKey value) {
+      if (value == null) return false;
+      Boolean member = value.getValue(ProjectRole.CURRENT_USER_MEMBER);
+      return member == null || member;
+    }
+  };
 
   public static DropdownEnumEditor create(DBAttribute<Long> attribute) {
     return create(attribute, NameMnemonic.parseString("Visibilit&y Level"));
@@ -146,7 +163,8 @@ public class VisibilityEditor implements EnumVariantsSource {
     SegmentedListModel<LoadedItemKey> result = SegmentedListModel.create(life);
     if (roles != null) {
       AListModel<LoadedItemKey> unsortedModel = roles.getValueModel(life, cube);
-      result.addSegment(SortedListDecorator.create(life, unsortedModel, ItemKey.COMPARATOR));
+      AListModel<LoadedItemKey> usableModel = FilteringListDecorator.create(life, unsortedModel, CURRENT_USER_CAN_USE);
+      result.addSegment(SortedListDecorator.create(life, usableModel, ItemKey.COMPARATOR));
     }
     if (groups != null) {
       AListModel<LoadedItemKey> unsortedModel = groups.getValueModel(life, cube);
