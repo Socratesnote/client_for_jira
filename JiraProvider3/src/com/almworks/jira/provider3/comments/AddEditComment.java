@@ -2,6 +2,7 @@ package com.almworks.jira.provider3.comments;
 
 import com.almworks.api.connector.ConnectorException;
 import com.almworks.items.entities.api.collector.transaction.EntityHolder;
+import com.almworks.items.entities.api.collector.transaction.EntityTransaction;
 import com.almworks.items.sync.impl.SyncSchema;
 import com.almworks.jira.provider3.remotedata.issue.AddEditSlaveUnit;
 import com.almworks.jira.provider3.remotedata.issue.SlaveIds;
@@ -10,7 +11,9 @@ import com.almworks.jira.provider3.remotedata.issue.edit.EditIssue;
 import com.almworks.jira.provider3.schema.Comment;
 import com.almworks.jira.provider3.services.upload.PostUploadContext;
 import com.almworks.jira.provider3.services.upload.UploadProblem;
+import com.almworks.jira.provider3.sync.ServerInfo;
 import com.almworks.jira.provider3.sync.download2.rest.JRComment;
+import com.almworks.jira.provider3.sync.schema.ServerProjectRole;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
@@ -22,6 +25,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 class AddEditComment extends AddEditSlaveUnit<CommentValues> {
   private static final LocalizedAccessor.Value M_NOT_FOUND_SHORT = PrepareCommentUpload.I18N.getFactory("upload.conflict.notFound.short");
@@ -33,6 +37,12 @@ class AddEditComment extends AddEditSlaveUnit<CommentValues> {
   private static final LocalizedAccessor.MessageStr M_GENERIC_FAILURE_DETAILED = PrepareCommentUpload.I18N.messageStr("upload.genericFailure.detailed");
   private static final LocalizedAccessor.Value M_COMMENT_UPLOAD = PrepareCommentUpload.I18N.getFactory("comment.upload.short");
   private static final String PATH_ISSUE = "api/3/issue/";
+  // The server's machine-readable code for "group visibility is disabled site-wide", distinct from the human
+  // sentence in errors.commentLevel. Confirmed live: PUT .../comment/{id} with a group visibility body returns
+  // 400 {"errorMessages":["GROUP_VISIBILITY_SETTING_NOT_ENABLED"], ...} when the setting is off.
+  private static final Pattern GROUP_VISIBILITY_DISABLED = Pattern.compile("GROUP_VISIBILITY_SETTING_NOT_ENABLED");
+
+  private boolean myGroupVisibilityDisabled;
 
   AddEditComment(long item, CreateIssueUnit issue, CommentValues base, CommentValues change, SlaveIds knownComments) {
     super(item, issue, base, change, knownComments);
@@ -66,6 +76,7 @@ class AddEditComment extends AddEditSlaveUnit<CommentValues> {
     }
     RestResponse.ErrorResponse error = response.createErrorResponse();
     LogHelper.warning("Comment upload failed", error.getFullMessage());
+    if (error.findMessage(GROUP_VISIBILITY_DISABLED) != null) myGroupVisibilityDisabled = true;
     String description = error.hasDetails() ? M_GENERIC_FAILURE_DETAILED.formatMessage(error.getFullMessage()) :
             M_GENERIC_FAILURE.formatMessage(response.getStatusCode());
     return UploadProblem.fatal(description, null).toCollection();
@@ -79,6 +90,20 @@ class AddEditComment extends AddEditSlaveUnit<CommentValues> {
 
   private RestResponse submitComment(RestSession session, int issueId, CommentValues change) throws ConnectorException {
     return session.restPostJson(PATH_ISSUE + issueId + "/comment", change.createJson(), RequestPolicy.NEEDS_LOGIN);
+  }
+
+  @Override
+  public void finishUpload(EntityTransaction transaction, PostUploadContext context) {
+    // AddEditSlaveUnit.finishUpload only acts when the upload succeeded (isDone()), but a rejected upload is
+    // exactly the case this needs to run for - so it is handled here, before deferring to the normal path.
+    if (myGroupVisibilityDisabled) {
+      EntityHolder connection = ServerInfo.changeConnection(transaction);
+      // Reuses the exact attribute LoadRestMeta.loadCommentsVisibility writes on every meta reload, so a later
+      // "Reload Configuration" naturally supersedes this once the server's own groups become visible again -
+      // no separate flag or reset hook needed.
+      if (connection != null) connection.setValue(ServerProjectRole.PROJECT_ROLES_ONLY, true);
+    }
+    super.finishUpload(transaction, context);
   }
 
   @Override

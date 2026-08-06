@@ -1,0 +1,339 @@
+  TYPE: Entity[TYPE:'types.attach']
+EntityKey[attach.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[attach.date:Date]=29 Jul 2026 07:50:54.58 GMT
+EntityKey[attach.fileName:String]=TestAttach.txt
+EntityKey[attach.fileUrl:String]=https://example.atlassian.net/rest/api/3/attachment/content/10685
+EntityKey[attach.id:Int]=10685
+EntityKey[attach.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[attach.mime:String]=text/plain
+EntityKey[attach.sizeStr:String]=51
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.attach']<no resolution>
+  TYPE: Entity[TYPE:'types.comment']
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:38.487 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12867
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 41
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 41","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:38.487 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:38.972 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12868
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 42
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 42","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:38.972 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:39.393 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12869
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 43
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 43","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:39.393 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:39.811 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12870
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 44
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 44","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:39.811 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:40.284 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12871
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 45
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 45","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:40.284 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:40.729 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12872
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 46
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 46","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:40.729 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:41.168 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12873
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 47
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 47","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:41.168 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:41.594 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12874
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 48
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 48","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:41.594 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:42.34 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12875
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 49
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 49","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:42.34 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:42.480 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12876
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 50
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 50","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:42.480 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:42.888 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12877
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 51
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 51","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:42.888 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:43.337 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12878
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 52
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 52","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:43.337 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:43.775 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12879
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 53
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 53","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:43.775 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:44.234 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12880
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 54
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 54","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:44.234 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:44.678 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12881
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 55
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 55","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:44.678 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:45.119 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12882
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 56
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 56","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:45.119 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:45.613 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12883
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 57
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 57","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:45.613 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:46.125 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12884
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 58
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 58","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:46.125 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:46.614 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12885
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 59
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 59","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:46.614 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+------------------------------
+EntityKey[comment.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.created:Date]=31 Jul 2026 16:21:47.83 GMT
+EntityKey[comment.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[comment.id:Int]=12886
+EntityKey[comment.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[comment.security:Entity]=<null>
+EntityKey[comment.text:String]=pagination test 60
+EntityKey[comment.textAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"pagination test 60","type":"text"}]}]}
+EntityKey[comment.updated:Date]=31 Jul 2026 16:21:47.83 GMT
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.comment']<no resolution>
+  TYPE: Entity[TYPE:'types.issue']
+EntityKey[comment.load.notFull:bool HINT]=true
+EntityKey[issue.affectedVersions:Entity COLLECTION]={}
+EntityKey[issue.assignee:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[issue.components:Entity COLLECTION]={}
+EntityKey[issue.created:Date]=29 Jul 2026 07:50:54.278 GMT
+EntityKey[issue.description:String]=Can this even be done? Server client
+EntityKey[issue.descriptionAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Can this even be done? Server client","type":"text"}]}]}
+EntityKey[issue.due:Int]=<null>
+EntityKey[issue.environment:String]=Line 1
+Line 2
+Client
+EntityKey[issue.environmentAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Line 1","type":"text"}]},{"type":"paragraph","content":[{"text":"Line 2","type":"text"}]},{"type":"paragraph","content":[{"text":"Client","type":"text"}]}]}
+EntityKey[issue.fixVersions:Entity COLLECTION]={}
+EntityKey[issue.id:Int]=12677
+EntityKey[issue.key:String]=AXE-22
+EntityKey[issue.originalEstimate:Int]=<null>
+EntityKey[issue.parent:Entity]=<null>
+EntityKey[issue.priority:Entity]=Entity[types.priority](entity.id=3)
+EntityKey[issue.project:Entity]=Entity[types.project](entity.id=10012, project.key=AXE)
+EntityKey[issue.remainEstimate:Int]=0
+EntityKey[issue.reporter:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[issue.resolution:Entity]=Entity[types.resolution](entity.id=-1)
+EntityKey[issue.resolved:Date]=<null>
+EntityKey[issue.security:Entity]=<null>
+EntityKey[issue.status:Entity]=Entity[types.status](entity.id=10038)
+EntityKey[issue.summary:String]=CLONE - TestMultiLine
+EntityKey[issue.timeSpent:Int]=3660
+EntityKey[issue.type:Entity]=Entity[types.issueType](entity.id=10050)
+EntityKey[issue.updated:Date]=31 Jul 2026 16:21:47.83 GMT
+EntityKey[issue.watchCount:Int]=1
+EntityKey[issue.watching:bool]=true
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.issue']<no resolution>
+EntityKey[sys.store.downloadStage.mark:com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark HINT]=DownloadStage[FULL]
+------------------------------
+EntityKey[issue.id:Int]=12678
+EntityKey[issue.key:String]=AXE-23
+EntityKey[issue.parent:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.issue']<no resolution>
+EntityKey[sys.store.downloadStage.mark:com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark HINT]=DownloadStage[DUMMY]
+------------------------------
+EntityKey[issue.id:Int]=12672
+EntityKey[issue.key:String]=AXE-20
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.issue']<no resolution>
+EntityKey[sys.store.downloadStage.mark:com.almworks.items.entities.dbwrite.downloadstage.DownloadStageMark HINT]=DownloadStage[DUMMY]
+  TYPE: Entity[TYPE:'types.link']
+EntityKey[link.id:Int]=11163
+EntityKey[link.source:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[link.target:Entity]=Entity[types.issue](issue.id=12672, issue.key=AXE-20)
+EntityKey[link.type:Entity]=Entity[types.linkType](entity.id=10001)
+  TYPE: Entity[TYPE:'types.linkType']
+EntityKey[entity.id:Int]=10001
+EntityKey[entity.name:String]=Cloners
+EntityKey[linkType.inwardDescription:String]=is cloned by
+EntityKey[linkType.outwardDescription:String]=clones
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.linkType']<no resolution>
+  TYPE: Entity[TYPE:'types.worklog']
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
+EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[worklog.comment:String]=<null>
+EntityKey[worklog.commentAdf:String]={"type":"doc","version":1,"content":[]}
+EntityKey[worklog.created:Date]=29 Jul 2026 07:55:17.173 GMT
+EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[worklog.id:Int]=16956
+EntityKey[worklog.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[worklog.security:Entity]=<null>
+EntityKey[worklog.started:Date]=29 Jul 2026 07:54:12.522 GMT
+EntityKey[worklog.timeSeconds:Int]=60
+EntityKey[worklog.updated:Date]=29 Jul 2026 07:55:36.194 GMT
+------------------------------
+EntityKey[sys.api.key.type:Entity HINT]=Entity[TYPE:'types.worklog']<no resolution>
+EntityKey[worklog.author:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[worklog.comment:String]=Line 1
+Line 2?
+Bold
+EntityKey[worklog.commentAdf:String]={"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"text":"Line 1","type":"text"}]},{"type":"paragraph","content":[{"text":"Line 2?","type":"text"}]},{"type":"paragraph","content":[{"text":"Bold","marks":[{"type":"strong"}],"type":"text"}]}]}
+EntityKey[worklog.created:Date]=30 Jul 2026 13:10:31.816 GMT
+EntityKey[worklog.editor:Entity]=Entity[types.user](user.accountId=000000:00000000-0000-0000-0000-000000000000)
+EntityKey[worklog.id:Int]=16960
+EntityKey[worklog.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+EntityKey[worklog.security:Entity]=<null>
+EntityKey[worklog.started:Date]=30 Jul 2026 12:10:21.0 GMT
+EntityKey[worklog.timeSeconds:Int]=3600
+EntityKey[worklog.updated:Date]=30 Jul 2026 13:11:26.110 GMT
+  ***  BAGS ***
+Entity[TYPE:'types.attach']<no resolution>
+EntityKey[attach.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+DELETE
+Entity[types.attach](attach.fileUrl=https://example.atlassian.net/rest/api/3/attachment/content/10685, attach.issue=Entity[types.issue])
+------------------------------
+Entity[TYPE:'types.issue']<no resolution>
+EntityKey[issue.parent:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+CHANGE: EntityKey[issue.parent:Entity]=<null>
+Entity[types.issue](issue.id=12678, issue.key=AXE-23)
+------------------------------
+Entity[TYPE:'types.link']<no resolution>
+EntityKey[link.source:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+DELETE
+Entity[types.link](link.source=Entity[types.issue], link.target=Entity[types.issue], link.type=Entity[types.linkType])
+------------------------------
+Entity[TYPE:'types.link']<no resolution>
+EntityKey[link.target:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+DELETE
+------------------------------
+Entity[TYPE:'types.worklog']<no resolution>
+EntityKey[worklog.issue:Entity]=Entity[types.issue](issue.id=12677, issue.key=AXE-22)
+DELETE
+Entity[types.worklog](worklog.id=16956, worklog.issue=Entity[types.issue])
+Entity[types.worklog](worklog.id=16960, worklog.issue=Entity[types.issue])

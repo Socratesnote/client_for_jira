@@ -108,8 +108,10 @@ public class CreateWorklogFeature extends TopEditor {
   }
 
   @Override
+  // PROVIDE_PROJECT publishes the issue's project into the model so WorklogForm.VISIBILITY can narrow its role
+  // list to that project; without it this dialog offers every project's roles.
   protected Pair<DefaultEditModel.Child, ? extends List<? extends FieldEditor>> createNestedModel(VersionSource source, EditItemModel parent, EditPrepare editPrepare) {
-    return createDefaultNestedModel(parent, WORKLOG_SLAVE, WorklogForm.ADJUSTMENT);
+    return createDefaultNestedModel(parent, EditMetaSchema.PROVIDE_PROJECT, WORKLOG_SLAVE, WorklogForm.ADJUSTMENT);
   }
 
   @Override

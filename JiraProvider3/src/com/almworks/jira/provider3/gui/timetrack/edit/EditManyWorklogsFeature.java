@@ -4,34 +4,50 @@ import com.almworks.api.actions.ItemActionUtils;
 import com.almworks.api.application.ItemWrapper;
 import com.almworks.integers.LongArray;
 import com.almworks.integers.WritableLongList;
+import com.almworks.items.api.DBReader;
 import com.almworks.items.gui.edit.DefaultEditModel;
 import com.almworks.items.gui.edit.EditItemModel;
 import com.almworks.items.gui.edit.FieldEditor;
+import com.almworks.items.gui.edit.editors.LoadLinkedAttribute;
 import com.almworks.items.gui.edit.engineactions.EngineConsts;
 import com.almworks.items.gui.edit.helper.EditDescriptor;
 import com.almworks.items.gui.edit.helper.EditFeature;
 import com.almworks.items.gui.edit.util.BaseFieldEditor;
 import com.almworks.items.gui.edit.util.VerticalLinePlacement;
+import com.almworks.items.sync.EditPrepare;
+import com.almworks.items.sync.util.BranchSource;
 import com.almworks.jira.provider3.gui.actions.JiraActions;
 import com.almworks.jira.provider3.gui.edit.editors.JiraEditUtils;
 import com.almworks.jira.provider3.gui.timetrack.LoadedWorklog;
 import com.almworks.jira.provider3.gui.timetrack.TimeUtils;
 import com.almworks.jira.provider3.permissions.IssuePermissions;
+import com.almworks.jira.provider3.schema.Issue;
+import com.almworks.jira.provider3.schema.Worklog;
 import com.almworks.util.ui.actions.ActionContext;
 import com.almworks.util.ui.actions.CantPerformException;
 import com.almworks.util.ui.actions.PresentationKey;
 import com.almworks.util.ui.actions.UpdateRequest;
 import org.almworks.util.Collections15;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 class EditManyWorklogsFeature extends VerticalLinePlacement.EditImpl {
   public static final EditFeature INSTANCE = new EditManyWorklogsFeature();
   public static final List<BaseFieldEditor> EDITORS = Collections15.unmodifiableListCopy(WorklogForm.COMMENT, WorklogForm.VISIBILITY);
+  // The model's editing items are the worklogs, not the issue, so this follows Worklog.ISSUE to publish the
+  // issue's project - otherwise WorklogForm.VISIBILITY offers every project's roles.
+  private static final LoadLinkedAttribute PROVIDE_PROJECT_VIA_ISSUE = new LoadLinkedAttribute(Worklog.ISSUE, Issue.PROJECT);
 
   @Override
   protected List<? extends FieldEditor> getEditors(EditItemModel model) {
     return EDITORS;
+  }
+
+  @Override
+  public void prepareEdit(DBReader reader, DefaultEditModel.Root model, @Nullable EditPrepare editPrepare) {
+    PROVIDE_PROJECT_VIA_ISSUE.prepareModel(BranchSource.trunk(reader), model, editPrepare);
+    super.prepareEdit(reader, model, editPrepare);
   }
 
   @Override

@@ -14,6 +14,7 @@ import com.almworks.items.gui.edit.util.TopEditor;
 import com.almworks.items.sync.EditPrepare;
 import com.almworks.items.sync.VersionSource;
 import com.almworks.jira.provider3.gui.actions.JiraActions;
+import com.almworks.jira.provider3.gui.edit.EditMetaSchema;
 import com.almworks.jira.provider3.gui.edit.editors.JiraEditUtils;
 import com.almworks.jira.provider3.gui.timetrack.LoadedWorklog;
 import com.almworks.jira.provider3.gui.timetrack.TimeUtils;
@@ -77,8 +78,10 @@ class EditSingleWorklogFeature extends TopEditor {
   }
 
   @Override
+  // PROVIDE_PROJECT publishes the issue's project into the model so WorklogForm.VISIBILITY can narrow its role
+  // list to that project; without it this dialog offers every project's roles.
   protected Pair<DefaultEditModel.Child, ? extends List<? extends FieldEditor>> createNestedModel(VersionSource source, EditItemModel parent, EditPrepare editPrepare) {
-    Pair<DefaultEditModel.Child, ? extends List<? extends FieldEditor>> pair = createDefaultNestedModel(parent, WORKLOG_SLAVE, WorklogForm.ADJUSTMENT);
+    Pair<DefaultEditModel.Child, ? extends List<? extends FieldEditor>> pair = createDefaultNestedModel(parent, EditMetaSchema.PROVIDE_PROJECT, WORKLOG_SLAVE, WorklogForm.ADJUSTMENT);
     pair.getFirst().copyHint(parent, WORKLOG);
     return pair;
   }

@@ -2,6 +2,7 @@ package com.almworks.jira.provider3.worklogs;
 
 import com.almworks.api.connector.ConnectorException;
 import com.almworks.items.entities.api.collector.transaction.EntityHolder;
+import com.almworks.items.entities.api.collector.transaction.EntityTransaction;
 import com.almworks.items.sync.impl.SyncSchema;
 import com.almworks.jira.provider3.remotedata.issue.AddEditSlaveUnit;
 import com.almworks.jira.provider3.remotedata.issue.SlaveIds;
@@ -9,6 +10,8 @@ import com.almworks.jira.provider3.remotedata.issue.edit.EditIssue;
 import com.almworks.jira.provider3.schema.Worklog;
 import com.almworks.jira.provider3.services.upload.PostUploadContext;
 import com.almworks.jira.provider3.services.upload.UploadProblem;
+import com.almworks.jira.provider3.sync.ServerInfo;
+import com.almworks.jira.provider3.sync.schema.ServerProjectRole;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
@@ -27,10 +30,14 @@ class AddEditWorklog extends AddEditSlaveUnit<WorklogValues> {
   private static final LocalizedAccessor.Value M_SERVER_ERROR_SHORT = PrepareWorklogsUpload.I18N.getFactory("upload.failure.errorCode.short");
   private static final LocalizedAccessor.MessageInt M_SERVER_ERROR_FULL = PrepareWorklogsUpload.I18N.messageInt("upload.failure.errorCode.full");
   private static final String PATH_ISSUE = "api/3/issue/";
+  // The server's machine-readable code for "group visibility is disabled site-wide", distinct from the human
+  // sentence in errors.commentLevel. Same rejection shape as the comment endpoint (see AddEditComment).
+  private static final Pattern GROUP_VISIBILITY_DISABLED = Pattern.compile("GROUP_VISIBILITY_SETTING_NOT_ENABLED");
 
   private final WorklogSet mySet;
   @Nullable
   private final SlaveIds myKnownIds;
+  private boolean myGroupVisibilityDisabled;
 
   public AddEditWorklog(WorklogSet set, long item, WorklogValues base, WorklogValues change, SlaveIds slaveIds, SlaveIds knownIds) {
     super(item, set.getIssue(), base, change, slaveIds);
@@ -57,6 +64,7 @@ class AddEditWorklog extends AddEditSlaveUnit<WorklogValues> {
     RestResponse response = id == null ? submitWorklog(session, issueId, change) : editWorklog(session, issueId, change, id);
     if (!response.isSuccessful()) {
       LogHelper.debug("Worklog upload failed", response.getStatusCode(), response.getString());
+      if (response.createErrorResponse().findMessage(GROUP_VISIBILITY_DISABLED) != null) myGroupVisibilityDisabled = true;
       return UploadProblem.fatal(M_SERVER_ERROR_SHORT.create(), M_SERVER_ERROR_FULL.formatMessage(response.getStatusCode())).toCollection();
     }
     mySet.markDone(this, true);
@@ -93,6 +101,20 @@ class AddEditWorklog extends AddEditSlaveUnit<WorklogValues> {
     } catch (NumberFormatException e) {
       LogHelper.warning("Wrong new worklog location id", location, idStr);
     }
+  }
+
+  @Override
+  public void finishUpload(EntityTransaction transaction, PostUploadContext context) {
+    // AddEditSlaveUnit.finishUpload only acts when the upload succeeded (isDone()), but a rejected upload is
+    // exactly the case this needs to run for - so it is handled here, before deferring to the normal path.
+    if (myGroupVisibilityDisabled) {
+      EntityHolder connection = ServerInfo.changeConnection(transaction);
+      // Reuses the exact attribute LoadRestMeta.loadCommentsVisibility writes on every meta reload, so a later
+      // "Reload Configuration" naturally supersedes this once the server's own groups become visible again -
+      // no separate flag or reset hook needed.
+      if (connection != null) connection.setValue(ServerProjectRole.PROJECT_ROLES_ONLY, true);
+    }
+    super.finishUpload(transaction, context);
   }
 
   @Override

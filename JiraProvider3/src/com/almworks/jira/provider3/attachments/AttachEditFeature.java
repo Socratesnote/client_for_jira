@@ -20,6 +20,7 @@ import com.almworks.items.sync.*;
 import com.almworks.items.sync.util.BranchSource;
 import com.almworks.items.util.SyncAttributes;
 import com.almworks.jira.provider3.comments.gui.BaseEditComment;
+import com.almworks.jira.provider3.gui.edit.EditMetaSchema;
 import com.almworks.jira.provider3.schema.Attachment;
 import com.almworks.util.config.Configuration;
 import com.almworks.util.text.NameMnemonic;
@@ -71,8 +72,11 @@ class AttachEditFeature implements EditFeature {
   }
 
   @Override
+  // PROVIDE_PROJECT publishes the issue's project into the model so the comment visibility editor inside
+  // COMMENT_SLAVE can narrow its role list to that project; without it this dialog offers every project's roles.
   public void prepareEdit(DBReader reader, DefaultEditModel.Root model, @Nullable EditPrepare editPrepare) {
     BranchSource source = BranchSource.trunk(reader);
+    EditMetaSchema.PROVIDE_PROJECT.prepareModel(source, model, editPrepare);
     BaseEditComment.COMMENT_SLAVE.prepareModel(source, model, editPrepare);
     myFilesMessage.prepareModel(source, model, editPrepare);
     myAttachFiles.prepareModel(source, model, editPrepare);

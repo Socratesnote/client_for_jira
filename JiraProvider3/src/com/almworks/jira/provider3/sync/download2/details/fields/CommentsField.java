@@ -79,8 +79,15 @@ public class CommentsField implements JsonIssueField {
       LogHelper.error("Missing issue ID", issue);
       return;
     }
-    List<SlaveLoader.Parsed<EntityBag2>> fullBag =
-      PagedCollectionLoader.loadAllPages(PagedCollectionLoader.restFetcher(session, PATH_ISSUE + issueId + "/comment", "comments"), COMMENTS, myCommentLoader, "comments");
+    loadAllPages(issue, PagedCollectionLoader.restFetcher(session, PATH_ISSUE + issueId + "/comment", "comments"), progress);
+  }
+
+  /**
+   * Package-visible seam for tests: performs the actual paged re-read given any fetcher, so it can be exercised
+   * offline with a fake {@link PagedCollectionLoader.PageFetcher} instead of a live {@link RestSession}.
+   */
+  void loadAllPages(EntityHolder issue, PagedCollectionLoader.PageFetcher fetcher, ProgressInfo progress) throws ConnectorException {
+    List<SlaveLoader.Parsed<EntityBag2>> fullBag = PagedCollectionLoader.loadAllPages(fetcher, COMMENTS, myCommentLoader, "comments");
     // Null means the read did not complete. Leaving the partial value from parsing is right: writing a full
     // bag here would delete the comments that were never fetched.
     if (fullBag != null) DependentBagField.createBagValue(fullBag, myCommentLoader).addTo(issue);

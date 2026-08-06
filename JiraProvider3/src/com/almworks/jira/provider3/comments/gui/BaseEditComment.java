@@ -5,6 +5,7 @@ import com.almworks.api.application.ItemWrapper;
 import com.almworks.api.application.UiItem;
 import com.almworks.api.engine.Connection;
 import com.almworks.integers.LongArray;
+import com.almworks.integers.LongList;
 import com.almworks.integers.WritableLongList;
 import com.almworks.items.api.DBAttribute;
 import com.almworks.items.api.DBOperationCancelledException;
@@ -14,6 +15,7 @@ import com.almworks.items.gui.edit.EditItemModel;
 import com.almworks.items.gui.edit.EditModelState;
 import com.almworks.items.gui.edit.ItemCreator;
 import com.almworks.items.gui.edit.editors.ConstEditor;
+import com.almworks.items.gui.edit.editors.LoadLinkedAttribute;
 import com.almworks.items.gui.edit.editors.composition.InplaceNewSlave;
 import com.almworks.items.gui.edit.editors.enums.single.DropdownEnumEditor;
 import com.almworks.items.gui.edit.editors.text.ScalarFieldEditor;
@@ -33,8 +35,10 @@ import com.almworks.jira.provider3.gui.viewer.CommentImpl;
 import com.almworks.jira.provider3.markup.AdfRichTextTransform;
 import com.almworks.jira.provider3.permissions.IssuePermissions;
 import com.almworks.jira.provider3.schema.Comment;
+import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.util.LogHelper;
 import com.almworks.util.Pair;
+import com.almworks.util.collections.Convertor;
 import com.almworks.util.components.AComboBox;
 import com.almworks.util.components.speedsearch.TextSpeedSearch;
 import com.almworks.util.config.Configuration;
@@ -45,6 +49,7 @@ import com.almworks.util.ui.actions.CantPerformException;
 import com.almworks.util.ui.actions.UpdateRequest;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import org.almworks.util.TypedKey;
 import org.almworks.util.Util;
 import org.almworks.util.detach.Lifespan;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +62,27 @@ import java.util.List;
 import static com.almworks.util.ui.actions.ActionUtil.getNullable;
 
 public abstract class BaseEditComment implements EditFeature {
+  // Follows Comment.ISSUE to the issue and publishes its project, for dialogs whose root editing item is the
+  // comment rather than the issue - PROVIDE_PROJECT (EditMetaSchema) can't help there since it only reads off
+  // the model's own editing items.
+  private static final LoadLinkedAttribute PROVIDE_PROJECT_VIA_ISSUE = new LoadLinkedAttribute(Comment.ISSUE, Issue.PROJECT);
+
+  // REPLY_TO_COMMENT's model has no editing items at all (a brand-new comment), so neither PROVIDE_PROJECT nor
+  // LoadLinkedAttribute has anything to read off. The issue is known at setupModel time, though, so it is
+  // stashed here and resolved in prepareEdit instead.
+  private static final TypedKey<Long> REPLY_ISSUE_HINT = TypedKey.create("replyToComment/issue");
+
+  private static void provideProjectFromHint(VersionSource source, EditItemModel model, TypedKey<Long> issueHint) {
+    Long issueItem = model.getValue(issueHint);
+    final Long project = issueItem != null && issueItem > 0 ? source.forItem(issueItem).getValue(Issue.PROJECT) : null;
+    model.registerSingleEnum(Issue.PROJECT, new Convertor<EditModelState, LongList>() {
+      @Override
+      public LongList convert(EditModelState model) {
+        return project != null && project > 0 ? LongArray.create(project) : null;
+      }
+    });
+  }
+
   private static final ItemCreator COMMENT_CREATOR = new ItemCreator() {
     @Override
     public void setupNewItem(EditModelState model, ItemVersionCreator item) {
@@ -174,7 +200,9 @@ public abstract class BaseEditComment implements EditFeature {
 
     @Override
     public void prepareEdit(DBReader reader, DefaultEditModel.Root model, EditPrepare editPrepare) {
-      Form.prepareEdit(BranchSource.trunk(reader), model, editPrepare);
+      BranchSource source = BranchSource.trunk(reader);
+      PROVIDE_PROJECT_VIA_ISSUE.prepareModel(source, model, editPrepare);
+      Form.prepareEdit(source, model, editPrepare);
     }
   };
 
@@ -206,6 +234,7 @@ public abstract class BaseEditComment implements EditFeature {
       DefaultEditModel.Root model = DefaultEditModel.Root.newItem(COMMENT_CREATOR);
       ItemWrapper wrapper = context.getSourceObject(ItemWrapper.ITEM_WRAPPER);
       ConstEditor.install(model, Comment.ISSUE, wrapper.getItem());
+      model.putHint(REPLY_ISSUE_HINT, wrapper.getItem());
       String text = comment.getText();
       text = LineTokenizer.prependLines(text, "> ");
       COMMENT_TEXT.setValue(model, text);
@@ -216,7 +245,9 @@ public abstract class BaseEditComment implements EditFeature {
 
     @Override
     public void prepareEdit(DBReader reader, DefaultEditModel.Root model, EditPrepare editPrepare) {
-      Form.prepareEdit(BranchSource.trunk(reader), model, editPrepare);
+      BranchSource source = BranchSource.trunk(reader);
+      provideProjectFromHint(source, model, REPLY_ISSUE_HINT);
+      Form.prepareEdit(source, model, editPrepare);
     }
   };
 //  public static final String NEXT_FORWARD = "Jira.Merge.Comments.NextForward";

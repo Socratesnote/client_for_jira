@@ -46,6 +46,18 @@ public class LoadDetailsRTests extends BaseTestCase {
     runTest("roleVisibility.json", "roleVisibility.json.txt");
   }
 
+  /**
+   * A comment page embedded in the issue's search/get response can be a truncated middle-or-last page rather
+   * than the first: this fixture's embedded comment page is total=64, startAt=44, maxResults=20 - the last
+   * page, not the first. This only covers the embedded page parsing correctly with a non-zero startAt; the
+   * re-fetch that should then bring in the remaining comments is covered separately, offline, by
+   * {@link com.almworks.jira.provider3.sync.download2.details.fields.CommentsFieldTests} - LoadDetails never
+   * calls CommentsField.maybeLoadAdditional, so this test alone cannot exercise that path.
+   */
+  public void testPartialCommentPage() throws IOException, ParseException {
+    runTest("partialCommentPage.json", "partialCommentPage.json.txt");
+  }
+
   private static final String CONNECTION_ID = "CONN-ECTI-ON_I-D";
   private void runTest(String source, String result) throws IOException, ParseException {
     Object json = RESOURCES.loadJson(source);
