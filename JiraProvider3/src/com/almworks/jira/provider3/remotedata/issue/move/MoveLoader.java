@@ -116,9 +116,13 @@ public class MoveLoader implements StepLoader {
       case ERROR_COMBINED_TYPE_OR_PROJECT_CHANGE:
         throw UploadUnit.CantUploadException.create("Cannot change the type/project and the Epic parent in one step");
       case ERROR_CLEAR_PARENT_UNSUPPORTED:
-        //TODO: Support clearing a parent. Needs a Cloud-verified remove payload ("parent":null is not reliably
-        // honored; an {"update":{"parent":[{"remove":...}]}} form may be required). This also covers emptying the
-        // Parent field in the Move/Convert dialog to detach an issue. Revisit.
+        //TODO: Support clearing a parent. The payload question is settled - verified against Jira Cloud 2026-08-07:
+        // {"fields":{"parent":null}} works and really clears the parent, but ONLY on a non-subtask (a standard issue
+        // under an Epic). On a subtask Jira refuses it with 400 "A parent of a subtask cannot be removed", which is
+        // correct: a subtask is defined by having a parent, so the equivalent user intent is conversion away from a
+        // subtask type instead. Do NOT use {"update":{"parent":[{"set":null}]}} - it returns 204 and silently does
+        // nothing. Implementing the split is Stage D5 in the plan; this also covers emptying the Parent field in the
+        // Move/Convert dialog to detach an issue.
         LogHelper.warning("Clearing a parent is not supported yet", trunk, prevParentItem);
         throw UploadUnit.CantUploadException.create("Removing a parent is not supported yet");
       default:

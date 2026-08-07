@@ -7,10 +7,8 @@ import com.almworks.jira.provider3.remotedata.issue.edit.CreateIssueUnit;
 import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.services.upload.PostUploadContext;
 import com.almworks.jira.provider3.services.upload.UploadContext;
-import com.almworks.jira.provider3.services.upload.UploadJsonUtil;
 import com.almworks.jira.provider3.services.upload.UploadProblem;
 import com.almworks.jira.provider3.services.upload.UploadUnit;
-import com.almworks.jira.provider3.sync.ServerFields;
 import com.almworks.restconnector.RequestPolicy;
 import com.almworks.restconnector.RestResponse;
 import com.almworks.restconnector.RestSession;
@@ -57,13 +55,8 @@ class SetEpicParent extends BaseHistoryUnit {
   }
 
   /** Builds the field-update request body: {@code {"fields":{"parent":{"id":"<parentId>"}}}}. Package-visible for tests. */
-  @SuppressWarnings("unchecked")
   static JSONObject createRequest(int parentId) {
-    JSONObject fields = new JSONObject();
-    fields.put(ServerFields.PARENT.getJiraId(), UploadJsonUtil.object("id", Integer.toString(parentId)));
-    JSONObject edit = new JSONObject();
-    edit.put("fields", fields);
-    return edit;
+    return MoveRequests.parent(parentId);
   }
 
   @Override
