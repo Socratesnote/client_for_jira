@@ -595,10 +595,11 @@ public class ItemUrlServiceImpl implements ItemUrlService, Startable {
   private class OpenInBrowserAction extends SimpleAction {
     public OpenInBrowserAction() {
       // kludge: add F9 manually
-      super("Open selected " + Terms.ref_artifact + " in browser" + WSFX, Icons.ACTION_OPEN_IN_BROWSER);
+      // Name and tooltip both come from the same key the registered ViewItemInBrowserAction uses, so this
+      // button reads the same as the right-click/F9 action it duplicates rather than its own wording.
+      super(CommonMessages.OPEN_IN_BROWSER.create() + WSFX, Icons.ACTION_OPEN_IN_BROWSER);
       setDefaultPresentation(PresentationKey.ENABLE, EnableState.DISABLED);
-      setDefaultPresentation(PresentationKey.SHORT_DESCRIPTION,
-        "Open selected " + Terms.ref_artifact + " in browser" + WSFX);
+      setDefaultPresentation(PresentationKey.SHORT_DESCRIPTION, CommonMessages.OPEN_IN_BROWSER.create() + WSFX);
       watchRole(ItemWrapper.ITEM_WRAPPER);
       watchRole(LoadedItem.LOADED_ITEM);
     }

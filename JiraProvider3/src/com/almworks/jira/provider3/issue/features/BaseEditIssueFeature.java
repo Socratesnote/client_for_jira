@@ -141,10 +141,23 @@ public abstract class BaseEditIssueFeature extends TopEditor {
   @Nullable
   @Override
   protected JComponent doEditModel(Lifespan life, final EditItemModel nested, Configuration config) {
-    JComponent component = myEditor.createComponent(life, nested, config);
+    return myEditor.createComponent(life, nested, config);
+  }
+
+  // Computing the default focus owner calls each visible editor's verifyData, which for MoveParentEditor reaches
+  // EditItemModel.getInitialValue - so it must not run until this model's initial values are actually saved.
+  // doEditModel (above) runs during TopEditor.editModel(), which EditorContent.showWindow calls before
+  // model.saveInitialValues(); computing the focus owner there logged SEVERE "Missing initial" against a null
+  // initial. afterModelFixed is invoked by the parent model's saveInitialValues() cascade, so deferring the
+  // computation here - after super's own saveInitialValues() call - guarantees this model's initial values,
+  // and everything nested under it, are already fixed.
+  @Override
+  public void afterModelFixed(EditItemModel model) {
+    super.afterModelFixed(model);
+    DefaultEditModel.Child nested = getNestedModel(model);
+    if (nested == null) return;
     JComponent focusOwner = myEditor.getDefaultFocusOwner(nested);
     if (focusOwner != null) InitialWindowFocusFinder.setInitialWindowComponent(focusOwner);
-    return component;
   }
 
   @Nullable
