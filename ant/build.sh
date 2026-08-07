@@ -11,7 +11,8 @@
 #
 # Optional arguments:
 #   BUILD_NUMBER   Build number shown on the About screen and used in the ZIP
-#                  file name. Defaults to 0.
+#                  file name. Overrides the build number the Ant build derives
+#                  from the git commit count. Leave it unset for normal builds.
 #   ANT_FILE       Build file to run. Defaults to ./build.xml.
 #
 # Any arguments given to this script are passed through as Ant targets.
@@ -52,10 +53,14 @@ if [ $# -eq 0 ]; then
     set -- prepareDistribution
 fi
 
+# Pass build.number only when it was actually asked for.
+if [ -n "$BUILD_NUMBER" ]; then
+    set -- "$@" -Dbuild.number="$BUILD_NUMBER"
+fi
+
 "$JDK8_HOME/bin/java" \
     -cp "$ANT_HOME/lib/ant-launcher.jar" \
     org.apache.tools.ant.launch.Launcher \
     -f "${ANT_FILE:-./build.xml}" \
     "$@" \
-    -Djdk="$JDK8_HOME" \
-    -Dbuild.number="${BUILD_NUMBER:-0}"
+    -Djdk="$JDK8_HOME"

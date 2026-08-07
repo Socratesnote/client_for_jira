@@ -29,20 +29,39 @@
     <makeProductInfo2 target="${dir.class.prodcode}"/>
   </target>
 
+  <!-- An explicitly supplied build number wins over everything else. build.sh passes -Dbuild.number only when
+       BUILD_NUMBER is set, so on a normal build this leaves product.buildno unset for buildno.git to fill in. -->
   <target name="buildno.external">
     <condition property="product.buildno" value="${build.number}">
       <isset property="build.number"/>
     </condition>
-    <condition property="dirty" value="true">
-      <not><isset property="product.buildno"/></not>
+  </target>
+
+  <!-- Derives the build number from the git commit count, so it is stateless, reproducible, and identical on every
+       checkout of the same commit. Ant properties are write-once, so an external value set above survives this.
+       The fallback is 1, never 0: BuildNumber.getMajor() documents 0 as "build information unavailable or broken"
+       and BuildNumber.compareTo degrades to string comparison whenever either major is <= 0. -->
+  <target name="buildno.git" depends="buildno.external">
+    <exec executable="git" dir="${dir.project}" outputproperty="git.commit.count" resultproperty="git.commit.count.rc"
+          failifexecutionfails="false" failonerror="false">
+      <arg value="rev-list"/>
+      <arg value="--count"/>
+      <arg value="HEAD"/>
+    </exec>
+    <condition property="git.commit.count.usable">
+      <and>
+        <equals arg1="${git.commit.count.rc}" arg2="0"/>
+        <matches pattern="^[0-9]+$" string="${git.commit.count}"/>
+      </and>
     </condition>
-    <condition property="product.buildno" value="0">
-      <not><isset property="product.buildno"/></not>
+    <condition property="product.buildno" value="${git.commit.count}">
+      <isset property="git.commit.count.usable"/>
     </condition>
+    <property name="product.buildno" value="1"/>
     <echo message="BUILD: ${product.buildno}"/>
   </target>
 
-  <target name="buildno.load" depends="buildno.external">
+  <target name="buildno.load" depends="buildno.git">
     <property file="${file.product.cm}"/>
     <fail unless="product.buildno" message="No product.buildno"/>
     <fail unless="product.version" message="File ${file.product.cm} doesn't seem to have product.version"/>

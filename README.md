@@ -40,12 +40,17 @@ In order to build the project you need [Apache Ant](https://ant.apache.org/) ver
      | --- | --- | --- |
      | `ANT_HOME` | yes | Apache Ant install directory (the one holding `bin` and `lib`) |
      | `JDK8_HOME` | yes | Oracle JDK 8 home directory (the one holding `bin` and `lib`) |
-     | `BUILD_NUMBER` | no | Build number shown on the About screen and used in the ZIP name. Defaults to `0` |
+     | `BUILD_NUMBER` | no | Overrides the build number. Leave it unset: the build derives one from the git commit count |
      | `ANT_FILE` | no | Build file to run. Defaults to `./build.xml` |
+
+     The build number is shown on the About screen and used in the ZIP name. It is normally
+     `git rev-list --count HEAD`, so it needs no configuration and is the same on every checkout of a given
+     commit. Set `BUILD_NUMBER` only to override that. When no git count can be established - git is not on
+     `PATH`, or the source is an export rather than a repository - the build falls back to `1`.
 
 4. When the build successfully completes, find the built application in the
 [build/.dist/jiraclient](/build/.dist/jiraclient) directory, and the ZIPed
-application in `build/.dist/jiraclient-NNNN.zip`, where `NNNN` is `BUILD_NUMBER`.
+application in `build/.dist/jiraclient-NNNN.zip`, where `NNNN` is the build number.
 
 For more details see the [build documentation](ant/BUILD.md).
 
@@ -60,9 +65,8 @@ build.sh: line <N>: C:/Program Files/Java/jdk1.8.0_192/bin/java: No such file or
 when such paths exist indicate that paths are not resolved correctly for your shell. Note that on a machine with WSL installed, `bash` in PowerShell or Command
 Prompt runs **WSL**, not **Git Bash** as is often assumed. WSL requires Unix-style paths (e.g. `/mnt/c/`) whereas Git Bash requires Windows-style paths (e.g. `C:/`).
 
-`NNNN` is used as a placeholder for `BUILD_NUMBER`.
-
-Pick one of the four setups below.
+Pick one of the four setups below. None of them set `BUILD_NUMBER`, since the build derives its own; add it only
+to override, and note that `NNNN` stands for that override value where it appears.
 
 #### 1. PowerShell with Git Bash (recommended on Windows)
 
@@ -71,7 +75,6 @@ Use Windows paths. Call the Git Bash executable by its full path. Environment va
 ```powershell
 $env:ANT_HOME  = "C:/Program Files/Apache Ant 1.10.7"
 $env:JDK8_HOME = "C:/Program Files/Java/jdk1.8.0_192"
-$env:BUILD_NUMBER = "NNNN"
 
 cd ant
 & "C:\Program Files\Git\bin\bash.exe" ./build.sh
@@ -84,7 +87,7 @@ Install Oracle JDK 8 and Ant **inside** WSL and use Linux paths throughout.
 Note that PowerShell environment variables are not passed into WSL automatically so set them inside the WSL command:
 
 ```powershell
-wsl bash -c 'export ANT_HOME=/opt/apache-ant-1.10.7; export JDK8_HOME=/usr/lib/jvm/jdk1.8.0_192; export BUILD_NUMBER=NNNN; cd ant && ./build.sh'
+wsl bash -c 'export ANT_HOME=/opt/apache-ant-1.10.7; export JDK8_HOME=/usr/lib/jvm/jdk1.8.0_192; cd ant && ./build.sh'
 ```
 
 #### 3. Windows Command Prompt
@@ -94,7 +97,6 @@ Either call Git Bash explicitly:
 ```bat
 set "ANT_HOME=C:/Program Files/Apache Ant 1.10.7"
 set "JDK8_HOME=C:/Program Files/Java/jdk1.8.0_192"
-set "BUILD_NUMBER=NNNN"
 
 cd ant
 "C:\Program Files\Git\bin\bash.exe" ./build.sh
@@ -104,7 +106,7 @@ or skip the script and invoke the Ant launcher directly, which needs no shell:
 
 ```bat
 cd ant
-"C:\Program Files\Java\jdk1.8.0_192\bin\java.exe" -cp "C:\Program Files\Apache Ant 1.10.7\lib\ant-launcher.jar" org.apache.tools.ant.launch.Launcher -f .\build.xml prepareDistribution -Djdk="C:\Program Files\Java\jdk1.8.0_192" -Dbuild.number=NNNN
+"C:\Program Files\Java\jdk1.8.0_192\bin\java.exe" -cp "C:\Program Files\Apache Ant 1.10.7\lib\ant-launcher.jar" org.apache.tools.ant.launch.Launcher -f .\build.xml prepareDistribution -Djdk="C:\Program Files\Java\jdk1.8.0_192"
 ```
 
 #### 4. Linux
@@ -114,7 +116,6 @@ Use ordinary Linux paths.
 ```sh
 export ANT_HOME=/opt/apache-ant-1.10.7
 export JDK8_HOME=/usr/lib/jvm/jdk1.8.0_192
-export BUILD_NUMBER=NNNN
 
 cd ant
 ./build.sh

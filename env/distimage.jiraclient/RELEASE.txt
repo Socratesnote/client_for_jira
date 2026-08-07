@@ -1,7 +1,7 @@
 Client for Jira Release Notes
 http://almworks.com/jiraclient
 
-Version:         3.9.0
+Version:         @PRODUCT_VERSION@
 Date of Release: 26 April 2020
 
 

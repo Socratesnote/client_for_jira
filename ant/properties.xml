@@ -33,6 +33,11 @@
   </condition>
   <property name="test.includes" value="**/*Test.java,**/*Tests.java"/>
 
+  <!-- Distribution-image files carrying the @PRODUCT_VERSION@ token. They are copied separately from everything else
+       so a filterset can substitute the version; see the two copies in transform.xsl. Anything listed here must
+       contain the token, and anything containing the token must be listed here, or it ships unsubstituted. -->
+  <property name="versioned.dist.files" value="RELEASE.txt,README.txt,etc/welcome.html"/>
+
   <property name="file.generated" location="generated.xml"/>
   <property name="file.product.cm" value="${product.name}.properties"/>
 

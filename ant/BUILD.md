@@ -5,9 +5,14 @@ The [build.xml](build.xml) Ant script takes the following parameters:
 
  * **jdk** - path to Oracle JDK 8. The script uses this JDK to compile sources and run tests.
  
- * **build.number** - build number. A built application shows the build number on its About screen.
-    The build script creates a ZIP file with the build number.
-    If the build number is not provided, 0 is used by default.
+ * **build.number** - optional override for the build number. A built application shows the build number on its
+    About screen, and the build script creates a ZIP file named for it.
+    When it is not supplied, `genHeader.xml` derives the number from the git commit count
+    (`git rev-list --count HEAD`), which makes it stateless and identical on every checkout of a given commit.
+    Only `prepareDistribution` reaches that step; `ALL.compile` and `ALL.test` do not.
+    When no git count can be established - git is not on `PATH`, or the source is an export rather than a
+    repository - the build falls back to `1`. It is deliberately never `0`, because `BuildNumber` treats a major
+    of `0` as meaning the build information is unavailable or broken.
 
 ### Running the build
 
@@ -18,7 +23,8 @@ environment and contains none itself:
 
  * **JDK8_HOME** - Oracle JDK 8 home directory (the one holding `bin` and `lib`)
 
- * **BUILD_NUMBER** - optional, passed as `build.number`. Defaults to 0.
+ * **BUILD_NUMBER** - optional. When set, it is passed as `build.number` and overrides the git-derived value;
+   when unset, the flag is not passed at all, which is what lets the git-derived value apply.
 
  * **ANT_FILE** - optional, the build file to run. Defaults to `./build.xml`.
 

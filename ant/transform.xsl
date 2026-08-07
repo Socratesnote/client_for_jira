@@ -111,8 +111,18 @@
               <fileset dir="${{dir.distimage}}" excludes="**/.svn/**/*.*"/>
             </copy>
 
+            <!-- Split in two so the version can be substituted. The distribution image holds binaries (jars, PNGs),
+                 which a filterset would corrupt, so the bulk copy stays unfiltered and only the files carrying
+                 @PRODUCT_VERSION@ go through the filtered copy below. Add a file to both lists to tokenize it. -->
             <copy todir="@{{target}}/${{product.name}}" failonerror="false" overwrite="true" preservelastmodified="true">
-              <fileset dir="${{dir.distimage}}.{@id}" excludes="**/.svn/**/*.*" />
+              <fileset dir="${{dir.distimage}}.{@id}" excludes="**/.svn/**/*.*,${{versioned.dist.files}}" />
+            </copy>
+
+            <copy todir="@{{target}}/${{product.name}}" failonerror="false" overwrite="true">
+              <fileset dir="${{dir.distimage}}.{@id}" includes="${{versioned.dist.files}}" />
+              <filterset>
+                <filter token="PRODUCT_VERSION" value="${{product.version}}"/>
+              </filterset>
             </copy>
 
             <echo file="@{{target}}/${{product.name}}/${{product.name}}.${{product.version}}"

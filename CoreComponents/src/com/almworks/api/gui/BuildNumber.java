@@ -37,12 +37,11 @@ public class BuildNumber implements Comparable<BuildNumber> {
     ),notNull()));    
   }
 
+  // Not matching is the ordinary path, not a fault: create() tries this format first and falls back to the plain
+  // integer form, which is what a git-derived build number uses. Only a match that then fails to parse is worth a log.
   private static BuildNumber fromDotNotation(String buildStr) {
     Matcher matcher = DOT_FORMAT.matcher(buildStr);
-    if (!matcher.matches()) {
-      Log.warn("BN: no match for " + buildStr);
-      return null;
-    }
+    if (!matcher.matches()) return null;
     try {
       int major = Integer.parseInt(matcher.group(1));
       int minor = Integer.parseInt(Util.NN(matcher.group(3), "0"));

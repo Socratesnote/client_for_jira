@@ -58,7 +58,7 @@ public class ApplicationAbout implements Startable {
       .append(Setup.getProductName())
       .append(" ")
       .append(myProductInfo.getVersion());
-    if (!myProductInfo.isProductionVersion()) builder.append(" build ").append(myProductInfo.getBuildNumber().toDisplayableString());
+    builder.append(" build ").append(myProductInfo.getBuildNumber().toDisplayableString());
     setVersionText(builder.toString());
 
     Map<Object, Object> properties = Collections15.hashMap();

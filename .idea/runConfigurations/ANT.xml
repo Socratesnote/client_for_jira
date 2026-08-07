@@ -2,7 +2,6 @@
   <configuration default="false" name="ANT" type="AntRunConfiguration">
     <antsettings antfile="file://$PROJECT_DIR$/ant/build.xml" target="prepareDistribution">
       <property name="jdk" value="&quot;C:\Program Files\Java\jdk1.8.0_192&quot;" />
-      <property name="build.number" value="9877" />
     </antsettings>
     <method v="2">
       <option name="Make" enabled="true" />
