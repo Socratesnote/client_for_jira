@@ -17,10 +17,12 @@ public class ProjectRole {
 
   public static final DBAttribute<Boolean> PROJECT_ROLES_ONLY = ServerJira.toScalarAttribute(ServerProjectRole.PROJECT_ROLES_ONLY);
 
-  // Narrowed by project: roles are per-project, so an issue must only be offered the roles of its own project.
-  // ID, not NAME, is the unique key: Jira gives every project its own role ids, so the same role name recurs
-  // across projects with different ids. NAME is only unique once narrowing has restricted the visible set to
-  // one project, which does not hold in every dialog that offers this enum which used to cause issues with filtering based on NAME uniqueness.
+  // Narrowed by project: roles are stored per project, so an issue must only be offered the roles of its own
+  // project.
+  // ID, not NAME, is the unique key. Neither is truly unique across the whole type - names repeat in every
+  // project, and projects that share a Jira role definition report the same id - and the enum machinery
+  // tolerates that: ids are indexed in a multimap and the narrower cuts the candidates down to the issue's
+  // project. ID is the better of the two because it survives a role being renamed on the server.
   // The renderer is set explicitly to NAME because it is deliberately not the unique key here: the default
   // renderer falls back to the unique key, which would display the raw role id (e.g. "10072") instead of the name.
   // The membership flag is subloaded rather than narrowed on: a narrower holds only one restriction and the

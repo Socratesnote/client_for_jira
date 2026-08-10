@@ -201,10 +201,11 @@ class LoadProjects {
     storeRoles(session, project, prjId, JRProject.ROLES.getValue(fullProject));
   }
 
-  // Stores the roles of one project. Roles are per-project - the same names recur in every project with
-  // different ids - so each role is linked to its project, which is what scopes the visibility picker and
-  // makes resolution by name unambiguous. Membership is fetched here, one request per role, so that opening
-  // the visibility dropdown stays instant; the sync already walks every project.
+  // Stores the roles of one project. Neither the role id nor the role name is unique across projects - projects
+  // share Jira's role definitions and so report the same ids, while the names recur everywhere - so a role is
+  // stored once per project, identified by (id, project). That is what scopes the visibility picker and makes
+  // resolution by name unambiguous. Membership is fetched here, one request per role, so that opening the
+  // visibility dropdown stays instant; the sync already walks every project.
   private void storeRoles(RestSession session, EntityHolder project, int prjId, JSONObject roles) {
     if (roles == null) return;
     for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) roles).entrySet()) {
@@ -214,11 +215,10 @@ class LoadProjects {
         LogHelper.warning("Failed to parse project role", entry, name, id);
         continue;
       }
-      EntityHolder role = myTransaction.addEntity(ServerProjectRole.TYPE, ServerProjectRole.ID, id);
+      EntityHolder role = myTransaction.addEntity(ServerProjectRole.TYPE, ServerProjectRole.PROJECT, project, ServerProjectRole.ID, id);
       if (role == null) LogHelper.error("Failed to store role", id, name);
       else {
         role.setValue(ServerProjectRole.NAME, name);
-        role.setNNReference(ServerProjectRole.PROJECT, project);
         role.setValue(ServerProjectRole.CURRENT_USER_MEMBER,
           myRoleMembership == null ? null : myRoleMembership.isCurrentUserMember(session, prjId, id));
       }

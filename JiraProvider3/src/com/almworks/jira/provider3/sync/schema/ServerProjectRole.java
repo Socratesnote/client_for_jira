@@ -11,9 +11,12 @@ public class ServerProjectRole {
   public static final EntityKey<String> NAME = Commons.ENTITY_NAME;
   public static final EntityKey<String> DESCRIPTION = Commons.ENTITY_DESCRIPTION;
   /**
-   * The project this role belongs to. Jira gives every project its own role instances: the same role names
-   * appear in each project with different ids, so a role belongs to exactly one project and this is a single
-   * link rather than a set of projects.
+   * The project this role applies to. A role id is not unique on its own: projects share Jira's role
+   * definitions, so several projects report the same id, while a team-managed project mints its own ids and
+   * reports a different id for the same role name. Neither the id nor the name identifies a role by itself,
+   * and everything the client needs about a role is per-project anyway - which projects offer it, and whether
+   * the current user is a member of it there. So a role is stored once per project, identified by
+   * (id, project), and this is a single link rather than a set of projects.
    */
   public static final EntityKey<Entity> PROJECT = Commons.ENTITY_PROJECT;
 
@@ -33,11 +36,13 @@ public class ServerProjectRole {
   public static final Entity TYPE;
   static {
     TYPE = Entity.buildType("types.projectRole");
-    // Searching by name alone is ambiguous, because role names repeat across projects, and resolution then picks
-    // an arbitrary match. The project scopes it. Note that every producer of a role entity must set PROJECT:
-    // the search ANDs one clause per key, so a name-only entity matches nothing at all rather than falling back
-    // to a name search. Downloaded visibility gets its project stamped on in SimpleDependent.
-    TYPE.put(EntityResolution.KEY, EntityResolution.searchable(true, Arrays.asList(NAME, PROJECT), ID));
+    // The identity is (id, project), the same shape as versions and components: projects share role ids, so id
+    // alone collapses every project that offers a role into one entity, and the project loaded last wins.
+    // Searching by name alone is ambiguous for the mirror-image reason - role names repeat across projects - so
+    // the project scopes that too. Note that every producer of a role entity must set PROJECT: the search ANDs one
+    // clause per key, so a name-only entity matches nothing at all rather than falling back to a name search.
+    // Downloaded visibility gets its project stamped on in SimpleDependent.
+    TYPE.put(EntityResolution.KEY, EntityResolution.searchable(true, Arrays.asList(NAME, PROJECT), ID, PROJECT));
     TYPE.fix();
   }
 }
