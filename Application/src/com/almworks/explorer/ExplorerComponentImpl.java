@@ -193,30 +193,21 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
     });
   }
 
-  private static final String OPEN_TABS_CONFIG = "openTabs";
-  private static final String OPEN_TAB_NODE = "tab";
-  private static final String SELECTED_TAB_NODE = "selected";
-
   /** Attempt to re-open node-backed tabs left open at the end of the previous session. */
   @ThreadAWT
   private void restoreOpenTabs() {
     if (myExplorer == null) return;
     RootNode root = getRootNode();
     if (root == null) return;
-    Configuration config = myConfiguration.getOrCreateSubset(OPEN_TABS_CONFIG);
-    List<String> nodeIds = config.getAllSettings(OPEN_TAB_NODE);
+    List<String> nodeIds = OpenTabsState.readNodeIds(myConfiguration);
     if (nodeIds.isEmpty()) return;
-    String selected = config.getSetting(SELECTED_TAB_NODE, "");
-    myExplorer.restoreNodeTabs(root, this, nodeIds, selected.isEmpty() ? null : selected);
+    myExplorer.restoreNodeTabs(root, this, nodeIds, OpenTabsState.readSelectedNodeId(myConfiguration));
   }
 
   /** Persists which node-backed tabs are open, to re-open them on the next launch. */
   private void saveOpenTabs() {
     if (myExplorer == null) return;
-    Configuration config = myConfiguration.getOrCreateSubset(OPEN_TABS_CONFIG);
-    config.setSettings(OPEN_TAB_NODE, myExplorer.collectOpenNodeIds());
-    String selected = myExplorer.getSelectedNodeId();
-    config.setSetting(SELECTED_TAB_NODE, selected == null ? "" : selected);
+    OpenTabsState.write(myConfiguration, myExplorer.collectOpenNodeIds(), myExplorer.getSelectedNodeId());
   }
 
   public ATree<ATreeNode<GenericNode>> getNavigationTree() {

@@ -19,8 +19,6 @@ import com.almworks.util.model.ModelUtils;
 import com.almworks.util.model.ValueModel;
 import com.almworks.util.ui.UIComponentWrapper;
 import com.almworks.util.ui.UIUtil;
-import org.almworks.util.Collections15;
-import org.almworks.util.Log;
 import org.almworks.util.TypedKey;
 import org.almworks.util.detach.Lifespan;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +35,6 @@ import java.util.List;
 class Explorer {
   private static final TypedKey<Boolean> DEFAULT_TAB = TypedKey.create("default");
   private static final TypedKey<TabKey> QUERY_TAB_KEY = TypedKey.create("queryKey");
-  /** Node id of the tab's backing navigation node, if any - null for ad-hoc tabs (text search, URL, summary, ...). */
-  private static final TypedKey<String> NODE_ID_KEY = TypedKey.create("nodeId");
 
   private final ExplorerForm myForm;
   private final Configuration myFormConfig;
@@ -85,7 +81,7 @@ class Explorer {
       return SearchResult.EMPTY;
     tab.setUserProperty(QUERY_TAB_KEY, contextInfo.getQueryKey());
     GenericNode queryNode = contextInfo.getQuery();
-    tab.setUserProperty(NODE_ID_KEY, queryNode != null ? queryNode.getNodeId() : null);
+    tab.setUserProperty(OpenTabsState.NODE_ID_KEY, queryNode != null ? queryNode.getNodeId() : null);
     TableControllerImpl tableController =
       new TableControllerImpl(myFormConfig, tab, myColumnsCollector, myExplorer, contextInfo.getSourceConnection());
     SearchResult result = tableController.showSource(source, contextInfo, focusToTable);
@@ -182,47 +178,34 @@ class Explorer {
 
   /** Node ids of currently open, node-backed tabs, in tab order. Ad-hoc tabs (no backing node) are skipped. */
   List<String> collectOpenNodeIds() {
-    List<String> result = Collections15.arrayList();
-    for (ContentTab tab : getTabsManager().getTabs()) {
-      if (!tab.isShowing()) continue;
-      String nodeId = tab.getUserProperty(NODE_ID_KEY);
-      if (nodeId != null) result.add(nodeId);
-    }
-    return result;
+    return OpenTabsState.collectOpenNodeIds(getTabsManager());
   }
 
   /** Node id of the currently selected tab, or null if there is none or it isn't node-backed. */
   @Nullable
   String getSelectedNodeId() {
-    ContentTab selected = getTabsManager().getSelectedTab();
-    return selected == null ? null : selected.getUserProperty(NODE_ID_KEY);
+    return OpenTabsState.getSelectedNodeId(getTabsManager());
   }
 
   /**
    * Attempt to re-open previously open node-backed tabs. Node ids that no longer resolve (node deleted,
    * connection removed) or whose query isn't runnable are silently skipped.
    */
-  void restoreNodeTabs(RootNode root, ExplorerComponent explorerComponent, List<String> nodeIds, @Nullable String selectedNodeId) {
-    for (String nodeId : nodeIds) {
-      GenericNode node = root.getNodeById(nodeId);
-      if (node == null) continue;
-      QueryResult result = node.getQueryResult();
-      if (!result.isRunnable()) continue;
-      ItemSource source = result.getItemSource();
-      ItemCollectionContext context = result.getCollectionContext();
-      if (source == null || context == null) continue;
-      try {
-        explorerComponent.showItemsInTab(source, context, false);
-      } catch (Exception e) {
-        Log.warn("Failed to restore tab for node " + nodeId, e);
+  void restoreNodeTabs(final RootNode root, final ExplorerComponent explorerComponent, List<String> nodeIds,
+    @Nullable String selectedNodeId)
+  {
+    OpenTabsState.NodeQueries queries = new OpenTabsState.NodeQueries() {
+      @Nullable
+      public QueryResult getQueryResult(String nodeId) {
+        GenericNode node = root.getNodeById(nodeId);
+        return node == null ? null : node.getQueryResult();
       }
-    }
-    if (selectedNodeId == null) return;
-    for (ContentTab tab : getTabsManager().getTabs()) {
-      if (selectedNodeId.equals(tab.getUserProperty(NODE_ID_KEY))) {
-        tab.select();
-        break;
+    };
+    OpenTabsState.TabOpener opener = new OpenTabsState.TabOpener() {
+      public void showItemsInTab(ItemSource source, ItemCollectionContext context, boolean focusToTable) {
+        explorerComponent.showItemsInTab(source, context, focusToTable);
       }
-    }
+    };
+    OpenTabsState.restoreNodeTabs(getTabsManager(), queries, opener, nodeIds, selectedNodeId);
   }
 }
