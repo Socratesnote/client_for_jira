@@ -3,6 +3,7 @@ package com.almworks.explorer;
 import com.almworks.api.application.ItemCollectionContext;
 import com.almworks.api.application.ItemSource;
 import com.almworks.api.application.tree.QueryResult;
+import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.components.tabs.ContentTab;
 import com.almworks.util.components.tabs.TabsManager;
 import com.almworks.util.config.Configuration;
@@ -40,7 +41,51 @@ class OpenTabsState {
     void showItemsInTab(ItemSource source, ItemCollectionContext context, boolean focusToTable);
   }
 
+  /** Re-opens the persisted tabs. Null where there is nothing to restore into - no explorer, or no navigation tree. */
+  interface TabRestorer {
+    void restoreNodeTabs(List<String> nodeIds, @Nullable String selectedNodeId);
+  }
+
+  /**
+   * The tab state as it stands now, read whenever a change has to be persisted. A null id list means "there is no
+   * tab state to read" - the explorer is gone - and is not the same as an empty one, which would clear the stored
+   * tabs. Nothing is written in that case.
+   */
+  interface TabsSnapshot {
+    @Nullable
+    List<String> collectOpenNodeIds();
+
+    @Nullable
+    String getSelectedNodeId();
+  }
+
+  /** Registers a callback for "the set of open tabs or the selection changed". */
+  interface SaveTrigger {
+    void addTabChangeListener(ChangeListener listener);
+  }
+
   private OpenTabsState() {}
+
+  /**
+   * Restores the tabs left open at the end of the previous session, then keeps the stored state current as tabs
+   * change. The order matters: the listener is registered only once the restore has returned, so a save triggered
+   * while tabs are still being re-opened cannot persist a partial set over the full one.
+   */
+  static void startPersistence(final Configuration workspaceConfig, @Nullable TabRestorer restorer,
+    final TabsSnapshot snapshot, SaveTrigger trigger)
+  {
+    if (restorer != null) {
+      List<String> nodeIds = readNodeIds(workspaceConfig);
+      if (!nodeIds.isEmpty()) restorer.restoreNodeTabs(nodeIds, readSelectedNodeId(workspaceConfig));
+    }
+    trigger.addTabChangeListener(new ChangeListener() {
+      public void onChange() {
+        List<String> nodeIds = snapshot.collectOpenNodeIds();
+        if (nodeIds == null) return;
+        write(workspaceConfig, nodeIds, snapshot.getSelectedNodeId());
+      }
+    });
+  }
 
   static List<String> readNodeIds(Configuration workspaceConfig) {
     return workspaceConfig.getOrCreateSubset(OPEN_TABS_CONFIG).getAllSettings(OPEN_TAB_NODE);

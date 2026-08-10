@@ -5,6 +5,7 @@ import com.almworks.api.application.ItemSource;
 import com.almworks.api.application.tree.QueryResult;
 import com.almworks.api.syncreg.ItemHypercube;
 import com.almworks.items.api.DBFilter;
+import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.components.tabs.ContentTab;
 import com.almworks.util.components.tabs.TabsManager;
 import com.almworks.util.config.Configuration;
@@ -18,9 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Covers tab persistence: the workspace-config round trip, which open tabs are collected for saving, and what a
- * restore re-opens. The wiring that calls this - the explorer component's startup hook and the change listener that
- * triggers an incremental save - still has no coverage; it needs the application container.
+ * Covers tab persistence: the workspace-config round trip, which open tabs are collected for saving, what a restore
+ * re-opens, and the startup sequence that ties the two together. What is still uncovered is the delivery of the
+ * change notification itself - {@code Explorer.addTabChangeListener} gates it through {@code ThreadGate.AWT_QUEUED},
+ * a thread-timing property - and the readiness gate deciding when startup runs, both of which need the container.
  */
 public class OpenTabsStateTests extends GUITestCase {
   private Configuration myConfig;
@@ -151,6 +153,104 @@ public class OpenTabsStateTests extends GUITestCase {
     assertEquals("n2", OpenTabsState.getSelectedNodeId(myTabsManager));
   }
 
+  // ---- startup sequence ----
+
+  public void testStartupRestoresTheSavedTabs() {
+    OpenTabsState.write(myConfig, listOf("n1", "n2", "n3"), "n2");
+    RecordingRestorer restorer = new RecordingRestorer();
+    RecordingTrigger trigger = new RecordingTrigger();
+    OpenTabsState.startPersistence(myConfig, restorer, snapshot(), trigger);
+    assertEquals(1, restorer.myCalls);
+    assertEquals(listOf("n1", "n2", "n3"), restorer.myNodeIds);
+    assertEquals("n2", restorer.mySelectedNodeId);
+  }
+
+  /** Nothing saved means nothing to re-open, and the stored state must survive untouched rather than be rewritten. */
+  public void testStartupWithNothingSavedRestoresNothing() {
+    RecordingRestorer restorer = new RecordingRestorer();
+    OpenTabsState.startPersistence(myConfig, restorer, snapshot(), new RecordingTrigger());
+    assertEquals(0, restorer.myCalls);
+    assertTrue(OpenTabsState.readNodeIds(myConfig).isEmpty());
+    assertNull(OpenTabsState.readSelectedNodeId(myConfig));
+  }
+
+  /**
+   * The listener is registered only once the restore has returned. Re-opening tabs changes the tab set repeatedly, so
+   * a listener live during the restore would write a partial list over the full one and lose tabs on the next launch.
+   */
+  public void testSavingStartsOnlyAfterTheRestoreHasFinished() {
+    OpenTabsState.write(myConfig, listOf("n1", "n2"), "n1");
+    final RecordingTrigger trigger = new RecordingTrigger();
+    OpenTabsState.startPersistence(myConfig, new OpenTabsState.TabRestorer() {
+      public void restoreNodeTabs(List<String> nodeIds, @Nullable String selectedNodeId) {
+        addNodeTab("a", "partial");
+        trigger.fire(); // No listener yet, so this cannot reach the config.
+      }
+    }, snapshot(), trigger);
+    assertEquals(listOf("n1", "n2"), OpenTabsState.readNodeIds(myConfig));
+    assertEquals("n1", OpenTabsState.readSelectedNodeId(myConfig));
+  }
+
+  public void testATabChangeAfterStartupIsPersisted() {
+    RecordingTrigger trigger = new RecordingTrigger();
+    OpenTabsState.startPersistence(myConfig, new RecordingRestorer(), snapshot(), trigger);
+    addNodeTab("a", "n1");
+    addNodeTab("b", "n2");
+    trigger.fire();
+    assertEquals(listOf("n1", "n2"), OpenTabsState.readNodeIds(myConfig));
+    assertEquals("n2", OpenTabsState.readSelectedNodeId(myConfig));
+  }
+
+  public void testEachChangeReplacesTheStoredState() {
+    RecordingTrigger trigger = new RecordingTrigger();
+    OpenTabsState.startPersistence(myConfig, new RecordingRestorer(), snapshot(), trigger);
+    ContentTab a = addNodeTab("a", "n1");
+    addNodeTab("b", "n2");
+    trigger.fire();
+    a.select();
+    trigger.fire();
+    assertEquals(listOf("n1", "n2"), OpenTabsState.readNodeIds(myConfig));
+    assertEquals("n1", OpenTabsState.readSelectedNodeId(myConfig));
+  }
+
+  /**
+   * Nothing to restore into - no navigation tree yet - skips the restore only. Saving still starts, because the
+   * session goes on and the tabs the user opens by hand have to be persisted like any others.
+   */
+  public void testStartupWithoutARestorerStillPersistsChanges() {
+    OpenTabsState.write(myConfig, listOf("n1"), "n1");
+    RecordingTrigger trigger = new RecordingTrigger();
+    OpenTabsState.startPersistence(myConfig, null, snapshot(), trigger);
+    assertTrue(trigger.isRegistered());
+    assertEquals(listOf("n1"), OpenTabsState.readNodeIds(myConfig));
+    addNodeTab("a", "n9");
+    trigger.fire();
+    assertEquals(listOf("n9"), OpenTabsState.readNodeIds(myConfig));
+  }
+
+  /**
+   * The explorer can be dropped while a tab change is still queued, and a save then has no tab state to read. Writing
+   * what it can see - nothing - would clear the saved tabs on the way out, so a null snapshot skips the write.
+   */
+  public void testASaveWithNoTabStateLeavesTheStoredTabsAlone() {
+    OpenTabsState.write(myConfig, listOf("n1", "n2"), "n2");
+    RecordingTrigger trigger = new RecordingTrigger();
+    OpenTabsState.startPersistence(myConfig, new RecordingRestorer(), new OpenTabsState.TabsSnapshot() {
+      @Nullable
+      public List<String> collectOpenNodeIds() {
+        return null;
+      }
+
+      @Nullable
+      public String getSelectedNodeId() {
+        return null;
+      }
+    }, trigger);
+    trigger.fire();
+    assertEquals(listOf("n1", "n2"), OpenTabsState.readNodeIds(myConfig));
+    assertEquals("n2", OpenTabsState.readSelectedNodeId(myConfig));
+  }
+
   // ---- current behaviour, pinned deliberately ----
 
   /**
@@ -197,6 +297,49 @@ public class OpenTabsStateTests extends GUITestCase {
     List<String> result = Collections15.arrayList();
     for (String value : values) result.add(value);
     return result;
+  }
+
+  /** The snapshot the explorer supplies in production: whatever the tabs manager currently holds. */
+  private OpenTabsState.TabsSnapshot snapshot() {
+    return new OpenTabsState.TabsSnapshot() {
+      public List<String> collectOpenNodeIds() {
+        return OpenTabsState.collectOpenNodeIds(myTabsManager);
+      }
+
+      @Nullable
+      public String getSelectedNodeId() {
+        return OpenTabsState.getSelectedNodeId(myTabsManager);
+      }
+    };
+  }
+
+  private static class RecordingRestorer implements OpenTabsState.TabRestorer {
+    private int myCalls = 0;
+    private List<String> myNodeIds = null;
+    private String mySelectedNodeId = null;
+
+    public void restoreNodeTabs(List<String> nodeIds, @Nullable String selectedNodeId) {
+      myCalls++;
+      myNodeIds = nodeIds;
+      mySelectedNodeId = selectedNodeId;
+    }
+  }
+
+  /** Keeps the registered listener so a test can fire it, standing in for a real tab change. */
+  private static class RecordingTrigger implements OpenTabsState.SaveTrigger {
+    private ChangeListener myListener = null;
+
+    public void addTabChangeListener(ChangeListener listener) {
+      myListener = listener;
+    }
+
+    boolean isRegistered() {
+      return myListener != null;
+    }
+
+    void fire() {
+      if (myListener != null) myListener.onChange();
+    }
   }
 
   private static NodeQueriesStub runnable(String... nodeIds) {

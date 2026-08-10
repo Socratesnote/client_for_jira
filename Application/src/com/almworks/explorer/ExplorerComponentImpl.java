@@ -18,7 +18,6 @@ import com.almworks.items.api.DBIdentifiedObject;
 import com.almworks.timetrack.api.TimeTracker;
 import com.almworks.util.Getter;
 import com.almworks.util.Terms;
-import com.almworks.util.collections.ChangeListener;
 import com.almworks.util.components.ATree;
 import com.almworks.util.components.ATreeNode;
 import com.almworks.util.components.HighlighterTreeElement;
@@ -181,33 +180,45 @@ public class ExplorerComponentImpl implements Startable, ExplorerComponent {
     ModelUtils.whenTrue(myTree.isReady(), ThreadGate.AWT, new Runnable() {
       public void run() {
         if (myExplorer == null) return;
-        restoreOpenTabs();
-        // Persist tab state as tabs change so the openTabs config is current before ConfigComponent flushes it to
-        // disk on exit. Registered after restore so a partial set isn't saved mid-re-open.
-        myExplorer.addTabChangeListener(new ChangeListener() {
-          public void onChange() {
-            saveOpenTabs();
-          }
-        });
+        // Restores the previous session's tabs, then persists tab state as tabs change so the openTabs config is
+        // current before ConfigComponent flushes it to disk on exit. Sequenced by OpenTabsState.startPersistence.
+        OpenTabsState.startPersistence(myConfiguration, createTabRestorer(), createTabsSnapshot(),
+          myExplorer::addTabChangeListener);
       }
     });
   }
 
-  /** Attempt to re-open node-backed tabs left open at the end of the previous session. */
+  /** Re-opens node-backed tabs left open at the end of the previous session. Null when there is nothing to restore into. */
   @ThreadAWT
-  private void restoreOpenTabs() {
-    if (myExplorer == null) return;
-    RootNode root = getRootNode();
-    if (root == null) return;
-    List<String> nodeIds = OpenTabsState.readNodeIds(myConfiguration);
-    if (nodeIds.isEmpty()) return;
-    myExplorer.restoreNodeTabs(root, this, nodeIds, OpenTabsState.readSelectedNodeId(myConfiguration));
+  @Nullable
+  private OpenTabsState.TabRestorer createTabRestorer() {
+    if (myExplorer == null) return null;
+    final RootNode root = getRootNode();
+    if (root == null) return null;
+    return (nodeIds, selectedNodeId) -> restoreOpenTabs(root, nodeIds, selectedNodeId);
   }
 
-  /** Persists which node-backed tabs are open, to re-open them on the next launch. */
-  private void saveOpenTabs() {
+  @ThreadAWT
+  private void restoreOpenTabs(RootNode root, List<String> nodeIds, @Nullable String selectedNodeId) {
     if (myExplorer == null) return;
-    OpenTabsState.write(myConfiguration, myExplorer.collectOpenNodeIds(), myExplorer.getSelectedNodeId());
+    myExplorer.restoreNodeTabs(root, this, nodeIds, selectedNodeId);
+  }
+
+  /** Reads which node-backed tabs are open, so they can be re-opened on the next launch. */
+  private OpenTabsState.TabsSnapshot createTabsSnapshot() {
+    return new OpenTabsState.TabsSnapshot() {
+      @Nullable
+      public List<String> collectOpenNodeIds() {
+        Explorer explorer = myExplorer;
+        return explorer == null ? null : explorer.collectOpenNodeIds();
+      }
+
+      @Nullable
+      public String getSelectedNodeId() {
+        Explorer explorer = myExplorer;
+        return explorer == null ? null : explorer.getSelectedNodeId();
+      }
+    };
   }
 
   public ATree<ATreeNode<GenericNode>> getNavigationTree() {
