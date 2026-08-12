@@ -31,16 +31,14 @@ public class DateUtil {
 
   public static final CustomDateFormat _LOCAL_TIME = new CustomDateFormat(DateFormat.getTimeInstance(DateFormat.SHORT), PROP_TIME_FORMAT);
   public static final CustomDateFormat _LOCAL_DATE = new CustomDateFormat(DateFormat.getDateInstance(DateFormat.SHORT), PROP_DATE_FORMAT);
-  // specifically locale-dependent formats
+  // Specifically locale-dependent formats
   public static final DateFormat LOCAL_TIME = _LOCAL_TIME;
   public static final DateFormat LOCAL_DATE = _LOCAL_DATE;
   public static final DateFormat LOCAL_DATE_TIME = new CustomDateTimeFormat(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT));
 
-  // used for textual messages in some places
+  // Used for textual messages in some places
   public static final DateFormat US_MONTH_DAY = new SimpleDateFormat("MMM dd", Locale.US);
   public static final DateFormat US_MEDIUM = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.US);
-  public static final DateFormat US_FULL = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, Locale.US);
-  public static final DateFormat US_HOURS_MINUTES = new SimpleDateFormat("HH:mm", Locale.US);
 
   public static final Set<String> MINUTES = Collections15.hashSet("m", "min", "mins", "minute", "minutes");
   public static final Set<String> HOURS = Collections15.hashSet("h", "hr", "hrs", "hour", "hours");
@@ -322,7 +320,7 @@ public class DateUtil {
     if (s == null)
       throw new ParseException("null");
     try {
-      Pattern p = Pattern.compile("\\s*([0-9\\.,]*)\\s*(h[a-z]*)?\\s*([0-9]*)\\s*(m[a-z]*)?\\s*");
+      Pattern p = Pattern.compile("\\s*([0-9.,]*)\\s*(h[a-z]*)?\\s*([0-9]*)\\s*(m[a-z]*)?\\s*");
       Matcher m = p.matcher(s);
       if (!m.matches())
         throw new ParseException(s);
@@ -332,14 +330,14 @@ public class DateUtil {
       boolean hoursMatched = m.group(2) != null;
       boolean minsMatched = m.group(4) != null;
 
-      if (n1.length() == 0 && n2.length() == 0)
+      if (n1.isEmpty() && n2.isEmpty())
         throw new ParseException(s);
       n1 = n1.replace(',', '.');
 
-      if (n1.indexOf('.') >= 0 && n2.length() != 0)
+      if (n1.indexOf('.') >= 0 && !n2.isEmpty())
         throw new ParseException(s + " (fractional hours and minutes)");
 
-      if (n1.length() > 0 && !hoursMatched && n2.length() > 0)
+      if (!n1.isEmpty() && !hoursMatched && !n2.isEmpty())
         throw new ParseException(s);
 
       if (minsMatched && !hoursMatched) {
@@ -350,12 +348,12 @@ public class DateUtil {
 
       int seconds = 0;
 
-      if (n1.length() > 0) {
+      if (!n1.isEmpty()) {
         BigDecimal dec = new BigDecimal(n1);
         seconds += dec.multiply(new BigDecimal(3600)).intValue();
       }
 
-      if (n2.length() > 0) {
+      if (!n2.isEmpty()) {
         int minutes = Integer.parseInt(n2);
         if (minutes >= 60)
           throw new ParseException(s);
@@ -369,9 +367,7 @@ public class DateUtil {
         throw new ParseException(s);
       }
       return seconds;
-    } catch (NumberFormatException e) {
-      throw new ParseException(s);
-    } catch (ArithmeticException e) {
+    } catch (NumberFormatException | ArithmeticException e) {
       throw new ParseException(s);
     }
   }
@@ -478,8 +474,7 @@ public class DateUtil {
 
   /** @see #toDayNumberFromInstant(java.util.Date, java.util.TimeZone)  */
   public static int toDayNumberFromInstant(long time, TimeZone tz) {
-    int estimate = (int)(time / Const.DAY);
-    int day = estimate;
+    int day = (int)(time / Const.DAY);
     while (getDayStart(day, tz) > time) day -= 1;
     while (getDayStart(day + 1, tz) <= time) day += 1;
     return day;

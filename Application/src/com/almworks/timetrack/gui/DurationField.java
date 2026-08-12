@@ -44,7 +44,7 @@ public class DurationField extends ATextField {
     Integer value = null;
     boolean errors = false;
 
-    if (text.length() > 0) {
+    if (!text.isEmpty()) {
       try {
         value = DateUtil.parseDuration(text, true);
       } catch (ParseException pe) {

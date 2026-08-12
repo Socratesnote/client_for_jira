@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import static com.almworks.util.collections.Containers.complement;
 import static org.almworks.util.Collections15.*;
 
+//TODO: should this avoid setting system properties and time zones without restoring them? See @CustomDateTimeFormatTests.
 /**
  * @author Vasya
  */
@@ -27,7 +28,7 @@ public class DateUtilTests extends BaseTestCase {
   private final long D = Const.DAY, H = Const.HOUR, C = 100*365*D, M = 10*C;
   /**
    * In some time-zones one day was skipped due to UTC offset was changed (like -10:00 to +14:00 in Pacific/Fakaofo). This leads to one day has never been in this time-zones<br><br>
-   * One example see here:<br> https://wiki.almworks.com/pages/viewpage.action?pageId=12878315 (Вечер с четверга на субботу 30 Dec 2011)
+   * One example see here:<br> <a href="https://wiki.almworks.com/pages/viewpage.action?pageId=12878315">...</a> (Вечер с четверга на субботу 30 Dec 2011)
    */
   private static final String[] DAY_SKIPPERS = new String[] {"Africa/Kwajalein", "Kwajalein", "Pacific/Kwajalein", "Pacific/Enderbury", "Pacific/Kiritimati", "Pacific/Apia", "MIT", "Pacific/Fakaofo"};
 
