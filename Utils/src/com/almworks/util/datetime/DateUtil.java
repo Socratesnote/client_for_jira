@@ -24,13 +24,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DateUtil {
-  /** System property overriding {@link #LOCAL_DATE}'s pattern (see {@link CustomDateFormat}). */
+  /** System property overriding {@link #LOCAL_DATE}'s pattern (see {@link PropertyOverridableFormat}). */
   public static final String PROP_DATE_FORMAT = "alm.format.date";
-  /** System property overriding {@link #LOCAL_TIME}'s pattern (see {@link CustomDateFormat}). */
+  /** System property overriding {@link #LOCAL_TIME}'s pattern (see {@link PropertyOverridableFormat}). */
   public static final String PROP_TIME_FORMAT = "alm.format.time";
 
-  public static final CustomDateFormat _LOCAL_TIME = new CustomDateFormat(DateFormat.getTimeInstance(DateFormat.SHORT), PROP_TIME_FORMAT);
-  public static final CustomDateFormat _LOCAL_DATE = new CustomDateFormat(DateFormat.getDateInstance(DateFormat.SHORT), PROP_DATE_FORMAT);
+  public static final PropertyOverridableFormat _LOCAL_TIME = new PropertyOverridableFormat(DateFormat.getTimeInstance(DateFormat.SHORT), PROP_TIME_FORMAT);
+  public static final PropertyOverridableFormat _LOCAL_DATE = new PropertyOverridableFormat(DateFormat.getDateInstance(DateFormat.SHORT), PROP_DATE_FORMAT);
   // Specifically locale-dependent formats
   public static final DateFormat LOCAL_TIME = _LOCAL_TIME;
   public static final DateFormat LOCAL_DATE = _LOCAL_DATE;
@@ -578,7 +578,14 @@ public class DateUtil {
     }
   }
 
-  private static class CustomDateFormat extends DateFormat {
+  /**
+   * A {@link DateFormat} whose pattern comes from a system property, falling back to a supplied default format when
+   * the property is unset or holds a pattern {@link SimpleDateFormat} rejects.
+   *
+   * <p>Nothing here is specific to dates as opposed to times: the class is instantiated once per half, as
+   * {@link #_LOCAL_DATE} over {@link #PROP_DATE_FORMAT} and {@link #_LOCAL_TIME} over {@link #PROP_TIME_FORMAT}.</p>
+   */
+  private static class PropertyOverridableFormat extends DateFormat {
     @NotNull
     private final DateFormat myDefaultFormat;
     private final String myOption;
@@ -586,7 +593,7 @@ public class DateUtil {
     private DateFormat myDateFormat;
     private boolean myCustom = false;
 
-    public CustomDateFormat(@NotNull DateFormat defaultFormat, String option) {
+    public PropertyOverridableFormat(@NotNull DateFormat defaultFormat, String option) {
       Locale locale = Locale.getDefault(Locale.Category.FORMAT);
       numberFormat = (NumberFormat) NumberFormat.getIntegerInstance(locale).clone();
       calendar = Calendar.getInstance(TimeZone.getDefault(), locale);
@@ -644,10 +651,38 @@ public class DateUtil {
         return myCustom ? myDateFormat : null;
       }
     }
+
+    /**
+      The pattern string this format applies, whether it came from the system property or from the locale default.
+      Null when the locale default is not a {@link SimpleDateFormat} and therefore exposes no pattern; that is not
+      contractual for {@link DateFormat#getDateInstance}, so callers must handle null rather than cast.
+     */
+    @Nullable
+    private String getEffectivePattern() {
+      updateFormat();
+      synchronized (this) {
+        DateFormat format = myCustom ? myDateFormat : myDefaultFormat;
+        return format instanceof SimpleDateFormat ? ((SimpleDateFormat) format).toPattern() : null;
+      }
+    }
   }
 
+  /** A date-and-time format built from {@link #PROP_DATE_FORMAT} and {@link #PROP_TIME_FORMAT}, either of which may be
+     unset and fall back to the locale default.
+     <p>Both halves are joined into one pattern and handled by a single
+     {@link SimpleDateFormat}, so every field is resolved through one {@link Calendar} in one time zone.</p>
+
+     <p>The combined pattern is only available when both halves expose a pattern string; a locale default that is not a
+     {@link SimpleDateFormat} exposes none. In that case this falls back to formatting by composition: this treats the
+     date as an anchor and the time as an elapsed duration, which cannot represent a local day that is not 24 hours
+     long.</p> */
   private static class CustomDateTimeFormat extends DateFormat {
     private final DateFormat myDefault;
+    private boolean myCombinedBuilt = false;
+    private String myLastDatePattern;
+    private String myLastTimePattern;
+    @Nullable
+    private SimpleDateFormat myCombined;
 
     public CustomDateTimeFormat(DateFormat aDefault) {
       Locale locale = Locale.getDefault(Locale.Category.FORMAT);
@@ -658,27 +693,86 @@ public class DateUtil {
 
     @Override
     public StringBuffer format(Date d, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-      //TODO: Does this need time-zone awareness on the Formats?
       DateFormat date = _LOCAL_DATE.getCustomFormat();
       DateFormat time = _LOCAL_TIME.getCustomFormat();
+      // Both unset; use the default.
       if (date == null && time == null) return myDefault.format(d, toAppendTo, fieldPosition);
+      // Combine when possible; compose when needed.
+      synchronized (this) {
+        SimpleDateFormat combined = getCombinedFormat();
+        if (combined != null) return combined.format(d, toAppendTo, fieldPosition);
+      }
+      return formatByComposition(d, toAppendTo, fieldPosition);
+    }
+
+    @Override
+    public Date parse(String source, ParsePosition pos) {
+      DateFormat date = _LOCAL_DATE.getCustomFormat();
+      DateFormat time = _LOCAL_TIME.getCustomFormat();
+      // Both unset; use the default.
+      if (date == null && time == null) return myDefault.parse(source, pos);
+      // Combine when possible; compose when needed.
+      synchronized (this) {
+        SimpleDateFormat combined = getCombinedFormat();
+        if (combined != null) return combined.parse(source, pos);
+      }
+      return parseByComposition(source, pos);
+    }
+
+    /**
+     * The single formatter over the two patterns joined by the one space {@link #formatByComposition} emits, or null
+     * when either half exposes no pattern. Memoized on the pattern pair the way {@code PropertyOverridableFormat.updateFormat}
+     * memoizes on its own pattern, so the common case does not construct a formatter per call. Whether the combined
+     * path is taken at all is therefore decided before parsing starts, never mid-parse on a failure: the same input
+     * must not resolve differently depending on which formatter reached it first.
+     */
+    @Nullable
+    private synchronized SimpleDateFormat getCombinedFormat() {
+      String datePattern = _LOCAL_DATE.getEffectivePattern();
+      String timePattern = _LOCAL_TIME.getEffectivePattern();
+      // Only build the combined format if all parts resolve to valid patterns (and none is cached).
+      if (!myCombinedBuilt || !Objects.equals(datePattern, myLastDatePattern) || !Objects.equals(timePattern, myLastTimePattern)) {
+        myCombinedBuilt = true;
+        myLastDatePattern = datePattern;
+        myLastTimePattern = timePattern;
+        myCombined = buildCombinedFormat(datePattern, timePattern);
+      }
+      // The memo is keyed on the patterns alone, so re-stamp the zone in case the default changed since it was built.
+      if (myCombined != null) myCombined.setTimeZone(TimeZone.getDefault());
+      return myCombined;
+    }
+
+    /**
+     * Locale follows the halves: {@code Locale.US} when both are custom patterns, matching what each half would have
+     * been formatted with on its own, and the format locale otherwise, so a locale default half keeps its own text.
+     */
+    @Nullable
+    private SimpleDateFormat buildCombinedFormat(@Nullable String datePattern, @Nullable String timePattern) {
+      if (datePattern == null || timePattern == null) return null;
+      boolean bothCustom = _LOCAL_DATE.getCustomFormat() != null && _LOCAL_TIME.getCustomFormat() != null;
+      Locale locale = bothCustom ? Locale.US : Locale.getDefault(Locale.Category.FORMAT);
+      try {
+        return new SimpleDateFormat(datePattern + " " + timePattern, locale);
+      } catch (Exception e) {
+        return null;
+      }
+    }
+
+    private StringBuffer formatByComposition(Date d, StringBuffer toAppendTo, FieldPosition fieldPosition) {
       LOCAL_DATE.format(d, toAppendTo, fieldPosition);
       toAppendTo.append(" ");
       LOCAL_TIME.format(d, toAppendTo, fieldPosition);
       return toAppendTo;
     }
 
-    //TODO: the daylight saving bug/limitation can be avoided if the two formatters are joined rather than parsed separately.
     /**
-     * Parses a string containing a date and a time into Java Date objects. Since formats for both can differ or not be specified, date and time are processed separately and summed. Date is interpreted in the local time zone to account for UTC and DST offsets; Time is interpreted as a difference relative to the epoch time.
-     * Known limitation: on a DST transition day the day is not 24 hours long, so the sum is off by the
-     * transition for times after it.
+     * Parses the date half and the time half separately and sums them: the date is an anchor (local midnight of the
+     * entered day) and the time an elapsed duration since that midnight, which holds because the time formatter
+     * is pinned to UTC so its epoch offset is zero.
+     * Known limitation: on a DST transition day the local day is not 24 hours long, so the sum is off by the
+     * transition for readings after it. Used only when no combined pattern can be built.
      */
-    @Override
-    public Date parse(String source, ParsePosition pos) {
-      DateFormat date = _LOCAL_DATE.getCustomFormat();
-      DateFormat time = _LOCAL_TIME.getCustomFormat();
-      if (date == null && time == null) return myDefault.parse(source, pos);
+    private Date parseByComposition(String source, ParsePosition pos) {
       int start = pos.getIndex();
       DateFormat dateFormat = (DateFormat) _LOCAL_DATE.getFormat().clone();
       // For the date, use the default time zone on the local calendar to account for UTC and DST offsets.

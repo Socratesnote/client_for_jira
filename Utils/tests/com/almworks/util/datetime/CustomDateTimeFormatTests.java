@@ -10,7 +10,7 @@ import java.util.TimeZone;
 
 /**
  * Covers {@link DateUtil#LOCAL_DATE_TIME} under a custom {@code alm.format.date} / {@code alm.format.time}
- * pair, where parsing takes the composing path that sums a separately parsed date and time.
+ * pair, where the two patterns are joined and handled by a single formatter.
  */
 public class CustomDateTimeFormatTests extends BaseTestCase {
   private static final String DATE_PATTERN = "yyyy/MM/dd";
@@ -82,36 +82,68 @@ public class CustomDateTimeFormatTests extends BaseTestCase {
     assertEquals(original, parse(DateUtil.LOCAL_DATE_TIME.format(original)));
   }
 
-  /** Midnight is the anchor itself, so it exercises the date half with a zero-length duration added. */
+  /** Midnight has every time field at zero, so it exercises the date half of the pattern on its own. */
   public void testMidnightParsesAsLocalMidnight() throws ParseException {
     assertEquals(localInstant(2026, 8, 11, 0, 0), parse("2026/08/11 00:00"));
   }
 
   /**
-   * Test for a DST transition day **after** the transition, when the
-   * local day is 25 hours long. This is a known limitation of the way dates and times are parsed as separate entities. Pinned behaviour for now.
+   * A DST fall-back day **after** the transition, when the local day is 25 hours long. A joint formatter gets this from a single character and will parse correctly; a composed anchor + delta would be off by an hour.
    */
-  public void testDstFallBackDayIsOffByTheTransition_currentBehaviour() throws ParseException {
-    Date actual_instant= localInstant(2026, 10, 25, 14, 0);
-    Date incorrect_instant = parse(DateUtil.LOCAL_DATE_TIME.format(actual_instant));
-    // These two values should (incorrectly) be 1 hour apart, i.e. 3.6 million milliseconds.
-    assertEquals(60*60*1000,
-            actual_instant.getTime() - incorrect_instant.getTime());
+  public void testDstFallBackDayIsCorrectAfterTheTransition() throws ParseException {
+    Date instant = localInstant(2026, 10, 25, 14, 0);
+    assertEquals(instant, parse(DateUtil.LOCAL_DATE_TIME.format(instant)));
+  }
+
+  /** A DST fall-back day **before** the transition, where both joint and composite are correct. */
+  public void testDstFallBackDayIsCorrectBeforeTheTransition() throws ParseException {
+    Date instant = localInstant(2026, 10, 25, 1, 0);
+    assertEquals(instant, parse(DateUtil.LOCAL_DATE_TIME.format(instant)));
   }
 
   /**
-   * Test for a DST transition day **before** the transition, when the
-   * local day is (still) 24 hours long.
+   * The residual limitation, which no single-format change can remove: on a fall-back day one local hour occurs
+   * twice (here {@link #NOT_MY_ZONE_WITH_DST} at Helsinki switches at 04:00, so 03:00-03:59 repeats), and a pattern carrying no zone
+   * or offset field cannot say which occurrence is meant. Pinned: the calendar resolves such a reading to the
+   * **later** occurrence, the one at standard time, so the earlier one does not survive a format/parse round trip.
    */
-  public void testDstFallBackDayIsCorrectBeforeTheTransition() throws ParseException {
-    Date actual_instant= localInstant(2026, 10, 25, 1, 0);
-    Date incorrect_instant = parse(DateUtil.LOCAL_DATE_TIME.format(actual_instant));
-    // These two values should be the same because the transition hasn't happened yet.
-    assertEquals(0,
-            actual_instant.getTime() - incorrect_instant.getTime());
+  public void testRepeatedHourResolvesToTheLaterOccurrence() throws ParseException {
+    Date later = parse("2026/10/25 03:30");
+    // Both occurrences print the same reading, so the earlier one is that reading minus the transition.
+    Date earlier = new Date(later.getTime() - 60 * 60 * 1000);
+    assertEquals("2026/10/25 03:30", DateUtil.LOCAL_DATE_TIME.format(earlier));
+    assertEquals(later, parse(DateUtil.LOCAL_DATE_TIME.format(earlier)));
   }
 
-  /** With neither property set the composing path is skipped entirely and the default formatter is used. */
+  /** A DST spring-forward day, where the local day is 23 hours long, for an instant after the gap. */
+  public void testDstSpringForwardDayIsCorrectAfterTheGap() throws ParseException {
+    Date instant = localInstant(2026, 3, 29, 14, 0);
+    assertEquals(instant, parse(DateUtil.LOCAL_DATE_TIME.format(instant)));
+  }
+
+  /**
+   On the spring-forward day the local hour 03:00-03:59 does not exist ({@link #NOT_MY_ZONE_WITH_DST} jumps from
+   03:00 to 04:00). Pinned: a reading inside the gap is resolved leniently, one hour forward, so it lands on 04:30.
+   */
+  public void testNonexistentSpringForwardReadingResolvesForward() throws ParseException {
+    assertEquals(localInstant(2026, 3, 29, 4, 30), parse("2026/03/29 03:30"));
+  }
+
+  /** With only the date property set, the time half comes from the locale default and must still join into one pattern. */
+  public void testOnlyDatePropertySetStillRoundTrips() throws ParseException {
+    System.clearProperty(DateUtil.PROP_TIME_FORMAT);
+    Date original = localInstant(2026, 10, 25, 14, 0);
+    assertEquals(original, parse(DateUtil.LOCAL_DATE_TIME.format(original)));
+  }
+
+  /** With only the time property set, the date half comes from the locale default. */
+  public void testOnlyTimePropertySetStillRoundTrips() throws ParseException {
+    System.clearProperty(DateUtil.PROP_DATE_FORMAT);
+    Date original = localInstant(2026, 10, 25, 14, 0);
+    assertEquals(original, parse(DateUtil.LOCAL_DATE_TIME.format(original)));
+  }
+
+  /** With neither property set the custom path is skipped entirely and the default formatter is used. */
   public void testUnsetPropertiesDelegateToTheDefaultFormat() throws ParseException {
     System.clearProperty(DateUtil.PROP_DATE_FORMAT);
     System.clearProperty(DateUtil.PROP_TIME_FORMAT);
