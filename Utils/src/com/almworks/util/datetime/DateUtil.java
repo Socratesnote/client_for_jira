@@ -658,6 +658,7 @@ public class DateUtil {
 
     @Override
     public StringBuffer format(Date d, StringBuffer toAppendTo, FieldPosition fieldPosition) {
+      //TODO: Does this need time-zone awareness on the Formats?
       DateFormat date = _LOCAL_DATE.getCustomFormat();
       DateFormat time = _LOCAL_TIME.getCustomFormat();
       if (date == null && time == null) return myDefault.format(d, toAppendTo, fieldPosition);
@@ -667,6 +668,12 @@ public class DateUtil {
       return toAppendTo;
     }
 
+    //TODO: the daylight saving bug/limitation can be avoided if the two formatters are joined rather than parsed separately.
+    /**
+     * Parses a string containing a date and a time into Java Date objects. Since formats for both can differ or not be specified, date and time are processed separately and summed. Date is interpreted in the local time zone to account for UTC and DST offsets; Time is interpreted as a difference relative to the epoch time.
+     * Known limitation: on a DST transition day the day is not 24 hours long, so the sum is off by the
+     * transition for times after it.
+     */
     @Override
     public Date parse(String source, ParsePosition pos) {
       DateFormat date = _LOCAL_DATE.getCustomFormat();
@@ -674,14 +681,17 @@ public class DateUtil {
       if (date == null && time == null) return myDefault.parse(source, pos);
       int start = pos.getIndex();
       DateFormat dateFormat = (DateFormat) _LOCAL_DATE.getFormat().clone();
-      dateFormat.setCalendar(calendar);
-      dateFormat.setTimeZone(TimeZone.getTimeZone(ZoneOffset.UTC));
+      // For the date, use the default time zone on the local calendar to account for UTC and DST offsets.
+      dateFormat.setTimeZone(TimeZone.getDefault());
       Date parsedDate = dateFormat.parse(source, pos);
       if (pos.getIndex() == start || parsedDate == null) return null;
       start = pos.getIndex();
-      Date parsedTime = _LOCAL_TIME.getFormat().parse(source, pos);
+      DateFormat timeFormat = (DateFormat) _LOCAL_TIME.getFormat().clone();
+      // For the time, set the time zone to UTC so that the correct "midnight" is taken as the epoch and a relative time is obtained.
+      timeFormat.setTimeZone(TimeZone.getTimeZone(ZoneOffset.UTC));
+      Date parsedTime = timeFormat.parse(source, pos);
       if (pos.getIndex() == start || parsedTime == null) return null;
-      return new Date(parsedDate.getTime()  + parsedTime.getTime());
+      return new Date(parsedDate.getTime() + parsedTime.getTime());
     }
   }
 }

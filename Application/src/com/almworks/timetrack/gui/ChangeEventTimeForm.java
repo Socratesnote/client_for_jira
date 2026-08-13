@@ -352,13 +352,14 @@ public class ChangeEventTimeForm extends BaseAdjustmentForm<Long> {
             private void updateSpent() {
                 final long start;
                 final long end;
-
-                //TODO: Maybe this needs a check for the mydateModel.getValue returning null?
+                final Date date = myDateModel.getValue();
+                if (date == null) return;
+                final long time = date.getTime();
                 if (myEndTime) {
                     start = myEditedPeriod.started;
-                    end = myDateModel.getValue().getTime();
+                    end = time;
                 } else {
-                    start = myDateModel.getValue().getTime();
+                    start = time;
                     end = System.currentTimeMillis();
                 }
 

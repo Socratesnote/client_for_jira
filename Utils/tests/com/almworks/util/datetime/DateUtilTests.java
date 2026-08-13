@@ -32,10 +32,33 @@ public class DateUtilTests extends BaseTestCase {
    */
   private static final String[] DAY_SKIPPERS = new String[] {"Africa/Kwajalein", "Kwajalein", "Pacific/Kwajalein", "Pacific/Enderbury", "Pacific/Kiritimati", "Pacific/Apia", "MIT", "Pacific/Fakaofo"};
 
+  private TimeZone myOriginalZone;
+  private String myOriginalDatePattern;
+  private String myOriginalTimePattern;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myOriginalZone = TimeZone.getDefault();
+    myOriginalDatePattern = System.getProperty(DateUtil.PROP_DATE_FORMAT);
+    myOriginalTimePattern = System.getProperty(DateUtil.PROP_TIME_FORMAT);
+  }
+
   @Override
   protected void tearDown() throws Exception {
+    restoreProperty(DateUtil.PROP_DATE_FORMAT, myOriginalDatePattern);
+    restoreProperty(DateUtil.PROP_TIME_FORMAT, myOriginalTimePattern);
+    TimeZone.setDefault(myOriginalZone);
     DateUtil.clearCaches();
     super.tearDown();
+  }
+
+  private static void restoreProperty(String key, String value) {
+    if (value == null) {
+      System.clearProperty(key);
+    } else {
+      System.setProperty(key, value);
+    }
   }
 
   public void testFriendlyView() {
