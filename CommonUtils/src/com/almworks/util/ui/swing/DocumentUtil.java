@@ -52,11 +52,10 @@ public class DocumentUtil {
     }
   }
 
-  public static boolean changeDocumentText(Document document, String newText) {
+  public static void changeDocumentText(Document document, String newText) {
     if (Util.equals(newText, getDocumentText(document)))
-      return false;
+      return;
     setDocumentText(document, newText);
-    return true;
   }
 
   public static void copyDocumentText(Document from, Document to) {
@@ -90,7 +89,7 @@ public class DocumentUtil {
       } else {
         if (length > 0)
           document.remove(offset, length);
-        if (replacement.length() > 0)
+        if (!replacement.isEmpty())
           document.insertString(offset, replacement, null);
       }
     } catch (BadLocationException e) {

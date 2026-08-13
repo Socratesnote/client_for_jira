@@ -12,6 +12,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author : Dyoma
@@ -91,7 +92,7 @@ public abstract class PropertyKey <M,V> extends TypedKey<M> {
       }
 
       public String getModelValue(PropertyModelMap properties) {
-        return DocumentUtil.getDocumentText(properties.get(this));
+        return DocumentUtil.getDocumentText(Objects.requireNonNull(properties.get(this)));
       }
 
       public void setModelValue(PropertyModelMap properties, String value) {

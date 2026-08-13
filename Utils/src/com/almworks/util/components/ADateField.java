@@ -96,7 +96,7 @@ public class ADateField extends JComponent implements UndoUtil.Editable {
           boolean hasDate = true;
           String text = textField.getText().trim();
           Date date = null;
-          if (text.length() > 0) {
+          if (!text.isEmpty()) {
             myFormat.setLenient(false);
             try {
               myFormat.parse(text);
@@ -252,7 +252,6 @@ public class ADateField extends JComponent implements UndoUtil.Editable {
 
     protected JComponent createPopupComponent() {
       Date date = getDateModel().getValue();
-      // todo http://snow:10500/browse/JC-645 we can specify selectedComponents for time of day
       JCalendar component = new JCalendar(new GregorianCalendar(myTimezone), Locale.getDefault(), JCalendar.DISPLAY_DATE, true);
       component.setBackground(UIManager.getColor("TextField.background"));
       component.setBorder(UIManager.getBorder("PopupMenu.border"));
