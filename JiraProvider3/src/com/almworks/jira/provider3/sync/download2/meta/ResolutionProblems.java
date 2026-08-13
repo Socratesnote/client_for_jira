@@ -24,14 +24,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Solves entity-resolution problems for Projects, Components, Versions, Project Roles<br>
- * Loads brief projects to resolve Project problem<br>
- * Loads full corresponding projects to resolve Component or Version problem<br>
- * Load full all configured project to resolve Project Role problem
+ * Solves entity-resolution problems for Projects, Components, Versions, and Project Roles<br>
+ * Project problems: performs a brief project list reload<br>
+ * Component, Version or Project Role problems: reloads full corresponding projects <br>
+ * For problems that don't report which project they belong to (see getUncreatable), it throws
+ * errors because these violate invariant types and cause synchronization failures.
  * @see com.almworks.items.entities.api.collector.transaction.write.EntityWriter#getUncreatable()
  */
 public class ResolutionProblems {
@@ -41,11 +41,11 @@ public class ResolutionProblems {
   private final RemoteMetaConfig myMetaConfig;
   private final List<EntityHolder> myProblems = Collections15.arrayList();
   /**
-   * Not null means has to load all projects. true - full load, false - brief only
+   * Indicates that at least some problems can likely be resolved by a brief project list reload.
    */
-  private Boolean myAllProjectsFull = null;
+  private boolean myDoReloadProjectList = false;
   /**
-   * Projects to load full, identified by ID or KEY
+   * Projects to load fully, identified by ID or KEY
    */
   private final List<Pair<Integer, String>> myFullProjects = Collections15.arrayList();
 
@@ -60,27 +60,32 @@ public class ResolutionProblems {
     myProblems.addAll(problems);
   }
 
+  /**
+   * Resolving problems first checks if a brief reload suffices; in that case, only the list of projects is refreshed and written to the database. If more is needed, a full reload of specific projects is carried out.
+   */
   public void resolve() throws ConnectorException {
     prepare();
-    if (myAllProjectsFull == null && myFullProjects.isEmpty()) {
-      LogHelper.error("No problem detected");
+    if (!myDoReloadProjectList && myFullProjects.isEmpty()) {
+      LogHelper.error("Resolve called but no problem detected");
       return;
     }
     EntityTransaction transaction = myServerInfo.createTransaction();
-    if (Boolean.TRUE.equals(myAllProjectsFull)) {
-      ArrayList<Trio<Integer,String,String>> projects =
-        LoadProjects.loadBriefProjects(mySession, transaction, ProgressInfo.createDeaf(myCancelFlag));
-      LoadProjects.filterProjects(projects, myServerInfo.getConnection().getProjectsFilter());
-      new LoadProjects(transaction, true).loadFullProjects(mySession, projects, ProgressInfo.createDeaf(myCancelFlag));
-    } else if (!myFullProjects.isEmpty()) {
-      ArrayList<Trio<Integer,String,String>> projects = LoadProjects.loadBriefProjects(mySession, transaction, ProgressInfo.createDeaf(myCancelFlag));
-      for (Iterator<Trio<Integer, String, String>> it = projects.iterator(); it.hasNext(); ) {
-        Trio<Integer, String, String> project = it.next();
-        if (!needsFull(project)) it.remove();
-      }
-      if (projects.isEmpty()) LogHelper.error("No project requires full load", myFullProjects);
-      else new LoadProjects(transaction, false).loadFullProjects(mySession, projects, ProgressInfo.createDeaf(myCancelFlag));
+    // If only a brief refresh is needed, only load and write that to the database.
+    if (myDoReloadProjectList && myFullProjects.isEmpty()) {
+      // No need to store the output; we only care about the transaction that occurs.
+      LoadProjects.loadBriefProjects(mySession, transaction, ProgressInfo.createDeaf(myCancelFlag));
     }
+    // If any full reloads are needed, the brief refresh also occurs and is used to inform the full reload.
+    if (!myFullProjects.isEmpty()) {
+      ArrayList<Trio<Integer,String,String>> projects = LoadProjects.loadBriefProjects(mySession, transaction, ProgressInfo.createDeaf(myCancelFlag));
+      projects.removeIf(project -> !needsFull(project));
+      if (projects.isEmpty()) LogHelper.error("No project requires full load", myFullProjects);
+      else {
+        // Load problematic projects in full.
+        new LoadProjects(transaction, false).loadFullProjects(mySession, projects, ProgressInfo.createDeaf(myCancelFlag));
+      }
+    }
+    // Write transactions to database.
     EntityDBUpdate update = new EntityDBUpdate(transaction, myMetaConfig);
     myServerInfo.getSyncManager().writeDownloaded(update).waitForCompletion();
   }
@@ -102,35 +107,59 @@ public class ResolutionProblems {
     return false;
   }
 
-  private void prepare() throws JiraInternalException {
+  // Decides what has to be re-downloaded to resolve the problems collected so far. Some problems like projects can be solved by a brief reload of the project list, while more complex problems are written to a list of projects marked for a full re-load, which are handled on @resolve().
+  // Package-visible, together with the two accessors below, so ResolutionProblemsTests can drive it without a session.
+  void prepare() throws JiraInternalException {
     for (EntityHolder problem : myProblems) {
-      if (Boolean.TRUE.equals(myAllProjectsFull)) break;
-      Entity type = problem.getItemType();
-      if (ServerProjectRole.TYPE.equals(type)) myAllProjectsFull = true;
-      else if (ServerProject.TYPE.equals(type)) myAllProjectsFull = false;
-      else {
-        EntityKey<Entity> projectRef;
-        if (ServerVersion.TYPE.equals(type)) projectRef = ServerVersion.PROJECT;
-        else if (ServerComponent.TYPE.equals(type)) projectRef = ServerComponent.PROJECT;
-        else {
-          LogHelper.error("Unknown problem", type, type.getTypeId(), problem);
-          throw failure();
-        }
-        EntityHolder project = problem.getReference(projectRef);
-        if (project == null) {
-          LogHelper.error("Missing project", problem, type);
-          throw failure();
-        }
-        markLoadFull(project);
+      if (problem == null) {
+        LogHelper.error("Unknown problem type null");
+        throw failure();
       }
+
+      Entity type = problem.getItemType();
+      // This is a project; a brief load suffices.
+      if (ServerProject.TYPE.equals(type)) {
+        myDoReloadProjectList = true;
+        continue;
+      }
+
+      EntityKey<Entity> projectRef;
+      // Determine the reference type.
+      if (ServerVersion.TYPE.equals(type)) projectRef = ServerVersion.PROJECT;
+      else if (ServerComponent.TYPE.equals(type)) projectRef = ServerComponent.PROJECT;
+      else if (ServerProjectRole.TYPE.equals(type)) projectRef = ServerProjectRole.PROJECT;
+      else {
+        LogHelper.error("Unknown problem type", type, type.getTypeId(), problem);
+        throw failure();
+      }
+
+      EntityHolder project = problem.getReference(projectRef);
+      if (project == null) {
+        // All three types carry their project as part of their identity, so a problem without one cannot have been
+        // collected in the first place: a place is only created for a row that satisfies at least one of the type's
+        // resolutions, and every resolution of all three names the project. Roles are potentially an exception because they can be built from comment visibility which carries only a name, but such a role should now fail to identify at collection, well before it could reach this method as a problem.
+        LogHelper.error("Missing project", problem, type);
+        throw failure();
+      }
+      markLoadFull(project);
     }
+  }
+
+  // Whether a brief reload of the project list was asked for. See the field.
+  boolean isReloadProjectList() {
+    return myDoReloadProjectList;
+  }
+
+  // The projects marked for a full load, as (id, key) pairs. Either half may be null.
+  List<Pair<Integer, String>> getFullProjects() {
+    return myFullProjects;
   }
 
   private void markLoadFull(@NotNull EntityHolder project) throws JiraInternalException {
     String key = project.getScalarValue(ServerProject.KEY);
     Integer id = project.getScalarValue(ServerProject.ID);
     if (id == null && key == null) {
-      LogHelper.error("No project identity", key, id, project);
+      LogHelper.error("No project identity for ", project);
       throw failure();
     }
     for (Pair<Integer, String> idKey : myFullProjects) {

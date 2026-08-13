@@ -28,7 +28,7 @@ import org.json.simple.JSONObject;
 import java.util.*;
 
 /**
- * Loads from PATH_PROJECT, PATH_PROJECT/KEY
+ * Loads from PATH_PROJECT, PATH_PROJECT/KEY:
  * <ul>
  * <li>projects</li>
  * <li>issue types</li>
@@ -76,10 +76,7 @@ class LoadProjects {
 
   public static void filterProjects(ArrayList<Trio<Integer, String, String>> allProjects, @Nullable Set<Integer> filter) {
     if (filter == null) return;
-    for (Iterator<Trio<Integer, String, String>> it = allProjects.iterator(); it.hasNext(); ) {
-      Trio<Integer, String, String> project = it.next();
-      if (!filter.contains(project.getFirst())) it.remove();
-    }
+    allProjects.removeIf(project -> !filter.contains(project.getFirst()));
   }
 
   private static ArrayList<Trio<Integer, String, String>> processProjectBag(EntityTransaction transaction, List<JSONObject> projects) {
