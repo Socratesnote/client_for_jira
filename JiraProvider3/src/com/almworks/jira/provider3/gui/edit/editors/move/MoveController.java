@@ -11,6 +11,7 @@ import com.almworks.jira.provider3.remotedata.issue.MoveIssueStep;
 import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.schema.IssueType;
 import com.almworks.util.LogHelper;
+import com.almworks.util.advmodel.AListModel;
 import com.almworks.util.collections.LongSet;
 import com.almworks.util.commons.Condition;
 import com.almworks.util.commons.Procedure;
@@ -147,6 +148,42 @@ public class MoveController {
   @Nullable
   ItemKey getTypeValue(EditModelState model) {
     return myTypeEditor == null ? null : myTypeEditor.getValue(model);
+  }
+
+  /**
+   * Re-selects the Issue Type after the offered variants have been rebuilt for a different project. Does nothing
+   * when no type is selected; otherwise applies {@link #pickTypeForVariants}, which may clear the field.
+   */
+  void repickTypeForProject(EditModelState model, AListModel<? extends ItemKey> variants) {
+    if (myTypeEditor == null) return;
+    ItemKey current = getTypeValue(model);
+    if (current == null || current.getItem() <= 0) return;
+    myTypeEditor.setValue(model, pickTypeForVariants(current, variants));
+  }
+
+  /**
+   * The Issue Type to select from a freshly narrowed variants list, given the one currently selected. Returns
+   * {@code current} when it is still offered, the variant with the same name when it is not, and {@code null}
+   * when no name matches - which the caller applies as clearing the field.
+   *
+   * Two projects on different issue type schemes share no issue type ids, so the id cannot be carried across a
+   * project change and the name is the only thing left to match on. Names do not always correspond either - Jira
+   * spells the sub-task type differently from one scheme to the next - which is what the null return is for.
+   * Matching uses the display name rather than IssueType.NAME, which is not subloaded onto LoadedItemKey and so
+   * reads as null.
+   */
+  @Nullable
+  static ItemKey pickTypeForVariants(@Nullable ItemKey current, AListModel<? extends ItemKey> variants) {
+    if (current == null || current.getItem() <= 0) return null;
+    String name = current.getDisplayName();
+    ItemKey sameName = null;
+    for (int i = 0; i < variants.getSize(); i++) {
+      ItemKey variant = variants.getAt(i);
+      if (variant == null) continue;
+      if (variant.getItem() == current.getItem()) return current; // Still offered - keep the user's selection.
+      if (sameName == null && name != null && name.equalsIgnoreCase(variant.getDisplayName())) sameName = variant;
+    }
+    return sameName;
   }
 
   int getCurrentMode(EditModelState model) {

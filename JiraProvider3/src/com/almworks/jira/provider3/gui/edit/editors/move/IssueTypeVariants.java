@@ -14,6 +14,7 @@ import com.almworks.items.gui.meta.EnumTypesCollector;
 import com.almworks.items.gui.meta.LoadedItemKey;
 import com.almworks.items.gui.meta.schema.enums.LoadedEnumNarrower;
 import com.almworks.items.sync.VersionSource;
+import com.almworks.jira.provider3.schema.Issue;
 import com.almworks.jira.provider3.schema.IssueType;
 import com.almworks.util.LogHelper;
 import com.almworks.util.advmodel.AListModel;
@@ -50,6 +51,8 @@ class IssueTypeVariants implements EnumVariantsSource {
     final LoadedEnumNarrower narrower = enumType.getNarrower();
     EnumModelConfigurator listener = new EnumModelConfigurator(model, acceptor) {
       private int myLastMode = -1;
+      private Long myLastProject = null;
+      private boolean myProjectSeen = false;
 
       @Override
       protected void updateVariants(Lifespan life, VariantsAcceptor<ItemKey> acceptor, AListModel<LoadedItemKey> variants, EditItemModel model, UserDataHolder data) {
@@ -63,6 +66,15 @@ class IssueTypeVariants implements EnumVariantsSource {
           myLastMode = mode;
         }
         myDelegate.sendToAcceptor(life, acceptor, variants, model, data);
+        // The variants have just been rebuilt. When that was caused by a project change the selected issue type
+        // belongs to the old project's scheme and is no longer offered, and nothing else re-picks it: the combo
+        // box sets the editor value once, at wiring time (AttachComboBox.connect). Left alone the stale type
+        // survives and fails verification as "<type> is not allowed".
+        Long project = model.getSingleEnumValue(Issue.PROJECT);
+        if (controller != null && myProjectSeen && !Util.equals(project, myLastProject))
+          controller.repickTypeForProject(model, variants);
+        myLastProject = project;
+        myProjectSeen = true;
       }
 
       @Override
