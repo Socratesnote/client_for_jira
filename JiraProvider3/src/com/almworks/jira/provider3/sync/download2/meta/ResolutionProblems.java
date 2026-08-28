@@ -45,7 +45,7 @@ public class ResolutionProblems {
    */
   private boolean myDoReloadProjectList = false;
   /**
-   * Projects to load fully, identified by ID or KEY
+   * Projects to load fully, identified by ID or KEY.
    */
   private final List<Pair<Integer, String>> myFullProjects = Collections15.arrayList();
 

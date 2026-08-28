@@ -203,7 +203,7 @@ class LoadProjects {
   // stored once per project, identified by (id, project). That is what scopes the visibility picker and makes
   // resolution by name unambiguous. Membership is fetched here, one request per role, so that opening the
   // visibility dropdown stays instant; the sync already walks every project.
-  private void storeRoles(RestSession session, EntityHolder project, int prjId, JSONObject roles) {
+  void storeRoles(RestSession session, EntityHolder project, int prjId, JSONObject roles) {
     if (roles == null) return;
     for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) roles).entrySet()) {
       String name = Util.castNullable(String.class, entry.getKey());
