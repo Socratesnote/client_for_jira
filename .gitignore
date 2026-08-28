@@ -7,4 +7,6 @@ CLAUDE.*.md
 AGENTS.md
 HISTORY.md
 PLAN.md
+.plan/
+.history/
 .claude/*
